@@ -19,7 +19,7 @@ services:
     tty: true
     stdin_open: true
     volumes:
-      - npm5:/app/node_module
+      - npm5:/app/node_modules
       - ./server:/app
     command: npm run compose
     depends_on: 
