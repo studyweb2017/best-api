@@ -4,15 +4,15 @@
 </template>
 
 <script lang="ts">
+import Vue from 'vue'
 import http from '../service/http.ts'
+import Component from 'vue-class-component'
 
-http.get('/api/11').then(resp => console.log(resp))
-export default {
-  name: 'hello',
-  data () {
-    return {
-      msg: 'Welcome to Best API'
-    }
+@Component
+export default class Hello extends Vue {
+  msg: string = 'Welcome to Best API'
+  async mounted () {
+    this.msg = (await http.get('/api/11')).toString()
   }
 }
 </script>
@@ -21,6 +21,7 @@ export default {
 <style scoped lang="stylus">
 h1, h2 
   font-weight normal
+  color: blue
 
 ul 
   list-style-type none
@@ -29,7 +30,4 @@ ul
 li 
   display inline-block
   margin 0 10px
-
-a 
-  color #42b983
 </style>
