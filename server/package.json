@@ -4,11 +4,11 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "date": "apk update && apk add tzdata && cp /usr/share/zoneinfo/Hongkong /etc/localtime",
-    "proxy": "npm set registry https://registry.npm.taobao.org",
+    "compose": "npm run proxy && npm run init && sh",
+    "dev": "nodemon -L -e ts,json  --exec \"tsc &&node --harmony --inspect=0.0.0.0:5858 dist/app.js\"",
     "init": "npm i",
-    "compose": "npm run date && npm run proxy && npm run init && sh",
-    "dev": "",
+    "proxy": "npm set registry https://registry.npm.taobao.org",
+    "start": "pm2 start ./dist/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "yalishizhude",

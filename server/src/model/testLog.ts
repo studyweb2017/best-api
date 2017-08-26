@@ -1,4 +1,4 @@
-const { Schema, mongoose } = require('../util/db')
+import { Schema, mongoose } from '../util/db'
 
 let TestLogSchema = new Schema({
   projectName: String,
@@ -12,7 +12,7 @@ let TestLogSchema = new Schema({
 
 let TestLogModel = mongoose.model('testLog', TestLogSchema)
 
-module.exports = {
+export {
   TestLogSchema,
   TestLogModel
 }

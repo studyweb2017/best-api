@@ -1,4 +1,4 @@
-const { Schema, mongoose } = require('../util/db')
+import { Schema, mongoose } from '../util/db'
 
 let SystemSchema = new Schema({
   coverUrl: String,
@@ -16,7 +16,7 @@ let SystemSchema = new Schema({
 
 let SystemModel = mongoose.model('system', SystemSchema)
 
-module.exports = {
+export {
   SystemSchema,
   SystemModel
 }

@@ -1,4 +1,4 @@
-const { Schema, mongoose } = require('../util/db')
+import { Schema, mongoose } from '../util/db'
 
 let MemberSchema = new Schema({
   account: {
@@ -25,7 +25,7 @@ let MemberSchema = new Schema({
 })
 
 let MemberModel = mongoose.model('member', MemberSchema)
-module.exports = {
+export {
   MemberSchema,
   MemberModel
 }

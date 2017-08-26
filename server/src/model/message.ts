@@ -1,4 +1,4 @@
-const { Schema, mongoose } = require('../util/db')
+import { Schema, mongoose } from '../util/db'
 
 let MessageSchema = new Schema({
   interfaceId: String,
@@ -9,7 +9,7 @@ let MessageSchema = new Schema({
 
 let MessageModel = mongoose.model('message', MessageSchema)
 
-module.exports = {
+export = {
   MessageSchema,
   MessageModel
 }

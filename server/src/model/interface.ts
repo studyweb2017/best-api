@@ -1,14 +1,6 @@
-const { Schema, mongoose } = require('../util/db')
+import { Schema, mongoose } from '../util/db'
 
 let InterfaceSchema = new Schema({
-  id: {
-    type: String,
-    default: () => {
-      let date = new Date()
-      let random = Math.floor(Math.random() * 1000)
-      return date + random
-    }
-  },
   url: {
     type: String,
     match: /^\//
@@ -101,7 +93,8 @@ let InterfaceSchema = new Schema({
 })
 
 let InterfaceModel = mongoose.model('interface', InterfaceSchema)
-module.exports = {
+
+export {
   InterfaceSchema,
   InterfaceModel
 }

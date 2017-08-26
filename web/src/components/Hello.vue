@@ -1,15 +1,17 @@
 <template lang="pug">
   div.hello
     h1 {{msg}}
-    h2 Essential Links
 </template>
 
-<script>
+<script lang="ts">
+import http from '../service/http.ts'
+
+http.get('/api/11').then(resp => console.log(resp))
 export default {
   name: 'hello',
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App'
+      msg: 'Welcome to Best API'
     }
   }
 }

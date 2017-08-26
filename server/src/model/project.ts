@@ -1,6 +1,6 @@
-const { Schema, mongoose } = require('../util/db')
-const { MemberSchema } = require('./member')
-const { InterfaceSchema } = require('./interface')
+import { Schema, mongoose } from '../util/db'
+import { MemberSchema } from './member'
+import { InterfaceSchema } from './interface'
 
 let ProjectSchema = new Schema({
   id: {
@@ -25,7 +25,9 @@ let ProjectSchema = new Schema({
   interfaceList: [InterfaceSchema]
 })
 
-module.exports = {
+let ProjectModel = mongoose.model('project', ProjectSchema)
+
+export {
   ProjectSchema,
-  ProjectModel: mongoose.model('project', ProjectSchema)
+  ProjectModel
 }
