@@ -1,3 +1,4 @@
 export interface Context {
-  body: string
+  body: any,
+  query: any
 }

@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-
 export default {
   get: (url: string, param?: object) => new Promise(async(resolve, reject) => {
     try {

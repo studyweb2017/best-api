@@ -1,13 +1,9 @@
 import { Schema, mongoose } from '../util/db'
 import { MemberSchema } from './member'
-import { InterfaceSchema } from './interface'
+import { InterfaceSchema, InterfaceInterface } from './interface'
+import { TestLogSchema, TestLogInterface } from './testLog'
 
 let ProjectSchema = new Schema({
-  id: {
-    type: String,
-    maxlength: 8,
-    required: true
-  },
   name: {
     type: String,
     maxlength: 20,
@@ -22,12 +18,30 @@ let ProjectSchema = new Schema({
     maxlength: 200
   },
   memberList: [String],
-  interfaceList: [InterfaceSchema]
+  interfaceList: {
+    type: [InterfaceSchema],
+    default: []
+  },
+  testList: {
+    type: [TestLogSchema],
+    default: []
+  }
 })
 
 let ProjectModel = mongoose.model('project', ProjectSchema)
 
+interface ProjectInterface {
+  id?: string,
+  name?: string,
+  desc?: string,
+  testUrl?: string
+  memberList?: [string],
+  interfaceList?: [InterfaceInterface],
+  testList?: [TestLogInterface]
+}
+
 export {
   ProjectSchema,
-  ProjectModel
+  ProjectModel,
+  ProjectInterface
 }

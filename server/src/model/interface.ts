@@ -92,9 +92,57 @@ let InterfaceSchema = new Schema({
   }
 })
 
-let InterfaceModel = mongoose.model('interface', InterfaceSchema)
+interface InterfaceInterface {
+  url?: string,
+  name?: string
+  version?: string,
+  desc?: string,
+  timestamp?: number
+  creatorId?: string,
+  editorId?: string,
+  delay?: number,
+  state?: {
+    id: number,
+    name: string
+  },
+  method?: string,
+  exceptionList?: [{
+    enabled: boolean,
+    result: string,
+    desc: string,
+    probability: number
+  }],
+  request?: {
+    headerList: [{
+      key: string,
+      value: string
+    }],
+    paramList: [{
+      id: string,
+      isNecessary: boolean,
+      dataType: string,
+      mockData: string,
+      validator: string,
+      desc: string
+    }]
+  },
+  response?: {
+    headerList: [{
+      key: string,
+      value: string
+    }],
+    paramList: [{
+      id: string,
+      isNecessary: boolean,
+      dataType: string,
+      mockData: string,
+      validator: string,
+      desc: string
+    }]
+  }
+}
 
 export {
   InterfaceSchema,
-  InterfaceModel
+  InterfaceInterface
 }
