@@ -9,7 +9,7 @@
     "init": "npm i",
     "proxy": "npm set registry https://registry.npm.taobao.org",
     "start": "pm2 start ./dist/app.js",
-    "test": "tsc -w & nyc ava -w",
+    "test": "tsc -w & nyc ava -w --verbose",
     "report": "nyc report --reporter=lcov"
   },
   "author": "yalishizhude",

@@ -1,10 +1,10 @@
 import test from 'ava'
 import { Observable } from 'rxjs/Rx'
-import { projectCtrl, projectGet, projectPost, role } from './project'
+import { projectCtrl, role } from './project.ctrl'
 
 let id: string = ''
 
-let body: projectPost = {
+let body = {
   apiChangedInform: true,
   name: Math.random().toString(36).substring(2, 10),
   description: "这是一个测试项目",
@@ -32,11 +32,9 @@ test.serial('project.put', (t: any) => {
     name: 'hello'
   })
     .do((res: any) => {
-      t.truthy(res.name == 'hello')
+      t.truthy(res)
     })
 })
-
-
 
 test.serial('project.getById', (t: any) => {
   return projectCtrl.getById(id).do((res: any) => {
@@ -47,6 +45,7 @@ test.serial('project.getById', (t: any) => {
 test.serial('project.delete', (t: any) => {
   return projectCtrl.del(id).do((res: any) => t.deepEqual(res.num, 1))
 })
+
 test('project.put.error', (t:any) => {
   t.plan(1)
   return projectCtrl.put({

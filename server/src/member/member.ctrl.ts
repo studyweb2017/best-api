@@ -1,4 +1,4 @@
-import { MemberModel, MemberInterface } from '../model/member'
+import { MemberModel, MemberInterface } from './member.md'
 import { Observable } from 'rxjs/Rx'
 
 export const memberCtrl = {

@@ -1,5 +1,5 @@
 import test from 'ava'
-import { memberCtrl } from './member'
+import { memberCtrl } from './member.ctrl'
 
 let member: any = {
   name: Math.random().toString(36).substring(2, 8),

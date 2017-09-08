@@ -1,5 +1,4 @@
-import { ProjectModel, ProjectInterface } from '../model/project'
-import { InterfaceInterface } from '../model/interface'
+import { ProjectModel, ProjectInterface } from './project.md'
 import { Observable } from 'rxjs/Rx'
 
 export interface projectGet extends ProjectInterface {
@@ -79,7 +78,9 @@ export const projectCtrl = {
   put(project: projectPut) {
     return Observable.fromPromise(
       new Promise((res, rej) => {
-        ProjectModel.updateOne({ _id: project.id }, project, (e: any, r: any) => e ? rej(e) : res(r.n))
+        ProjectModel.updateOne({ _id: project.id }, project, (e: any, r: any) => {
+          e ? rej(e) : res(r.n)
+        })
       }))
   },
   del(id: string) {
