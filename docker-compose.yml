@@ -32,6 +32,8 @@ services:
   db:
     image: mongo:latest
     container_name: api-db
+    ports:
+      - 27018:27017
 volumes:
   api_web_modules:
   api_server_modules:

@@ -1,6 +1,7 @@
 import { Schema, mongoose } from '../util/db' 
 
-let TestLogSchema = new Schema({
+const TestLogSchema = new Schema({
+  pid: String,
   startTime: Date,
   endTime: Date,
   totalTime: Number,
@@ -12,6 +13,7 @@ let TestLogSchema = new Schema({
 })
 
 interface TestLogInterface {
+  pid: string,
   startTime?: Date,
   endTime?: Date,
   totalTime?: number,
@@ -22,7 +24,10 @@ interface TestLogInterface {
   errorLog?: string
 }
 
+const TestLogModel = mongoose.model('testLog', TestLogSchema)
+
 export {
   TestLogSchema,
+  TestLogModel,
   TestLogInterface
 }

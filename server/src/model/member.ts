@@ -7,15 +7,17 @@ let MemberSchema = new Schema({
     required: true,
     unique: true
   },
+  name: {
+    type: String,
+    maxlength: 20
+  },
   password: {
     type: String,
     maxlength: 16,
     required: true
   },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
+  isAdmin: {
+    type: Boolean
   },
   avatarUrl: String,
   email: String,
@@ -25,7 +27,29 @@ let MemberSchema = new Schema({
 })
 
 let MemberModel = mongoose.model('member', MemberSchema)
+
+enum role {
+  user = 'user',
+  admin = 'admin'
+}
+
+interface MemberInterface {
+  _id?: string,
+  id: string,
+  account?: string,
+  nickName?: string,
+  password?: string,
+  role?: role,
+  avatarUrl?: string,
+  email?: string,
+  openid?: string,
+  interfaceNotify?: boolean,
+  testNotify?: boolean
+}
+
 export {
   MemberSchema,
-  MemberModel
+  MemberModel,
+  role,
+  MemberInterface
 }

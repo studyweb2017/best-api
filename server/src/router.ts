@@ -1,47 +1,38 @@
 import * as Router from 'koa-router'
 import { Context } from './interface'
-import projectCtrl from './controller/project'
-import userCtrl from './controller/user'
+import { Observable } from 'rxjs/Rx'
+import { projectCtrl, projectGet, projectPost } from './controller/project'
+import { memberCtrl } from './controller/member'
 
-const router = new Router({
+let router = new Router({
   prefix: '/api'
 })
 
-router.get('/project', async (ctx: Context) => {
-  try {
-    ctx.body = {
-      list: await projectCtrl.get()
-    }
-  } catch (e) {
-    ctx.body = {
-      errCode: -1,
-      errMessage: e.toString()
-    }
+const handle = (ctx: Context, ob: Observable<any>): Promise<void> => ob.catch((e: any) => {
+  ctx.body = {
+    errCode: 110,
+    errMsg: e.message || '操作失败'
   }
-}).post('/project', async (ctx: Context) => {
-  try {
-    ctx.body = {
-      id: await projectCtrl.post(ctx.body)
-    }
-  } catch (e) {
-    ctx.body = {
-      errCode: -1,
-      errMessage: e.toString()
-    }
-  }
-}).put('/project/:id', async (ctx: Context) => {
-
-}).del('/project/:id', async (ctx: Context) => {
-  try {
-    ctx.body = await projectCtrl.remove(ctx.query.id)
-  } catch (e) {
-    ctx.body = {
-      errCode: -1,
-      errMessage: e.toString()
-    }
-  }
-}).post('/login', (ctx: Context) => {
-  userCtrl.login(ctx.body.account, ctx.body.password)
+  console.error(e)
+  return Observable.of()
 })
+  .do((res: any) => ctx.body = Object.assign({
+    errCode: 0
+  }, res))
+  .toPromise()
+
+interface Context4projectPost extends Context {
+  body: projectPost
+}
+
+router
+  .get('/project', (ctx: Context) => handle(ctx, projectCtrl.get()))
+  .get('/project/:id', (ctx: Context) => handle(ctx, projectCtrl.getById(ctx.params.id)))
+  .post('/project', (ctx: Context4projectPost) => handle(ctx, projectCtrl.post(ctx.request.body)))
+  .put('/project/:id', (ctx: Context) => handle(ctx, projectCtrl.put(ctx.request.body)))
+  .del('/project/:id', (ctx: Context) => handle(ctx, projectCtrl.del(ctx.params.id)))
+  .get('/member', (ctx: Context) => handle(ctx, memberCtrl.get()))
+  .post('/member', (ctx: Context) => handle(ctx, memberCtrl.post(ctx.request.body)))
+  .post('/user/login', (ctx: Context) => handle(ctx, memberCtrl.login(ctx.request.body.user, ctx.request.body.password)))
 
 export default router.routes()

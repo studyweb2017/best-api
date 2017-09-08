@@ -1,57 +1,91 @@
 import { ProjectModel, ProjectInterface } from '../model/project'
 import { InterfaceInterface } from '../model/interface'
+import { Observable } from 'rxjs/Rx'
 
-interface projectGet extends ProjectInterface{
+export interface projectGet extends ProjectInterface {
+  _id?: string,
+  id: string,
   name: string,
-  totalTest?: number,
-  successTest?: number,
-  testList: [{
-    successTest: number,
-    totalTest: number
+  api: {
+    total: number,
+    pass: number,
+    untest: number
+  }
+}
+
+export enum role {
+  g = 'guest',
+  m = 'master',
+  d = 'developer',
+}
+
+export interface projectPost extends ProjectInterface {
+  name: string,
+  description?: string,
+  testAddress: string,
+  members: [{
+    id: string,
+    name: string,
+    role: role
   }]
 }
 
-interface projectPost extends ProjectInterface{
-  name: string,
-  memberList: [string]
-  interfaceList: [InterfaceInterface]
+export interface projectPut {
+  id: string,
+  name?: string
 }
 
-export default {
-  async get():Promise<[projectGet]> {
-    let projList:[projectGet] = await ProjectModel.find({
-      id: '',
-      name: '',
-      testList: {
-        successTest: '',
-        totalTest: '',
-        $limit: 1,
-        $sort: 1
-      }
-    })
-    projList.forEach(p => {
-      if(p.testList.length>0) {
-        p.successTest = p.testList[0].successTest
-        p.totalTest = p.testList[0].totalTest
-      } else {
-        p.successTest = p.totalTest = 0
-      }
-      delete p.testList
-    })
-    return projList
+export const projectCtrl = {
+  get() {
+    return Observable.fromPromise(ProjectModel.find({}, {
+      name: 1,
+      testList: -1
+    }))
+      .switchMap((x: projectGet[]) => Observable.from(x))
+      .map((p: projectGet) => ({
+        id: p._id,
+        name: p.name,
+        api: {
+          total: 0,
+          pass: 0,
+          untest: 0
+        }
+      }))
+      .toArray()
+      .map((x: projectGet[]) => ({
+        total: x.length,
+        list: x
+      }))
   },
-  async post(project:projectPost):Promise<string> {
-    let proj = new ProjectModel(project)
-    await proj.save()
-    return proj._id
+  getById(id: string) {
+    return Observable.fromPromise(ProjectModel.findOne({ _id: id }))
+      .map((res:any) => {
+        return {
+          id: res._id,
+          name: res.name,
+          description: res.desc,
+          testUrl: res.testUrl,
+          openTest: res.openTest,
+          apiChangedInform: res.apiChangedInform,
+          testFailedInform: res.testFailedInform,
+          members: res.memberList
+        }
+      })
   },
-  async remove(id: string):Promise<boolean> {
-    try {
-      await ProjectModel.remove({_id: id}) 
-      return true
-    } catch(e) {
-      console.error(e); 
-      return false
-    }
+  post(project: any) {
+    return Observable.fromPromise((new ProjectModel(project)).save())
+      .map((proj: ProjectInterface) => ({ id: proj._id }))
+  },
+  put(project: projectPut) {
+    return Observable.fromPromise(
+      new Promise((res, rej) => {
+        ProjectModel.updateOne({ _id: project.id }, project, (e: any, r: any) => e ? rej(e) : res(r.n))
+      }))
+  },
+  del(id: string) {
+    return Observable.fromPromise(ProjectModel.remove({ _id: id }))
+      .map((res: any) => ({ 
+        num: res.result.n 
+      }))
   }
 }

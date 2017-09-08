@@ -1,5 +1,5 @@
 import * as Koa from 'koa'
-import * as bodyParser from 'koa-body-parser'
+import * as bodyParser from 'koa-bodyparser'
 
 import router from './router'
 
@@ -13,3 +13,5 @@ app.use((ctx:any) => {
 app.listen(2018)
 
 console.log('Listening on 2018...')
+
+export default app

@@ -4,6 +4,7 @@ import { InterfaceSchema, InterfaceInterface } from './interface'
 import { TestLogSchema, TestLogInterface } from './testLog'
 
 let ProjectSchema = new Schema({
+  id: String,
   name: {
     type: String,
     maxlength: 20,
@@ -11,19 +12,31 @@ let ProjectSchema = new Schema({
   },
   desc: {
     type: String,
-    maxlength: 200
+    maxlength: 200,
+    alias: 'description'
   },
   testUrl: {
     type: String,
-    maxlength: 200
+    maxlength: 200,
+    alias: 'testAddress'
   },
-  memberList: [String],
+  apiChangedInform: Boolean,
+  testFailedInform: Boolean,
+  openTest: Boolean,
+  memberList: {
+    alias: 'members',
+    type: [{
+      _id: false,
+      id: String,
+      name: String,
+      role: {
+        type: String,
+        enum: ['guest', 'master', 'developer'],
+      }
+    }]
+  },
   interfaceList: {
     type: [InterfaceSchema],
-    default: []
-  },
-  testList: {
-    type: [TestLogSchema],
     default: []
   }
 })
@@ -31,13 +44,16 @@ let ProjectSchema = new Schema({
 let ProjectModel = mongoose.model('project', ProjectSchema)
 
 interface ProjectInterface {
+  _id?: string,
   id?: string,
   name?: string,
   desc?: string,
   testUrl?: string
-  memberList?: [string],
-  interfaceList?: [InterfaceInterface],
-  testList?: [TestLogInterface]
+  memberList?: string[],
+  interfaceList?: InterfaceInterface[],
+  apiChangedInform: boolean,
+  testFailedInform: boolean,
+  openTest: boolean
 }
 
 export {
