@@ -1,15 +1,40 @@
 import axios from 'axios'
-
+import { MessageBox } from 'element-ui'
 export default {
-  get: (url: string, param?: object) => new Promise(async(resolve, reject) => {
+  get: (url: string, config?: object) => new Promise(async(resolve, reject) => {
     try {
-      let response = await axios.get(url, param)
+      let response = await axios.get(url, config)
       resolve(response.data)
     } catch(e) {
+      MessageBox.alert(e.message)
       reject(e)
-    } 
+    }
   }),
-  put: axios.put,
-  post: axios.post,
-  delete: axios.delete
+  put: (url: string, data?: object, config?:object) => new Promise(async(resolve, reject) => {
+    try {
+      let resp = await axios.put(url, data, config)
+      resolve(resp)
+    } catch(e) {
+      MessageBox.alert(e.message)
+      reject(e)
+    }
+  }),
+  post: (url: string, data?: object, config?:object) => new Promise(async(resolve, reject) => {
+    try {
+      let resp = await axios.post(url, data, config)
+      resolve(resp)
+    } catch(e) {
+      reject(e)
+      MessageBox.alert(e.message)
+    }
+  }),
+  delete: (url: string, config?:object) => new Promise(async(resolve, reject) => {
+    try {
+      let resp = await axios.delete(url, config)
+      resolve(resp)
+    } catch(e) {
+      MessageBox.alert(e.message)
+      reject(e)
+    }
+  })
 }
