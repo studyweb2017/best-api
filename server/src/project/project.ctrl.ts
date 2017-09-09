@@ -36,14 +36,14 @@ export interface projectPut {
 
 export const projectCtrl = {
   get() {
-    return Observable.fromPromise(ProjectModel.find({}, {
-      name: 1,
-      testList: -1
-    }))
-      .switchMap((x: projectGet[]) => Observable.from(x))
-      .map((p: projectGet) => ({
-        id: p._id,
-        name: p.name,
+    return Observable.fromPromise(ProjectModel.aggregate([{
+      $project: {
+        id: '$_id',
+        name: 1
+      }
+    }]))
+    .switchMap((x: projectGet[]) => Observable.from(x))
+    .map((p: projectGet) => ({
         api: {
           total: 0,
           pass: 0,

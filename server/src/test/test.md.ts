@@ -1,7 +1,7 @@
 import { Schema, mongoose } from '../util/db' 
 
 const TestSchema = new Schema({
-  pid: String,
+  pid: Schema.Types.ObjectId,
   startTime: Date,
   endTime: Date,
   totalTime: Number,

@@ -1,6 +1,6 @@
 import { Schema, mongoose } from '../util/db'
-import { MemberSchema } from '../member/member.md'
-import { InterfaceSchema, InterfaceInterface } from '../interface/interface.md'
+import { MemberSchema } from '../team/member.md'
+import { InterfaceSchema, InterfaceInterface } from './interface.md'
 import { TestSchema, TestInterface } from '../test/test.md'
 
 let ProjectSchema = new Schema({

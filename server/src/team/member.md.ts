@@ -17,7 +17,8 @@ let MemberSchema = new Schema({
     required: true
   },
   isAdmin: {
-    type: Boolean
+    type: Boolean,
+    default: false
   },
   avatarUrl: String,
   email: String,

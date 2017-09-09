@@ -1,6 +1,6 @@
 import { InterfaceInterface, InterfaceModel } from './interface.md'
 import { InterfaceLogInterface, InterfaceLogModel } from './interfaceArchive.md'
-import { MemberInterface, MemberModel } from '../member/member.md'
+import { MemberInterface, MemberModel } from '../team/member.md'
 import { Observable } from 'rxjs/Rx'
 
 export interface version extends InterfaceLogInterface {

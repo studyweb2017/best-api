@@ -1,7 +1,7 @@
 import * as Router from 'koa-router'
 import { Observable } from 'rxjs/Rx'
 import { projectCtrl } from './project/project.ctrl'
-import { memberCtrl } from './member/member.ctrl'
+import { memberCtrl } from './team/member.ctrl'
 
 let router = new Router({
   prefix: '/api'
