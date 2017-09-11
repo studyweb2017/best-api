@@ -36,40 +36,72 @@ export interface projectPut {
 
 export const projectCtrl = {
   get() {
-    return Observable.fromPromise(ProjectModel.aggregate([{
-      $project: {
-        id: '$_id',
-        name: 1
-      }
-    }]))
-    .switchMap((x: projectGet[]) => Observable.from(x))
-    .map((p: projectGet) => ({
-        api: {
-          total: 0,
-          pass: 0,
-          untest: 0
+    return Observable.fromPromise(ProjectModel.aggregate([
+      {
+        $project: {
+          id: '$_id',
+          name: 1,
+          description: 'desc',
+          testUrl: 1,
+          openTest: 1,
+          apiChangedInform: 1,
+          testFailedInform: 1,
+          members: 'memberList'
         }
-      }))
-      .toArray()
-      .map((x: projectGet[]) => ({
-        total: x.length,
-        list: x
-      }))
+      }, {
+        $lookup: {
+          from: 'testLog',
+          localField: '_id',
+          foreignField: 'pid',
+          as: 'testList'
+        }
+      }, {
+        $project: {
+          "api.total": 0,
+          "api.pass": 0,
+          "api.unit": 0
+        }
+      }]))
+      .map((res: any) => ({ total: res.length, list: res }))
+    // .switchMap((x: projectGet[]) => Observable.from(x))
+    // .map((p: projectGet) => ({
+    //     api: {
+    //       total: 0,
+    //       pass: 0,
+    //       untest: 0
+    //     }
+    //   }))
+    //   .toArray()
+    //   .map((x: projectGet[]) => ({
+    //     total: x.length,
+    //     list: x
+    //   }))
   },
   getById(id: string) {
-    return Observable.fromPromise(ProjectModel.findOne({ _id: id }))
-      .map((res:any) => {
-        return {
-          id: res._id,
-          name: res.name,
-          description: res.desc,
-          testUrl: res.testUrl,
-          openTest: res.openTest,
-          apiChangedInform: res.apiChangedInform,
-          testFailedInform: res.testFailedInform,
-          members: res.memberList
+    return Observable.fromPromise(ProjectModel.aggregate([
+      {
+        $unwind: '$memberList'
+      },
+      {
+        $project: {
+          id: '$_id',
+          name: 1,
+          description: 'desc',
+          testUrl: 1,
+          openTest: 1,
+          apiChangedInform: 1,
+          testFailedInform: 1,
+          memberList: 1
         }
-      })
+      }, {
+        $lookup: {
+          from: 'members',
+          localField: 'memberList',
+          foreignField: '_id',
+          as: 'members'
+        }
+      }
+    ]))
   },
   post(project: any) {
     return Observable.fromPromise((new ProjectModel(project)).save())
@@ -85,8 +117,8 @@ export const projectCtrl = {
   },
   del(id: string) {
     return Observable.fromPromise(ProjectModel.remove({ _id: id }))
-      .map((res: any) => ({ 
-        num: res.result.n 
+      .map((res: any) => ({
+        num: res.result.n
       }))
   }
 }

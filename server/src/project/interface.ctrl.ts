@@ -10,21 +10,24 @@ export interface version extends InterfaceLogInterface {
   editorId: string
 }
 
-let MemberMap = Observable.fromPromise(MemberModel.find({}, { _id: 1, nickName: 1 }))
+let MemberMap = Observable.fromPromise(MemberModel.find({}, { _id: 1, name: 1 }))
   .map((x: MemberInterface[]) => {
     let map: any = {}
     x.forEach((item: MemberInterface) => {
-      map[item.id] = item.nickName
+      map[item.id] = item.name
     });
     return map
   })
 
 export const interfaceCtrl = {
+  get() {
+
+  },
   getVersionById(pid: string, iid: string) {
     let versionList = Observable.fromPromise(InterfaceLogModel.find({ pid, iid }, { version: 1, updateTime: 1, creatorId: 1 }))
       .switchMap((x: InterfaceLogInterface[]) => Observable.of(x))
     return versionList.combineLatest(MemberMap, (version: version, map: any) => {
-      version.updateMember = map[version.editorId].nickName
+      version.updateMember = map[version.editorId].name
       delete version.editorId
       return version
     }).toArray()

@@ -38,7 +38,7 @@ interface MemberInterface {
   _id?: string,
   id: string,
   account?: string,
-  nickName?: string,
+  name?: string,
   password?: string,
   role?: role,
   avatarUrl?: string,

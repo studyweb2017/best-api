@@ -3,10 +3,10 @@ import { InterfaceSchema, InterfaceInterface } from './interface.md'
 
 const InterfaceLogSchema = InterfaceSchema.clone()
 InterfaceLogSchema.iid = {
-  type: String
+  type: Schema.Types.ObjectId
 }
 InterfaceLogSchema.pid = {
-  type: String
+  type: Schema.Types.ObjectId
 }
 
 const InterfaceLogModel = mongoose.model('interfaceLog', InterfaceLogSchema)

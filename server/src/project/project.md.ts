@@ -20,14 +20,25 @@ let ProjectSchema = new Schema({
     maxlength: 200,
     alias: 'testAddress'
   },
-  apiChangedInform: Boolean,
-  testFailedInform: Boolean,
-  openTest: Boolean,
+  apiChangedInform: {
+    type: Boolean,
+    default: false
+  },
+  testFailedInform: {
+    type: Boolean,
+    default: false
+  },
+  openTest: {
+    type: Boolean,
+    default: false
+  },
   memberList: {
-    alias: 'members',
     type: [{
       _id: false,
-      id: String,
+      id: {
+        type: Schema.Types.ObjectId,
+        set: (v:any) => Schema.ObjectId(v)
+      },
       name: String,
       role: {
         type: String,
@@ -51,8 +62,8 @@ interface ProjectInterface {
   testUrl?: string
   memberList?: string[],
   interfaceList?: InterfaceInterface[],
-  apiChangedInform: boolean,
-  testFailedInform: boolean,
+  apiChangedInform?: boolean,
+  testFailedInform?: boolean,
   openTest: boolean
 }
 
