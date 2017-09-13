@@ -1,6 +1,6 @@
 import { GroupModel, GroupInterface } from './group.md'
 import { Observable } from 'rxjs/Rx'
-import { memberCtrl } from './member.ctrl'
+import { MemberModel } from './member.md'
 
 export const groupCtrl = {
   get() {
@@ -8,7 +8,7 @@ export const groupCtrl = {
       $unwind: '$memberList'
     }, {
       $lookup: {
-        from: 'members',
+        from: MemberModel.collection.collectionName,
         localField: 'memberList',
         foreignField: '_id',
         as: 'members'

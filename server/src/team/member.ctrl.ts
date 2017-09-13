@@ -11,16 +11,17 @@ export const memberCtrl = {
       .toArray(), (arg) => Object.assign.apply(null, arg))
   },
   get() {
-    return Observable.fromPromise(MemberModel.aggregate({$project:{
+    return Observable.fromPromise(MemberModel.aggregate().project({
       "id": "$_id",
       "isAdmin": 1,
       "account": 1,
       "name": 1
-    }}))
+    }))
       .map((list: MemberInterface[]) => ({ list }))
   },
   post(member: any) {
     return Observable.fromPromise(new MemberModel(member).save())
+      .map((x:any) => ({id: x._id}))
   },
   delete(id: string) {
     return Observable.fromPromise(MemberModel.remove({ _id: id }))

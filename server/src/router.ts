@@ -25,7 +25,7 @@ router
   .get('/project/:id', (ctx:any) => handle(ctx, projectCtrl.getById(ctx.params.id)))
   .post('/project', (ctx:any) => handle(ctx, projectCtrl.post(ctx.request.body)))
   .put('/project/:id', (ctx:any) => handle(ctx, projectCtrl.put(ctx.request.body)))
-  .del('/project/:id', (ctx:any) => handle(ctx, projectCtrl.del(ctx.params.id)))
+  .del('/project/:id', (ctx:any) => handle(ctx, projectCtrl.delete(ctx.params.id)))
   .get('/member', (ctx:any) => handle(ctx, memberCtrl.get()))
   .post('/member', (ctx:any) => handle(ctx, memberCtrl.post(ctx.request.body)))
   .post('/user/login', (ctx:any) => handle(ctx, memberCtrl.login(ctx.request.body.user, ctx.request.body.password)))

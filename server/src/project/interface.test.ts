@@ -2,33 +2,62 @@ import test from 'ava'
 import { Observable } from 'rxjs/Rx'
 import { interfaceCtrl } from './interface.ctrl'
 import { projectCtrl } from './project.ctrl'
+import { memberCtrl } from '../team/member.ctrl'
 
+let random = (x?: number) => Math.random().toString(36).substring(2, x || 10)
 
-let project:any = {
-  name: Math.random().toString(36).substring(2, 10),
-  members: []
+let project: any = {
+  name: random()
 }
 
-let ifc:any = {
-  name: Math.random().toString(36).substring(2, 10),
-  url: '/api/',
-  method: 'get',
+let member: any = {
+  account: random(),
+  name: random(),
+  password: random(6)
+}
+
+let ifc: any = {
+  name: random(),
+  url: '/api/test',
+  method: 'GET',
   requestParams: [],
   responseParams: []
 }
-test((t:any) => t.pass())
 
-// test.serial('interface.post', (t: any) => {
-//   return projectCtrl.post(project)
-//     .do(() => projectCtrl.get().subscribe((list:any) => {
-//       project._id= list.filter((x:any) => x.name === project.name)[0]._id
-//       ifc.pid = project._id
-//     }))
-//     .do(() => interfaceCtrl.post(ifc))
-//     .do((res: any) => {
-//       t.truthy(res)
-//     })
-// })
+test.before('Create project,member', (t: any) => {
+  return memberCtrl.post(member)
+    .switchMap((x: any) => {
+      member.id = x.id
+      t.truthy(member.id)
+      project.memberList = [{
+        id: x.id,
+        role: 'master'
+      }]
+      return projectCtrl.post(project).do((x: any) => {
+        project.id = x.id
+        t.truthy(project.id)
+      })
+    })
+})
+
+test.after.always('Delete project.member', (t: any) => {
+  projectCtrl.delete(project.id).subscribe()
+  memberCtrl.delete(member.id).subscribe()
+})
+
+test.serial('interface.post', (t: any) => {
+  return interfaceCtrl.post(project.id, ifc)
+    .do((res: any) => {
+      t.truthy(res.id)
+    })
+})
+
+test.serial('interface.get', (t: any) => {
+  return interfaceCtrl.get(project.id)
+    .do((res: any) => {
+      t.truthy(res.apiList.length > 0)
+    })
+})
 
 // test.serial('interface.getVersionById', (t: any) => {
 //   return interfaceCtrl.getVersionById('pid', 'iid')

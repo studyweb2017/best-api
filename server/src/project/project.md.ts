@@ -55,7 +55,7 @@ let ProjectSchema = new Schema({
 let ProjectModel = mongoose.model('project', ProjectSchema)
 
 interface ProjectInterface {
-  _id?: string,
+  _id?: any,
   id?: string,
   name?: string,
   desc?: string,

@@ -37,8 +37,7 @@ test.serial('project.put', (t: any) => {
 })
 
 test.serial('project.getById', (t: any) => {
-  return projectCtrl.getById('59b650c555ed850b7841af91'||id).do((res: any) => {
-    console.log(JSON.stringify(res, null, 2))
+  return projectCtrl.getById(id).do((res: any) => {
     t.truthy(res)
   })
 })
@@ -62,12 +61,12 @@ test('project.post.error', (t:any) => {
   }).switchMap(() => t.pass())
 })
 
-// test.serial('project.get', (t: any) => {
-//   return projectCtrl.get().do((res:any) => {
-//     t.truthy(res.list)
-//   })
-// })
+test.serial('project.get', (t: any) => {
+  return projectCtrl.get().do((res:any) => {
+    t.truthy(res.list)
+  })
+})
 
 test.serial('project.delete', (t: any) => {
-  return projectCtrl.del(id).do((res: any) => t.deepEqual(res.num, 1))
+  return projectCtrl.delete(id).do((res: any) => t.deepEqual(res.num, 1))
 })

@@ -31,11 +31,11 @@ let InterfaceSchema = new Schema({
     default: new Date()
   },
   creatorId: {
-    type: String,
+    type: Schema.Types.ObjectId,
     required: true
   },
   editorId: {
-    type: String,
+    type: Schema.Types.ObjectId,
     required: true,
     alias: 'updateMember'
   },
@@ -75,6 +75,7 @@ let InterfaceSchema = new Schema({
   request: {
     headerList: [{
       _id: false,
+      id: String,
       key: String,
       value: String
     }],
@@ -94,6 +95,7 @@ let InterfaceSchema = new Schema({
   response: {
     headerList: [{
       _id: false,
+      id: String,
       key: String,
       value: String
     }],
@@ -116,7 +118,7 @@ enum method {
   get = 'GET',
   post = 'POST',
   put = 'PUT',
-  delete = 'delete'
+  delete = 'DELETE'
 }
 enum dataType {
   string = 'String', 
