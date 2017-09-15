@@ -1,6 +1,11 @@
 import { Schema, mongoose } from '../util/db'
 
 let InterfaceSchema = new Schema({
+  pid: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    set: (v:string|any) => mongoose.Types.ObjectId(v)
+  },
   url: {
     type: String,
     match: /^\//,
@@ -38,6 +43,10 @@ let InterfaceSchema = new Schema({
     type: Schema.Types.ObjectId,
     required: true,
     alias: 'updateMember'
+  },
+  needTest: {
+    type: Boolean,
+    default: false
   },
   delay: Number,
   state: {
@@ -130,6 +139,7 @@ enum dataType {
 
 interface InterfaceInterface {
   _id?: string,
+  pid: string,
   id?: string,
   url: string,
   name: string

@@ -1,6 +1,7 @@
 import test from 'ava'
 import { Observable } from 'rxjs/Rx'
-import { projectCtrl, role } from './project.ctrl'
+import { role } from './project.md'
+import { projectCtrl } from './project.ctrl'
 
 let id: string = ''
 
@@ -15,7 +16,7 @@ let body = {
     {
       id: Math.random().toString(36).substring(2, 8),
       name: "小米",
-      role: role.m
+      role: role.master
     }
   ]
 }
@@ -38,7 +39,7 @@ test.serial('project.put', (t: any) => {
 
 test.serial('project.getById', (t: any) => {
   return projectCtrl.getById(id).do((res: any) => {
-    t.truthy(res)
+    t.truthy(id==res.id)
   })
 })
 

@@ -7,7 +7,7 @@ export const memberCtrl = {
     let map: any = {}
     return Observable.zip(Observable.fromPromise(MemberModel.find({}))
       .switchMap((list: any) => Observable.from(list))
-      .map((x: any) => ({[x._id]: x}))
+      .map((x: any) => ({ [x._id]: x }))
       .toArray(), (arg) => Object.assign.apply(null, arg))
   },
   get() {
@@ -21,13 +21,13 @@ export const memberCtrl = {
   },
   post(member: any) {
     return Observable.fromPromise(new MemberModel(member).save())
-      .map((x:any) => ({id: x._id}))
+      .map((x: any) => ({ id: x._id }))
   },
   delete(id: string) {
     return Observable.fromPromise(MemberModel.remove({ _id: id }))
-      .map((res: any) => { 
-        if(res.result.n) {
-          return {num: res.result.n }
+      .map((res: any) => {
+        if (res.result.n) {
+          return { num: res.result.n }
         } else {
           throw `删除成员${id}失败`
         }

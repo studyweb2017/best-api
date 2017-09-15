@@ -18,6 +18,7 @@ let member: any = {
 
 let ifc: any = {
   name: random(),
+  version: '1.0',
   url: '/api/test',
   method: 'GET',
   requestParams: [],
@@ -28,6 +29,8 @@ test.before('Create project,member', (t: any) => {
   return memberCtrl.post(member)
     .switchMap((x: any) => {
       member.id = x.id
+      ifc.editorId = x.id
+      ifc.creatorId = x.id
       t.truthy(member.id)
       project.memberList = [{
         id: x.id,
@@ -65,3 +68,10 @@ test.serial('interface.get', (t: any) => {
 //       t.truthy(res)
 //     })
 // })
+
+test.serial('interface.delete', (t: any) => {
+  return interfaceCtrl.post(ifc.id, ifc)
+    .do((res: any) => {
+      t.truthy(res)
+    })
+})

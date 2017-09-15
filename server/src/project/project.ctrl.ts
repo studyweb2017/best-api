@@ -1,6 +1,7 @@
-import { ProjectModel, ProjectInterface } from './project.md'
+import { ProjectModel, ProjectInterface, role } from './project.md'
 import { TestModel } from '../test/test.md'
 import { MemberModel } from '../team/member.md'
+import { InterfaceModel } from './interface.md'
 import { GroupModel } from '../team/group.md'
 import { Observable } from 'rxjs/Rx'
 import { Schema, mongoose } from '../util/db'
@@ -14,12 +15,6 @@ export interface projectGet extends ProjectInterface {
     pass: number,
     untest: number
   }
-}
-
-export enum role {
-  g = 'guest',
-  m = 'master',
-  d = 'developer',
 }
 
 export interface projectPost extends ProjectInterface {
@@ -46,6 +41,12 @@ export const projectCtrl = {
         localField: '_id',
         foreignField: 'pid',
         as: 'testList'
+      })
+      .lookup({
+        from: InterfaceModel.collection.collectionName,
+        localField: '_id',
+        foreignField: 'pid',
+        as: 'interfaceList'
       })
       .project({
         name:1,

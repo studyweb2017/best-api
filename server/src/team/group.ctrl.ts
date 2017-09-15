@@ -20,7 +20,31 @@ export const groupCtrl = {
         members: 1
       }
     }]))
-      .map((list: GroupInterface[]) => ({ list }))
+      .map((groups: GroupInterface[]) => ({ groups }))
+  },
+  getRole() {
+    return Observable.of({
+      "roleList": [
+        {
+          "name": "master",
+          "editProject": true,
+          "editApi": true,
+          "readApi": true
+        },
+        {
+          "name": "developer",
+          "editProject": false,
+          "editApi": true,
+          "readApi": true
+        },
+        {
+          "name": "guest",
+          "editProject": false,
+          "editApi": false,
+          "readApi": true
+        }
+      ]
+    })
   },
   post(group: any) {
     return Observable.fromPromise(new GroupModel(group).save())

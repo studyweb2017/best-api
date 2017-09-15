@@ -1,6 +1,6 @@
-import { InterfaceInterface } from './interface.md'
-import { ProjectModel } from './project.md'
+import { InterfaceInterface, InterfaceModel } from './interface.md'
 import { InterfaceLogInterface, InterfaceLogModel } from './interfaceArchive.md'
+import { ProjectModel } from './project.md'
 import { MemberInterface, MemberModel } from '../team/member.md'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from '../util/db'
@@ -27,25 +27,39 @@ export const interfaceCtrl = {
    * @param pid 项目id
    */
   get(pid: string) {
-    return Observable.fromPromise(ProjectModel.aggregate()
-      .match({ _id: mongoose.Types.ObjectId(pid) })
-      .unwind('$interfaceList')
-      .sort({ 'interfaceList.url': -1 })
-      .project({
-        name: 1,
-        'interfaceList.id': '$interfaceList._id',
-        'interfaceList.name': 1,
-        'interfaceList.version': 1,
-        'interfaceList.method': 1,
-        'interfaceList.url': 1
+    return Observable.fromPromise(InterfaceModel.aggregate()
+      .facet({
+        apiList: [
+          { $match: { pid: mongoose.Types.ObjectId(pid) } },
+          { $sort: { url: -1 } },
+          {
+            $project: {
+              _id: 0,
+              id: '$_id',
+              name: 1,
+              version: 1,
+              method: 1,
+              url: 1,
+              pid: 1
+            }
+          }
+        ],
+        project: [
+          { $match: { pid: mongoose.Types.ObjectId(pid) } },
+          { $limit: 1 },
+          { $lookup: { from: 'projects', localField: 'pid', foreignField: '_id', as: 'p' } },
+          { $unwind: '$p' },
+          { $project: { _id: 0, id: '$p._id', name: '$p.name' } }
+        ]
       })
-      .group({
-        _id: '$_id',
-        name: { $first: '$name' },
-        apiList: { $push: '$interfaceList' }
+      .unwind('$project')
+      .project({
+        id: '$project.id',
+        name: '$project.name',
+        apiList: 1
       })
       .exec())
-      .map((res:any) => res.pop())
+      .map((res: any) => res.pop())
   },
   /**
    * 查询某个接口
@@ -53,22 +67,13 @@ export const interfaceCtrl = {
    * @param iid 接口id
    */
   getById(pid: string, iid: string) {
-    return Observable.fromPromise(ProjectModel.aggregate()
-      .match({ _id: mongoose.Types.ObjectId(pid) })
-      .project({
-        interfaceList: {
-          $filter: {
-            input: '$interfaceList._id',
-            as: 'a',
-            cond: { $eq: ['$$a._id', mongoose.Types.ObjectId(iid)] }
-          }
-        }
-      })
-      .unwind('$ifc')
+    return Observable.fromPromise(InterfaceModel.aggregate()
+      .match({ _id: mongoose.Types.ObjectId(iid) })
       .exec())
+      .map((x: any) => x.pop())
   },
   /**
-   * 查询指定版本接口信息1
+   * 查询指定版本接口信息
    * @param iid 接口id
    * @param version 接口版本
    */
@@ -121,15 +126,8 @@ export const interfaceCtrl = {
    * @param ifc 接口数据
    */
   post(pid: string, ifc: InterfaceInterface) {
-    const id = mongoose.Types.ObjectId()
-    ifc._id = id
-    return Observable.fromPromise(new Promise((res, rej) => ProjectModel.update({
-      _id: mongoose.Types.ObjectId(pid),
-    }, {
-        $push: {
-          'interfaceList': ifc
-        }
-      }, (e: any, doc: any) => e ? rej(e) : res({ id }))))
+    ifc.pid = mongoose.Types.ObjectId(pid)
+    return Observable.fromPromise(new InterfaceModel(ifc).save())
   },
   /**
    * 修改接口
@@ -167,13 +165,12 @@ export const interfaceCtrl = {
    * @param iid 接口id
    */
   delete(pid: string, iid: string) {
-    return Observable.fromPromise(new Promise((res, rej) => ProjectModel.update({
-      _id: mongoose.Types.ObjectId(pid)
-    }, {
+    return Observable.fromPromise(InterfaceModel.remove({ _id: mongoose.Types.ObjectId(iid) }).exec())
+      .do(() => InterfaceLogModel.remove({ iid: mongoose.Types.ObjectId(iid) }).exec())
+      .do(() => ProjectModel.findByIdAndUpdate(mongoose.Types.Object(pid), {
         $pull: {
-          'interfaceList.$._id': mongoose.Types.ObjectId(iid)
+          testInterfaceList: mongoose.Types.ObjectId(iid)
         }
-      }, (e: any) => e ? rej(e) : res())))
-      .do(() => Observable.fromPromise(InterfaceLogModel.remove({ iid: mongoose.Types.ObjectId(iid) })))
+      }))
   }
 }

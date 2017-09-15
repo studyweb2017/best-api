@@ -1,6 +1,5 @@
 import { Schema, mongoose } from '../util/db'
 import { MemberSchema } from '../team/member.md'
-import { InterfaceSchema, InterfaceInterface } from './interface.md'
 import { TestSchema, TestInterface } from '../test/test.md'
 
 let ProjectSchema = new Schema({
@@ -45,12 +44,14 @@ let ProjectSchema = new Schema({
         enum: ['guest', 'master', 'developer'],
       }
     }]
-  },
-  interfaceList: {
-    type: [InterfaceSchema],
-    default: []
   }
 })
+
+enum role {
+  guest = 'guest',
+  master = 'master',
+  developer = 'developer'
+}
 
 let ProjectModel = mongoose.model('project', ProjectSchema)
 
@@ -61,14 +62,14 @@ interface ProjectInterface {
   desc?: string,
   testUrl?: string
   memberList?: string[],
-  interfaceList?: InterfaceInterface[],
-  apiChangedInform?: boolean,
-  testFailedInform?: boolean,
+  apiChangedInform: boolean,
+  testFailedInform: boolean,
   openTest: boolean
 }
 
 export {
   ProjectSchema,
   ProjectModel,
-  ProjectInterface
+  ProjectInterface,
+  role
 }
