@@ -1,4 +1,4 @@
-import { Schema, mongoose } from '../util/db'
+import { Schema, mongoose, Model } from '../util/db'
 
 let InterfaceSchema = new Schema({
   pid: {
@@ -138,13 +138,12 @@ enum dataType {
 }
 
 interface InterfaceInterface {
-  _id?: string,
   pid: string,
-  id?: string,
+  id: string,
   url: string,
   name: string
   version: string,
-  desc?: string,
+  desc: string,
   createdTime: string,
   updateTime: string,
   creatorId: string,
@@ -193,10 +192,16 @@ interface InterfaceInterface {
 
 const InterfaceModel = mongoose.model('interface', InterfaceSchema)
 
+class Interface extends Model{
+  name = this.random()
+  url = this.random()
+}
+
 export {
   InterfaceSchema,
   InterfaceInterface,
   InterfaceModel,
   method,
-  dataType
+  dataType,
+  Interface
 }

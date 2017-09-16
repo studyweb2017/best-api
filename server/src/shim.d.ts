@@ -1,5 +1,6 @@
 /* node modules */
 declare module 'process'
+declare module 'crypto'
 
 /* 3rd modules */
 declare module 'koa'

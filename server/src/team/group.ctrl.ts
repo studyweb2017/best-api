@@ -4,22 +4,21 @@ import { MemberModel } from './member.md'
 
 export const groupCtrl = {
   get() {
-    return Observable.fromPromise(GroupModel.aggregate([{
-      $unwind: '$memberList'
-    }, {
-      $lookup: {
+    return Observable.fromPromise(GroupModel.aggregate()
+      .lookup({
         from: MemberModel.collection.collectionName,
         localField: 'memberList',
         foreignField: '_id',
         as: 'members'
-      }
-    }, {
-      $project: {
+      })
+      .project({
+        _id: 0,
         id: '$_id',
         name: 1,
-        members: 1
-      }
-    }]))
+        'members.id': '$$CURRENT._id',
+        'members.name': 1
+      })
+      .exec())
       .map((groups: GroupInterface[]) => ({ groups }))
   },
   getRole() {
@@ -50,12 +49,8 @@ export const groupCtrl = {
     return Observable.fromPromise(new GroupModel(group).save())
   },
   put(group: any) {
-    return Observable.fromPromise(
-      new Promise((res, rej) => {
-        GroupModel.updateOne({ _id: group.id }, group, (e: any, r: any) => {
-          e ? rej(e) : res(r.n)
-        })
-      }))
+    return Observable.fromPromise(GroupModel.updateOne({ _id: group.id }, group).exec())
+      .switchMap((res: any) => res.n > 0 ? Observable.of({ num: res.n }) : Observable.throw('更新小组失败'))
   },
   delete(id: string) {
     return Observable.fromPromise(GroupModel.remove({ _id: id }))

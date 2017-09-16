@@ -1,4 +1,4 @@
-import { Schema, mongoose } from '../util/db'
+import { Schema, mongoose, Model } from '../util/db'
 
 let MemberSchema = new Schema({
   account: {
@@ -13,7 +13,7 @@ let MemberSchema = new Schema({
   },
   password: {
     type: String,
-    maxlength: 16,
+    maxlength: 32,
     required: true
   },
   isAdmin: {
@@ -35,16 +35,27 @@ enum role {
 }
 
 interface MemberInterface {
-  _id?: string,
   id: string,
-  account?: string,
-  name?: string,
-  password?: string,
-  role?: role,
-  avatarUrl?: string,
-  email?: string,
-  openid?: string,
-  interfaceNotify?: boolean,
+  account: string,
+  name: string,
+  password: string,
+  role: role,
+  avatarUrl: string,
+  email: string,
+  openid: string,
+  interfaceNotify: boolean,
+  testNotify: boolean
+}
+
+class Member extends Model {
+  account: string = this.random()
+  name: string = this.random()
+  password: string = this.random()
+  role: role = Math.random() > .5 ? role.admin : role.user
+  avatarUrl?: string
+  email?: string
+  openid?: string
+  interfaceNotify?: boolean
   testNotify?: boolean
 }
 
@@ -52,5 +63,6 @@ export {
   MemberSchema,
   MemberModel,
   role,
-  MemberInterface
+  MemberInterface,
+  Member
 }

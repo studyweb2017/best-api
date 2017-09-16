@@ -1,14 +1,11 @@
 import test from 'ava'
 import { memberCtrl } from './member.ctrl'
+import { Member } from './member.md'
 
-let member: any = {
-  account: Math.random().toString(36).substring(2, 8),
-  name: Math.random().toString(36).substring(2, 8),
-  password: 'test'
-}
+let member = new Member()
 
 test.serial('memeber.post', (t: any) => {
-  return memberCtrl.post(member).do((res: any) => t.truthy(res))
+  return memberCtrl.post(member).do((res: any) => t.truthy(res.id))
 })
 
 test.serial('member.get', (t: any) => {

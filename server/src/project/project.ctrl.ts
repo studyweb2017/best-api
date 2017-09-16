@@ -6,33 +6,6 @@ import { GroupModel } from '../team/group.md'
 import { Observable } from 'rxjs/Rx'
 import { Schema, mongoose } from '../util/db'
 
-export interface projectGet extends ProjectInterface {
-  _id?: string,
-  id: string,
-  name: string,
-  api: {
-    total: number,
-    pass: number,
-    untest: number
-  }
-}
-
-export interface projectPost extends ProjectInterface {
-  name: string,
-  description?: string,
-  testAddress: string,
-  members: [{
-    id: string,
-    name: string,
-    role: role
-  }]
-}
-
-export interface projectPut {
-  id: string,
-  name?: string
-}
-
 export const projectCtrl = {
   get() {
     return Observable.fromPromise(ProjectModel.aggregate()
@@ -48,70 +21,49 @@ export const projectCtrl = {
         foreignField: 'pid',
         as: 'interfaceList'
       })
-      .project({
-        name:1,
-        interfaceList: 1,
-        test:{
-            $arrayElemAt: ['$testList', -1]
-        },
-        total: {$size: '$interfaceList'}
-      })
-      .project({
-        id: '$_id',
-        _id: 0,
-        name: 1,
-        api: {
-            total: '$total',
-            pass: '$test.successTest',
-            untest: {
-                $subtract: ['$total', '$test.totalTest']
-            }
-        }
-      })
       .exec())
-      .map((res: any) => ({ total: res.length, list: res }))
+      .map((res: any) => {
+        let result:any = {
+          total: res.length,
+          list: []
+        }
+        res.forEach((p:any) => {
+          let test = p.testList.pop() || {}
+          let api:any = {
+            total: p.interfaceList.length,
+            pass: test.successTest || 0,
+          }
+          api.untest = api.total - api.pass
+          result.list.push({
+            id: p._id,
+            name: p.name,
+            api
+          })
+        })
+        return result
+      })
   },
   getById(id: string) {
     return Observable.fromPromise(ProjectModel.aggregate()
       .match({ _id: mongoose.Types.ObjectId(id) })
-      .unwind('$memberList')
       .lookup({
         from: MemberModel.collection.collectionName,
         localField: 'memberList.id',
         foreignField: '_id',
-        as: 'member'
+        as: 'members'
       })
-      .lookup({
-        from: GroupModel.collection.collectionName,
-        localField: 'memberList.groupId',
-        foreignField: '_id',
-        as: 'group'
-      })
-      .unwind('$member', '$group')
       .project({
+        _id: 0,
+        id: '$_id',
         name: 1,
         description: '$desc',
         testUrl: 1,
         openTest: 1,
         apiChangedInform: 1,
         testFailedInform: 1,
-        members: {
-          id: '$member._id',
-          name: '$member.name',
-          groupId: '$group._id',
-          groupName: '$group.name',
-          role: '$memberList.role'
-        }
-      })
-      .group({
-        _id: '$_id',
-        members: { $push: '$members' },
-        name: { $first: '$name' },
-        description: { $first: '$desc' },
-        testUrl: { $first: '$testUrl' },
-        openTest: { $first: '$openTest' },
-        apiChangedInform: { $first: '$apiChangedInform' },
-        testFailedInform: { $first: '$testFailedInform' }
+        'members.id': '$$CURRENT._id',
+        'members.name': 1,
+        'members.role': 1
       })
       .exec())
       .map((res: any) => res.pop() || {})
@@ -120,13 +72,13 @@ export const projectCtrl = {
     return Observable.fromPromise((new ProjectModel(project)).save())
       .map((proj: ProjectInterface) => ({ id: proj._id }))
   },
-  put(project: projectPut) {
-    return Observable.fromPromise(
-      new Promise((res, rej) => {
-        ProjectModel.updateOne({ _id: project.id }, project, (e: any, r: any) => {
-          e ? rej(e) : res(r.n)
-        })
-      }))
+  put(_id:string, project: any) {
+    try {
+      return Observable.fromPromise(ProjectModel.updateOne({ _id}, project).exec())
+        .map((res:any) => ({num: res.n})) 
+    } catch(e) {
+      return Observable.throw(e)
+    }
   },
   delete(id: string) {
     return Observable.fromPromise(ProjectModel.remove({ _id: mongoose.Types.ObjectId(id) }))

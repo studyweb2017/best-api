@@ -1,4 +1,4 @@
-import { Schema, mongoose } from '../util/db'
+import { Schema, mongoose, Model } from '../util/db'
 import { MemberSchema } from '../team/member.md'
 import { TestSchema, TestInterface } from '../test/test.md'
 
@@ -36,7 +36,7 @@ let ProjectSchema = new Schema({
       _id: false,
       id: {
         type: Schema.Types.ObjectId,
-        set: (v:any) => Schema.ObjectId(v)
+        set: (v: any) => mongoose.Types.ObjectId(v)
       },
       name: String,
       role: {
@@ -56,20 +56,26 @@ enum role {
 let ProjectModel = mongoose.model('project', ProjectSchema)
 
 interface ProjectInterface {
-  _id?: any,
-  id?: string,
-  name?: string,
-  desc?: string,
-  testUrl?: string
-  memberList?: string[],
+  _id?: string,
+  id: string,
+  name: string,
+  desc: string,
+  testUrl: string
+  memberList: string[],
   apiChangedInform: boolean,
   testFailedInform: boolean,
   openTest: boolean
+}
+
+class Project extends Model {
+  name = this.random()
+  desc = this.random(30)
 }
 
 export {
   ProjectSchema,
   ProjectModel,
   ProjectInterface,
-  role
+  role,
+  Project
 }
