@@ -38,7 +38,6 @@ let ProjectSchema = new Schema({
         type: Schema.Types.ObjectId,
         set: (v: any) => mongoose.Types.ObjectId(v)
       },
-      name: String,
       role: {
         type: String,
         enum: ['guest', 'master', 'developer'],

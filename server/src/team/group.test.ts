@@ -39,16 +39,16 @@ test.serial('group.get', (t: any) => {
       t.truthy(res.groups.length > 0)
       let g = res.groups.filter((x: any) => x.id == group.id)[0]
       t.truthy(g.members.length === 1)
+      t.truthy(g.members.id)
     })
 })
 
 test.serial('group.put', (t: any) => {
   group.name = 'test4api'
-  group.memberList = []
   return groupCtrl.put(group)
     .switchMap((res: any) => groupCtrl.get().do((rest: any) => {
       let newGroup = rest.groups.filter((x: any) => x.id == group.id)[0]
-      t.truthy(newGroup.members.length === 0)
+      t.truthy(newGroup.name === 'test4api')
     }))
 })
 

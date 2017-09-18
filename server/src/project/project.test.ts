@@ -70,6 +70,6 @@ test.serial('project.get', (t: any) => {
   })
 })
 
-test.serial('project.delete', (t: any) => {
-  return projectCtrl.delete(project.id).do((res: any) => t.deepEqual(res.num, 1))
-})
+// test.serial('project.delete', (t: any) => {
+//   return projectCtrl.delete(project.id).do((res: any) => t.deepEqual(res.num, 1))
+// })

@@ -44,6 +44,12 @@ let InterfaceSchema = new Schema({
     required: true,
     alias: 'updateMember'
   },
+  isTest: {
+    type: Boolean,
+    default: false
+  },
+  testStatusId: Boolean,
+  testStatusMsg: String,
   needTest: {
     type: Boolean,
     default: false
@@ -194,7 +200,9 @@ const InterfaceModel = mongoose.model('interface', InterfaceSchema)
 
 class Interface extends Model{
   name = this.random()
-  url = this.random()
+  url = '/' + this.random()
+  method = method.get
+  version = this.random(4)
 }
 
 export {

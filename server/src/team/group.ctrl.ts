@@ -1,6 +1,7 @@
 import { GroupModel, GroupInterface } from './group.md'
 import { Observable } from 'rxjs/Rx'
 import { MemberModel } from './member.md'
+import { rename } from '../util/fun'
 
 export const groupCtrl = {
   get() {
@@ -11,15 +12,21 @@ export const groupCtrl = {
         foreignField: '_id',
         as: 'members'
       })
+      .append({
+        $addFields: {
+          'id': '$_id'
+        }
+      })
       .project({
         _id: 0,
-        id: '$_id',
-        name: 1,
-        'members.id': '$$CURRENT._id',
-        'members.name': 1
+        memberList: 0
       })
       .exec())
-      .map((groups: GroupInterface[]) => ({ groups }))
+      .map((list: any) => {
+        let groups = list || [{ members: [] }]
+        groups.forEach((r:any) => r.members = rename(r.members, [['_id', 'id']]))
+        return {groups}
+      })
   },
   getRole() {
     return Observable.of({

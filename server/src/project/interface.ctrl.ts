@@ -1,9 +1,11 @@
-import { InterfaceInterface, InterfaceModel } from './interface.md'
+import { InterfaceModel } from './interface.md'
 import { InterfaceLogInterface, InterfaceLogModel } from './interfaceArchive.md'
 import { ProjectModel } from './project.md'
 import { MemberInterface, MemberModel } from '../team/member.md'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from '../util/db'
+import { rename } from '../util/fun'
+import  * as _  from 'lodash'
 
 export interface version extends InterfaceLogInterface {
   version: string
@@ -12,54 +14,31 @@ export interface version extends InterfaceLogInterface {
   editorId: string
 }
 
-let MemberMap = Observable.fromPromise(MemberModel.find({}, { _id: 1, name: 1 }))
-  .map((x: MemberInterface[]) => {
-    let map: any = {}
-    x.forEach((item: MemberInterface) => {
-      map[item.id] = item.name
-    });
-    return map
-  })
-
 export const interfaceCtrl = {
   /**
    * 查询项目下的接口列表
    * @param pid 项目id
    */
   get(pid: string) {
-    return Observable.fromPromise(InterfaceModel.aggregate()
-      .facet({
-        apiList: [
-          { $match: { pid: mongoose.Types.ObjectId(pid) } },
-          { $sort: { url: -1 } },
-          {
-            $project: {
-              _id: 0,
-              id: '$_id',
-              name: 1,
-              version: 1,
-              method: 1,
-              url: 1,
-              pid: 1
-            }
-          }
-        ],
-        project: [
-          { $match: { pid: mongoose.Types.ObjectId(pid) } },
-          { $limit: 1 },
-          { $lookup: { from: 'projects', localField: 'pid', foreignField: '_id', as: 'p' } },
-          { $unwind: '$p' },
-          { $project: { _id: 0, id: '$p._id', name: '$p.name' } }
-        ]
+    return Observable.fromPromise(ProjectModel.aggregate()
+      .lookup({
+        from: InterfaceModel.collection.collectionName,
+        localField: '_id',
+        foreignField: 'pid',
+        as: 'apiList'
       })
-      .unwind('$project')
-      .project({
-        id: '$project.id',
-        name: '$project.name',
-        apiList: 1
+      .append({
+        $addFields: {
+          id: '$_id',
+          total: { $size: '$apiList' }
+        }
       })
       .exec())
-      .map((res: any) => res.pop())
+      .map((list: any) => {
+        let result = list.pop() || {}
+        result.apiList = rename(result.apiList, [['_id', 'id']])
+        return result
+      })
   },
   /**
    * 查询某个接口
@@ -69,6 +48,13 @@ export const interfaceCtrl = {
   getById(pid: string, iid: string) {
     return Observable.fromPromise(InterfaceModel.aggregate()
       .match({ _id: mongoose.Types.ObjectId(iid) })
+      .append({
+        $addFields: {
+          id: '$_id',
+          currentVersion: '$version',
+          latestVersion: '$version',
+        }
+      })
       .exec())
       .map((x: any) => x.pop())
   },
@@ -80,22 +66,14 @@ export const interfaceCtrl = {
   getHistoryById(iid: string, version: string) {
     return Observable.fromPromise(InterfaceLogModel.aggregate()
       .match({ iid: mongoose.Types.ObjectId(iid), version })
-      .lookup({
-        from: ProjectModel.collection.collectionName,
-        localField: 'pid',
-        foreignField: '_id',
-        as: 'project'
-      })
-      .unwind('$project', '$project.interfaceList')
-      .match({ 'project.interfaceList._id': mongoose.Types.ObjectId(iid) })
-      .project({
-        _id: 0,
-        id: '$_id',
-        name: 1,
-        currentVersion: '$version',
-        latestVersion: '$project.interfaceList.version'
+      .append({
+        $addFields: {
+          id: '$_id',
+          currentVersion: '$version' 
+        }
       })
       .exec())
+      .map((res:any) => res.pop())
   },
   /**
    * 查询接口历史版本列表
@@ -103,7 +81,7 @@ export const interfaceCtrl = {
    */
   getVersionById(iid: string) {
     return Observable.fromPromise(InterfaceLogModel.aggregate()
-      .match({ iid: mongoose.Types.Object(iid) })
+      .match({ iid: mongoose.Types.ObjectId(iid) })
       .lookup({
         from: MemberModel.collection.collectionName,
         localField: 'editorId',
@@ -112,7 +90,6 @@ export const interfaceCtrl = {
       })
       .unwind('$m')
       .project({
-        _id: 0,
         version: 1,
         updateTime: { $dateToString: { format: '%Y-%m-%d %H:%M:%S', date: '$updateTime' } },
         updateMember: '$m.name'
@@ -125,7 +102,7 @@ export const interfaceCtrl = {
    * @param pid 项目id
    * @param ifc 接口数据
    */
-  post(pid: string, ifc: InterfaceInterface) {
+  post(pid: string, ifc: any) {
     ifc.pid = mongoose.Types.ObjectId(pid)
     return Observable.fromPromise(new InterfaceModel(ifc).save())
   },
@@ -135,29 +112,18 @@ export const interfaceCtrl = {
    * @param iid 接口id
    * @param ifc 接口数据
    */
-  put(pid: string, iid: string, ifc: InterfaceInterface) {
-    return Observable.fromPromise(new Promise((res, rej) => ProjectModel.findOneAndUpdate({
-      _id: mongoose.Types.ObjectId(pid),
-      interfaceList: {
-        $elementMatch: {
-          _id: mongoose.Types.ObjectId(iid)
-        }
-      }
-    }, {
-        $set: {
-          'interfaceList.$': ifc
-        }
-      }, (e: any, doc: any) => {
-        if (e) {
-          rej(e)
+  put(pid: string, iid: string, ifc: any) {
+    return Observable.fromPromise(InterfaceModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(iid) }, {$set:ifc}).exec())
+      .switchMap((doc: any) => {
+        if(doc) {
+          let log = doc.toObject()
+          log.iid = iid
+          delete log._id
+          return Observable.fromPromise(new InterfaceLogModel(log).save()) 
         } else {
-          // 接口归档
-          let ifc = doc.interfaceList.filter((x: any) => x._id == iid).pop()
-          ifc.iid = iid
-          ifc.pid = pid
-          new InterfaceLogModel(ifc).save((e: any, r: any) => e ? rej(e) : res(r))
+          return Observable.throw('更新接口失败')
         }
-      })))
+      })
   },
   /**
    * 删除一个接口
@@ -167,7 +133,7 @@ export const interfaceCtrl = {
   delete(pid: string, iid: string) {
     return Observable.fromPromise(InterfaceModel.remove({ _id: mongoose.Types.ObjectId(iid) }).exec())
       .do(() => InterfaceLogModel.remove({ iid: mongoose.Types.ObjectId(iid) }).exec())
-      .do(() => ProjectModel.findByIdAndUpdate(mongoose.Types.Object(pid), {
+      .do(() => ProjectModel.findByIdAndUpdate(mongoose.Types.ObjectId(pid), {
         $pull: {
           testInterfaceList: mongoose.Types.ObjectId(iid)
         }

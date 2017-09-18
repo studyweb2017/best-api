@@ -5,6 +5,7 @@ import { InterfaceModel } from './interface.md'
 import { GroupModel } from '../team/group.md'
 import { Observable } from 'rxjs/Rx'
 import { Schema, mongoose } from '../util/db'
+import { rename } from '../util/fun'
 
 export const projectCtrl = {
   get() {
@@ -46,29 +47,31 @@ export const projectCtrl = {
   getById(id: string) {
     return Observable.fromPromise(ProjectModel.aggregate()
       .match({ _id: mongoose.Types.ObjectId(id) })
+      .unwind('memberList')
       .lookup({
         from: MemberModel.collection.collectionName,
         localField: 'memberList.id',
         foreignField: '_id',
         as: 'members'
       })
+      .append({
+        $addFields: {
+          id: '$_id'
+        }
+      })
       .project({
         _id: 0,
-        id: '$_id',
-        name: 1,
-        description: '$desc',
-        testUrl: 1,
-        openTest: 1,
-        apiChangedInform: 1,
-        testFailedInform: 1,
-        'members.id': '$$CURRENT._id',
-        'members.name': 1,
-        'members.role': 1
+        memberList: 0
       })
       .exec())
-      .map((res: any) => res.pop() || {})
+      .map((res: any) => {
+        let result = res.pop() || {}
+        result.members = rename(result.members, [['_id', 'id']])
+        return result
+      })
   },
   post(project: any) {
+    project.memberList = project.members
     return Observable.fromPromise((new ProjectModel(project)).save())
       .map((proj: ProjectInterface) => ({ id: proj._id }))
   },
