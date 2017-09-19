@@ -19,6 +19,7 @@
 </script>
 
 <style lang="stylus">
+@import "./common.styl"
 *
   box-sizing border-box
 html,
@@ -49,34 +50,4 @@ ul
 li
   margin 0
   list-style none
-.p-r
-  position relative
-.p-a
-  position absolute
-.d-b
-  display block
-.d-ib
-  display inline-block
-.f-l
-  float left
-.f-r
-  float right
-.cl-b
-  clear both
-.ta-c
-  text-align center
-.ta-l
-  text-align left
-.ta-r
-  text-align right
-.va-t
-  vertical-align top
-.va-m
-  vertical-align middle
-.c-f
-  color #fff
-.mb-10
-  margin-bottom 10px
-.w-200
-  width 200px
 </style>

@@ -28,7 +28,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|vue)$/,
+        test: /\.vue$/,
         loader: 'eslint-loader',
         enforce: 'pre',
         include: [resolve('src'), resolve('test')],
@@ -42,7 +42,12 @@ module.exports = {
         options: vueLoaderConfig
       },
       {
-        test: /\.js$/,
+        test: /\.jsx?$/,
+        loader: 'babel-loader',
+        include: [resolve('src'), resolve('test')]
+      },
+      {
+        test: /\.tsx?$/,
         loader: 'babel-loader',
         include: [resolve('src'), resolve('test')]
       },

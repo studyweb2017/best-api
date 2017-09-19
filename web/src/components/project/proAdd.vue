@@ -7,39 +7,57 @@
         el-input(v-model='pro.description', placeholder="this is a...")
       el-form-item(label='测试地址', prop='testUrl')
         el-input(v-model='pro.testUrl', placeholder="192.11.3.3")
-      el-form-item(label='项目成员')
-        el-row
+      el-form-item(label='成员列表', prop='members')
+        div.member-list.border-4
+          el-row(v-for='(m, index) in pro.members', :key='m.id')
+            el-col.ta-l(:span='18')
+              span.ml-10 {{ m.name }}
+            el-col(:span='4')
+              el-select(v-model='m.role', size='small')
+                el-option(v-for='(r, index) in roles', :value='r.name', :key='r.index', :label='r.name')
+            el-col(:span='2')
+              el-button(@click='delMember(index)', type='text', size='small') 删除
+      el-form-item(label='新增成员')
+        el-row(:gutter='10')
           el-col(:span='5')
-            el-form-item(prop='group')
-              el-select(v-model='group', value-key='name', placeholder="小组")
+            el-form-item(prop='newGroup')
+              el-select(v-model='newGroup', value-key='name', placeholder="小组", size='small')
                 el-option(v-for='g in groups', :value='g', :key='g.id', :label='g.name')
           el-col(:span='5')
-            el-form-item(prop='member')
-              el-select(v-model='member', value-key='name', placeholder='姓名')
-                el-option(v-for='m in group.members', :value='m', :key='m.id', :label='m.name')
+            el-form-item(prop='newMember')
+              el-select(v-model='newMember', value-key='name', placeholder='姓名', size='small')
+                el-option(v-for='m in newGroup.members', :value='m', :key='m.id', :label='m.name')
           el-col(:span='5')
-            el-form-item(prop='memberRole')
-              el-select(v-model='memberRole', placeholder="权限")
-                el-option(v-for='role in roles', :value='role', :key='role', :label='role')
-          el-col(:span='1')
-            el-button(@click='addMember(member, memberRole)') 添加
+            el-form-item(prop='newMemberRole')
+              el-select(v-model='newMemberRole', placeholder='身份', size='small')
+                el-option(v-for='(ro, index) in roles', :value='ro.name', :key='ro.index', :label='ro.name')
+          el-col(:span='2')
+            el-button(@click='addMember()', type='text') 添加
         el-row
-          el-table(:data='pro.members', border, fit, style='width: 100%', align='center')
-            el-table-column(prop='group', label='小组', align='center')
-            el-table-column(prop='name', label='姓名', align='center')
-            el-table-column(prop='role', label='权限', align='center')
-            el-table-column(label='操作', align='center')
+          el-table(:data='roles', border, fit, style='width: 100%', align='center')
+            el-table-column(prop='name', label='身份', align='center')
+            el-table-column(prop='readApi', label='查看项目api', align='center')
               template(scope='scope')
-                el-button(@click.native.prevent='delMember(scope.$index)', type='text', size='small') 移除
-      el-form-item.ta-l(label='接口配置')
-        el-checkbox.d-b.ml-15(v-model='pro.apiChangedInform') 接口修改通知
-        el-checkbox.d-b(v-model='pro.openTest') 开启测试功能
-        el-checkbox.d-b(v-model='pro.testFailedInform') 测试失败通知
+                span.el-icon-close(v-if='!scope.row.readApi')
+                span.el-icon-check(v-if='scope.row.readApi')
+            el-table-column(prop='editApi', label='编辑项目api', align='center')
+              template(scope='scope')
+                span.el-icon-close(v-if='!scope.row.editApi')
+                span.el-icon-check(v-if='scope.row.editApi')
+            el-table-column(prop='editProject', label='编辑项目', align='center')
+              template(scope='scope')
+                span.el-icon-close(v-if='!scope.row.editProject')
+                span.el-icon-check(v-if='scope.row.editProject')
+      el-form-item.ta-l(label='高级选项')
+        el-form-item(prop='apiChangedInform')
+            el-checkbox.d-b(v-model='pro.apiChangedInform') 接口修改通知
+        el-form-item(prop='openTest')
+            el-checkbox.d-b(v-model='pro.openTest') 开启测试功能
+        el-form-item(prop='testFailedInform')
+            el-checkbox.d-b(v-model='pro.testFailedInform') 测试失败通知
       el-form-item
         el-button(type='ghost', @click='reset()') 重置
         el-button(type='primary', @click='submit()') 提交
-
-
 </template>
 <script lang='ts'>
 import Vue from 'vue'
@@ -47,14 +65,48 @@ import Component from 'vue-class-component'
 import http from '../../service/http.ts'
 import rules from '../../service/rules.ts'
 import Cache from '../../service/cache.ts'
-interface project extends Object {
+// import {formatApiToTree} from '../../utils/util.ts'
+interface Project extends Object {
   name: string,
-  description: string,
-  testUrl: string,
-  openTest: boolean,
+  description?: string,
+  testUrl?: string,
   apiChangedInform: boolean,
   testFailedInform: boolean,
-  members: any[]
+  openTest: boolean,
+  testApi?: Api[],
+  members: Member[]
+}
+interface Member extends Object {
+  id: string,
+  name: string,
+  group?: Object,
+  role?: string
+}
+interface Role extends Object {
+  name: string,
+  editProject: boolean,
+  editApi: boolean,
+  readApi: boolean
+}
+interface Group extends Object {
+  id: string,
+  name: string,
+  description?: string,
+  members: Member[]
+}
+interface Tree extends Object {
+  id: string,
+  name?: string,
+  label?: string,
+  children: Tree[]
+}
+interface Api extends Object {
+  id: string,
+  name?: string,
+  url?: string,
+  method?: string,
+  module?: string,
+  version?: string
 }
 @Component
 export default class proAdd extends Vue {
@@ -66,9 +118,12 @@ export default class proAdd extends Vue {
   user: any = {}
   rules: Object = {
     name: rules.name,
-    testUrl: rules.testUrl
+    testUrl: rules.testUrl,
+    members: [
+      {type: 'array', required: true, message: '请至少选择一个项目成员'}
+    ]
   }
-  pro: project = {
+  pro: Project = {
     name: '',
     description: '',
     testUrl: '',
@@ -82,46 +137,59 @@ export default class proAdd extends Vue {
       role: 'master'
     }]
   }
-  // pro: any = {}
-  memberRole: string = ''
-  roles: string[] = [
-    'master',
-    'developer',
-    'guest'
-  ]
-  groups: any[] = []
-  group: Object = {}
-  member: any = {}
+  roles: Role[] = []
+  groups: Group[] = []
+  newGroup: Group = {id: '', name: '', members: []}
+  newMember: Member = {id: '', name: ''}
+  newMemberRole: string = ''
+  editMemberRole: string = ''
+  // apiList: Api[] = []
+  // apiTree: Tree[] = []
   async beforeMount() {
     let resp1: any = await http.get('/api/group')
     this.groups = resp1.groups
-    if (this.$route.params.id) {
-      let resp2: any = await http.get('/api/project/' + this.$route.params.id)
+    if (this.$route.params.proId) {
+      let resp2: any = await http.get('/api/project/' + this.$route.params.proId)
       this.pro = resp2
+      // let resp4: any = await http.get('api/project/' + this.$route.params.proId + '/api')
+      // this.apiList = resp4.apiList
+      // this.apiTree = formatApiToTree(resp4.apiList)
     }
+    let resp3:any = await http.get('/api/role')
+    this.roles = resp3.roleList
     this.user = JSON.parse(Cache.get('user'))
   }
   addMember() {
-    if (this.member && this.memberRole) {
-      this.member.role = this.memberRole
-      this.pro.members.push(this.member)
+    let newer: Member = {id: '', name: '', role: ''}
+    if (this.newMember.name && this.newMemberRole) {
+      newer.name = this.newMember.name
+      newer.id = this.newMember.id
+      newer.role = this.newMemberRole
+      this.pro.members.push(newer)
     }
   }
   delMember(index: number) {
     this.pro.members.splice(index, 1)
   }
+  treeProps: Object = {
+    children: 'children',
+    label: 'name'
+  }
   reset() {
     this.$refs.pro.resetFields()
+    this.newGroup = {id: '', name: '', members: []}
+    this.newMember = {id: '', name: ''}
+    this.newMemberRole = ''
   }
   submit() {
     let that = this
     that.$refs.pro.validate(async (valid: boolean) => {
       if (valid) {
-        let op = that.$route.params.id ? '修改' : '添加'
+        let op = that.$route.params.proId ? '修改' : '添加'
         try {
           await that.$confirm('确认' + op + '项目' + that.pro.name, '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
-          let resp:any = that.$route.params.id
-           ? await http.put('/api/project/' + that.$route.params.id, that.pro)
+          let resp:any = that.$route.params.proId
+           ? await http.put('/api/project/' + that.$route.params.proId, that.pro)
            : await http.post('/api/project', that.pro)
           if (resp.status === 200) {
             if (resp.data.errCode === 0) {
@@ -147,10 +215,18 @@ export default class proAdd extends Vue {
   width 100%
   height 100%
 .el-form
-  margin 50px auto
+  margin 50px auto 0
   width 800px
-  padding 50px
+  padding 40px 50px 10px
   border 1px solid #ddd
 .el-row
   margin-bottom 10px
+.member-list
+  padding-top 10px
+  min-height 36px
+  .el-row
+    background-color #e4f0fb
+    &:nth-child(even)
+      background-color #eef1f6
+  // .el-row:nth-child(odd)
 </style>

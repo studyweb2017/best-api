@@ -50,7 +50,7 @@ export default class navBar extends Vue {
 <style lang="stylus">
 .el-menu
   margin 0 auto
-  max-width 1000px
+  // max-width 1000px
   background-color #20a0ff
   .login
     float right
