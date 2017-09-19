@@ -25,13 +25,15 @@ services:
       - ./server:/app
     ports:
       - 2018:2018
-      - 8102:8012
+      - 8102:5858
     command: npm run compose
     depends_on: 
       - db
   db:
     image: mongo:latest
     container_name: api-db
+    ports:
+      - 27018:27017
 volumes:
   api_web_modules:
   api_server_modules:

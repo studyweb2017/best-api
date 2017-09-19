@@ -9,16 +9,33 @@
     "init": "npm i",
     "proxy": "npm set registry https://registry.npm.taobao.org",
     "start": "pm2 start ./dist/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsc -w & nyc ava -w --verbose",
+    "report": "nyc report --reporter=lcov"
   },
   "author": "yalishizhude",
   "license": "ISC",
   "dependencies": {
+    "babel-eslint": "^7.1.1",
     "koa": "^2.3.0",
-    "koa-body-parser": "^1.1.2",
+    "koa-better-router": "^2.1.1",
+    "koa-bodyparser": "^2.5.0",
     "koa-router": "^7.2.1",
+    "lodash": "^4.17.4",
     "mongoose": "^4.11.0",
     "request": "^2.81.0",
-    "babel-eslint": "^7.1.1"
+    "rxjs": "^5.4.3"
+  },
+  "devDependencies": {
+    "ava": "^0.22.0",
+    "nyc": "^11.1.0",
+    "sinon": "^3.2.1"
+  },
+  "ava": {
+    "files": [
+      "dist/**/*.test.js"
+    ],
+    "source": [
+      "src/**/*.ts"
+    ]
   }
 }

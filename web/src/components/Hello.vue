@@ -1,6 +1,8 @@
 <template lang="pug">
   div.hello
+    h1 aaa
     h1 {{msg}}
+    h2 {{name}}
 </template>
 
 <script lang="ts">
@@ -8,9 +10,14 @@ import Vue from 'vue'
 import http from '../service/http.ts'
 import Component from 'vue-class-component'
 
-@Component
+@Component({
+  props: {
+    name: String
+  }
+})
 export default class Hello extends Vue {
   msg: string = 'Welcome to Best API'
+  name: string
   async mounted () {
     this.msg = (await http.get('/api/11')).toString()
   }

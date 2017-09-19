@@ -1,25 +1,59 @@
-import { Schema, mongoose } from '../util/db'
+import { Schema, mongoose, Model } from '../util/db'
 
 let InterfaceSchema = new Schema({
+  pid: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    set: (v:string|any) => mongoose.Types.ObjectId(v)
+  },
   url: {
     type: String,
-    match: /^\//
+    match: /^\//,
+    required: true
   },
   name: {
     type: String,
     maxlength: 40,
+    required: true
   },
-  version: String,
+  version: {
+    type: String,
+    required: true
+  },
   desc: {
     type: String,
-    maxlength: 200
+    maxlength: 200,
+    default: ''
   },
-  timestamp: {
-    type: Number,
-    default: new Date
+  createdTime: {
+    type: Date,
+    required: true,
+    default: new Date(),
   },
-  creatorId: String,
-  editorId: String,
+  updateTime: {
+    type: Date,
+    required: true,
+    default: new Date()
+  },
+  creatorId: {
+    type: Schema.Types.ObjectId,
+    required: true
+  },
+  editorId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    alias: 'updateMember'
+  },
+  isTest: {
+    type: Boolean,
+    default: false
+  },
+  testStatusId: Boolean,
+  testStatusMsg: String,
+  needTest: {
+    type: Boolean,
+    default: false
+  },
   delay: Number,
   state: {
     type: Object,
@@ -39,7 +73,8 @@ let InterfaceSchema = new Schema({
   },
   method: {
     type: String,
-    enum: ['GET', 'POST', 'PUT', 'DELETE']
+    enum: ['GET', 'POST', 'PUT', 'DELETE'],
+    required: true
   },
   exceptionList: [{
     _id: false,
@@ -55,6 +90,7 @@ let InterfaceSchema = new Schema({
   request: {
     headerList: [{
       _id: false,
+      id: String,
       key: String,
       value: String
     }],
@@ -74,6 +110,7 @@ let InterfaceSchema = new Schema({
   response: {
     headerList: [{
       _id: false,
+      id: String,
       key: String,
       value: String
     }],
@@ -92,20 +129,37 @@ let InterfaceSchema = new Schema({
   }
 })
 
+enum method {
+  get = 'GET',
+  post = 'POST',
+  put = 'PUT',
+  delete = 'DELETE'
+}
+enum dataType {
+  string = 'String', 
+  number = 'Number', 
+  boolean = 'Boolean', 
+  object = 'Object', 
+  array = 'Array'
+}
+
 interface InterfaceInterface {
-  url?: string,
-  name?: string
-  version?: string,
-  desc?: string,
-  timestamp?: number
-  creatorId?: string,
-  editorId?: string,
+  pid: string,
+  id: string,
+  url: string,
+  name: string
+  version: string,
+  desc: string,
+  createdTime: string,
+  updateTime: string,
+  creatorId: string,
+  editorId: string,
   delay?: number,
   state?: {
     id: number,
     name: string
   },
-  method?: string,
+  method: method,
   exceptionList?: [{
     enabled: boolean,
     result: string,
@@ -120,7 +174,7 @@ interface InterfaceInterface {
     paramList: [{
       id: string,
       isNecessary: boolean,
-      dataType: string,
+      dataType: dataType,
       mockData: string,
       validator: string,
       desc: string
@@ -134,7 +188,7 @@ interface InterfaceInterface {
     paramList: [{
       id: string,
       isNecessary: boolean,
-      dataType: string,
+      dataType: dataType,
       mockData: string,
       validator: string,
       desc: string
@@ -142,7 +196,20 @@ interface InterfaceInterface {
   }
 }
 
+const InterfaceModel = mongoose.model('interface', InterfaceSchema)
+
+class Interface extends Model{
+  name = this.random()
+  url = '/' + this.random()
+  method = method.get
+  version = this.random(4)
+}
+
 export {
   InterfaceSchema,
-  InterfaceInterface
+  InterfaceInterface,
+  InterfaceModel,
+  method,
+  dataType,
+  Interface
 }
