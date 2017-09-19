@@ -3,7 +3,6 @@ import { MemberSchema } from '../team/member.md'
 import { TestSchema, TestInterface } from '../test/test.md'
 
 let ProjectSchema = new Schema({
-  id: String,
   name: {
     type: String,
     maxlength: 20,
@@ -31,19 +30,9 @@ let ProjectSchema = new Schema({
     type: Boolean,
     default: false
   },
-  memberList: {
-    type: [{
-      _id: false,
-      id: {
-        type: Schema.Types.ObjectId,
-        set: (v: any) => mongoose.Types.ObjectId(v)
-      },
-      role: {
-        type: String,
-        enum: ['guest', 'master', 'developer'],
-      }
-    }]
-  }
+  masterList: [Schema.Types.ObjectId],
+  developerList: [Schema.Types.ObjectId],
+  GuestList: [Schema.Types.ObjectId],
 })
 
 enum role {

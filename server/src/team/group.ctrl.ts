@@ -12,21 +12,22 @@ export const groupCtrl = {
         foreignField: '_id',
         as: 'members'
       })
-      .append({
-        $addFields: {
-          'id': '$_id'
-        }
-      })
       .project({
         _id: 0,
-        memberList: 0
+        id: '$_id',
+        members: {
+          $map: {
+            input: '$members',
+            as: 'm',
+            in: {
+              id: '$$m._id',
+              name: '$$m.name'
+            }
+          }
+        }
       })
       .exec())
-      .map((list: any) => {
-        let groups = list || [{ members: [] }]
-        groups.forEach((r:any) => r.members = rename(r.members, [['_id', 'id']]))
-        return {groups}
-      })
+      .map((groups: any) => ({groups}))
   },
   getRole() {
     return Observable.of({

@@ -47,32 +47,70 @@ export const projectCtrl = {
   getById(id: string) {
     return Observable.fromPromise(ProjectModel.aggregate()
       .match({ _id: mongoose.Types.ObjectId(id) })
-      .unwind('memberList')
       .lookup({
         from: MemberModel.collection.collectionName,
-        localField: 'memberList.id',
+        localField: 'masterList',
         foreignField: '_id',
-        as: 'members'
+        as: 'm'
+      })
+      .lookup({
+        from: MemberModel.collection.collectionName,
+        localField: 'developerList',
+        foreignField: '_id',
+        as: 'd'
+      })
+      .lookup({
+        from: MemberModel.collection.collectionName,
+        localField: 'guestList',
+        foreignField: '_id',
+        as: 'g'
       })
       .append({
         $addFields: {
-          id: '$_id'
+          m: {
+            $map: {
+              input: '$m',
+              as: 'ml',
+              in: {id: '$$ml._id', name: '$$ml.name', role: 'master'}
+            }
+          },
+          d: {
+            $map: {
+              input: '$d',
+              as: 'dl',
+              in: {id: '$$dl._id', name: '$$dl.name', role: 'developer'}
+            }
+          },
+          g: {
+            $map: {
+              input: '$g',
+              as: 'gl',
+              in: {id: '$$gl._id', name: '$$gl.name', role: 'guest'}
+            }
+          }
         }
       })
       .project({
-        _id: 0,
-        memberList: 0
+        _id:0,
+        id: '$_id',
+        name: 1,
+        descriptions: '$desc',
+        openTest: 1,
+        testFailedInform: 1, 
+        apiChangedInform: 1,
+        members: {$concatArrays:['$m', '$d', '$g']}
       })
       .exec())
       .map((res: any) => {
-        let result = res.pop() || {}
-        result.members = rename(result.members, [['_id', 'id']])
-        return result
+        return res.pop()
       })
   },
   post(project: any) {
-    project.memberList = project.members
-    return Observable.fromPromise((new ProjectModel(project)).save())
+    project.masterList = []
+    project.developerList = []
+    project.guestList = []
+    project.members.forEach((it:any) => project[it.role+'List'].push(it))
+    return Observable.fromPromise(ProjectModel.create(project))
       .map((proj: ProjectInterface) => ({ id: proj._id }))
   },
   put(_id:string, project: any) {
