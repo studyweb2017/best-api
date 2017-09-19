@@ -1,5 +1,5 @@
 # vue-cli
-FROM node:7-alpine
+FROM node:7
 RUN mkdir /app
 RUN chmod 777 /app
 WORKDIR /app

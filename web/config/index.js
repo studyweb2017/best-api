@@ -28,7 +28,7 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-      '/api/*': {
+      '/api': {
         target: 'http://' + (process.env.SERVER_HOST||'api-server') + ':' + (process.env.SERVER_PORT||'2018'),
         secure: false
       }
