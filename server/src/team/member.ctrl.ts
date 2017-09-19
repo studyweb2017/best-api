@@ -3,26 +3,24 @@ import { Observable } from 'rxjs/Rx'
 import { encrypt } from '../util/crypto'
 
 export const memberCtrl = {
-  getMap() {
-    let map: any = {}
-    return Observable.zip(Observable.fromPromise(MemberModel.find({}))
-      .switchMap((list: any) => Observable.from(list))
-      .map((x: any) => ({ [x._id]: x }))
-      .toArray(), (arg: any) => Object.assign.apply(null, arg))
-  },
   get() {
     return Observable.fromPromise(MemberModel.aggregate().project({
-      "id": "$_id",
-      "isAdmin": 1,
-      "account": 1,
-      "name": 1
+      _id: 0,
+      id: "$_id",
+      isAdmin: 1,
+      account: 1,
+      name: 1
     }))
-      .map((list: MemberInterface[]) => ({ list }))
+      .map((memberList: MemberInterface[]) => ({ memberList }))
   },
   post(member: any) {
-    member.password = encrypt(member.password)
-    return Observable.fromPromise(new MemberModel(member).save())
-      .map((x: any) => ({ id: x._id }))
+    try {
+      member.password = encrypt(member.password)
+      return Observable.fromPromise(new MemberModel(member).save())
+        .map((x: any) => ({ id: x._id })) 
+    } catch(e) {
+      return Observable.throw(e)
+    }
   },
   delete(_id: string) {
     return Observable.fromPromise(MemberModel.remove({ _id }).exec())

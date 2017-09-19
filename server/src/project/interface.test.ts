@@ -63,12 +63,12 @@ test.serial('interface.put', (t:any) => {
     })
 })
 
-// test.serial('interface.getHistoryById', (t: any) => {
-//   return interfaceCtrl.getHistoryById(ifc.id, ifc.version)
-//     .do((res: any) => {
-//       t.deepEqual(res.name, ifc.name)
-//     })
-// })
+test.serial('interface.getHistoryById', (t: any) => {
+  return interfaceCtrl.getHistoryById(ifc.id, ifc.version)
+    .do((res: any) => {
+      t.deepEqual(res.name, ifc.name)
+    })
+})
 
 test.serial('interface.delete', (t: any) => {
   return interfaceCtrl.delete(project.id, ifc.id)

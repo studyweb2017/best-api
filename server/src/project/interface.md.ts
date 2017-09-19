@@ -1,15 +1,16 @@
 import { Schema, mongoose, Model } from '../util/db'
 
-let InterfaceSchema = new Schema({
+  let InterfaceSchemaObj = {
   pid: {
     type: Schema.Types.ObjectId,
     required: true,
-    set: (v:string|any) => mongoose.Types.ObjectId(v)
+    set: (v: string | any) => mongoose.Types.ObjectId(v)
   },
   url: {
     type: String,
     match: /^\//,
-    required: true
+    required: true,
+    unique: true
   },
   name: {
     type: String,
@@ -73,8 +74,8 @@ let InterfaceSchema = new Schema({
   },
   method: {
     type: String,
-    enum: ['GET', 'POST', 'PUT', 'DELETE'],
-    required: true
+    required: true,
+    uppercase: true
   },
   exceptionList: [{
     _id: false,
@@ -127,7 +128,8 @@ let InterfaceSchema = new Schema({
       desc: String
     }]
   }
-})
+}
+let InterfaceSchema = new Schema(InterfaceSchemaObj)
 
 enum method {
   get = 'GET',
@@ -136,10 +138,10 @@ enum method {
   delete = 'DELETE'
 }
 enum dataType {
-  string = 'String', 
-  number = 'Number', 
-  boolean = 'Boolean', 
-  object = 'Object', 
+  string = 'String',
+  number = 'Number',
+  boolean = 'Boolean',
+  object = 'Object',
   array = 'Array'
 }
 
@@ -198,7 +200,7 @@ interface InterfaceInterface {
 
 const InterfaceModel = mongoose.model('interface', InterfaceSchema)
 
-class Interface extends Model{
+class Interface extends Model {
   name = this.random()
   url = '/' + this.random()
   method = method.get
@@ -208,6 +210,7 @@ class Interface extends Model{
 export {
   InterfaceSchema,
   InterfaceInterface,
+  InterfaceSchemaObj,
   InterfaceModel,
   method,
   dataType,

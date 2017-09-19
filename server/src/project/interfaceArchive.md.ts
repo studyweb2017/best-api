@@ -1,13 +1,18 @@
 import { Schema, mongoose } from '../util/db'
-import { InterfaceSchema, InterfaceInterface } from './interface.md'
+import { InterfaceSchemaObj, InterfaceInterface } from './interface.md'
 
-const InterfaceLogSchema = InterfaceSchema.clone()
+let InterfaceLogSchemaObj:any = Object.assign(InterfaceSchemaObj, {
+  iid: Schema.Types.ObjectId,
+  url: {
+    type: String,
+    match: /^\//,
+    required: true
+  } 
+})
 
-InterfaceLogSchema.iid = {
-  type: Schema.Types.ObjectId
-}
+delete InterfaceLogSchemaObj.needTest
 
-delete InterfaceLogSchema.needTest
+const InterfaceLogSchema = new Schema(InterfaceLogSchemaObj)
 
 const InterfaceLogModel = mongoose.model('interfaceLog', InterfaceLogSchema)
 

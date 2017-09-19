@@ -2,11 +2,12 @@ import * as Koa from 'koa'
 import * as bodyParser from 'koa-bodyparser'
 
 import router from './router'
+import mock from './mock'
 
 const app = new Koa()
 app.use(bodyParser())
 app.use(router)
-
+app.use(mock)
 app.use((ctx:any) => {
   ctx.body = 'api server'
 })

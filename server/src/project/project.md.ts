@@ -32,7 +32,7 @@ let ProjectSchema = new Schema({
   },
   masterList: [Schema.Types.ObjectId],
   developerList: [Schema.Types.ObjectId],
-  GuestList: [Schema.Types.ObjectId],
+  guestList: [Schema.Types.ObjectId],
 })
 
 enum role {
@@ -49,7 +49,6 @@ interface ProjectInterface {
   name: string,
   desc: string,
   testUrl: string
-  memberList: string[],
   apiChangedInform: boolean,
   testFailedInform: boolean,
   openTest: boolean

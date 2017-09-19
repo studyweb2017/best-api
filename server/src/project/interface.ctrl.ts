@@ -4,8 +4,6 @@ import { ProjectModel } from './project.md'
 import { MemberInterface, MemberModel } from '../team/member.md'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from '../util/db'
-import { rename } from '../util/fun'
-import  * as _  from 'lodash'
 
 export interface version extends InterfaceLogInterface {
   version: string
@@ -36,7 +34,7 @@ export const interfaceCtrl = {
       .exec())
       .map((list: any) => {
         let result = list.pop() || {}
-        result.apiList = rename(result.apiList, [['_id', 'id']])
+        result.apiList.forEach((t:any) => t.id = t._id)
         return result
       })
   },
@@ -100,10 +98,13 @@ export const interfaceCtrl = {
   /**
    * 新增接口
    * @param pid 项目id
-   * @param ifc 接口数据
+   * @param ifce接口数据
    */
   post(pid: string, ifc: any) {
     ifc.pid = mongoose.Types.ObjectId(pid)
+    // 测试用
+    ifc.editorId = new mongoose.Types.ObjectId()
+    ifc.creatorId = new mongoose.Types.ObjectId()
     return Observable.fromPromise(new InterfaceModel(ifc).save())
   },
   /**
