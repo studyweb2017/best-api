@@ -4,43 +4,28 @@ import { MemberModel } from '../team/member.md'
 import { InterfaceModel } from './interface.md'
 import { Observable } from 'rxjs/Rx'
 import { Schema, mongoose } from '../util/db'
+import exp from './export'
 
 export const projectCtrl = {
   get() {
     return Observable.fromPromise(ProjectModel.aggregate()
       .lookup({
-        from: TestModel.collection.collectionName,
-        localField: '_id',
-        foreignField: 'pid',
-        as: 'testList'
-      })
-      .lookup({
         from: InterfaceModel.collection.collectionName,
         localField: '_id',
         foreignField: 'pid',
-        as: 'interfaceList'
+        as: 'list'
+      })
+      .project({
+        id: '$_id',
+        name: 1,
+        api: {
+          total: { $size: '$list' },
+          pass: { $literal: 0 },
+          untest: { $size: '$list' }
+        }
       })
       .exec())
-      .map((res: any) => {
-        let result: any = {
-          total: res.length,
-          list: []
-        }
-        res.forEach((p: any) => {
-          let test = p.testList.pop() || {}
-          let api: any = {
-            total: p.interfaceList.length,
-            pass: test.successTest || 0,
-          }
-          api.untest = api.total - api.pass
-          result.list.push({
-            id: p._id,
-            name: p.name,
-            api
-          })
-        })
-        return result
-      })
+      .map((list: any) => ({ list }))
   },
   getById(id: string) {
     return Observable.fromPromise(ProjectModel.aggregate()
@@ -143,7 +128,7 @@ export const projectCtrl = {
     try {
       return Observable.zip(Observable.of(project), devideMember(project.members), (x, y) => Object.assign(x, y))
         .switchMap((p: any) => {
-          return Observable.fromPromise(ProjectModel.updateOne({ _id }, {$set:p}).exec())
+          return Observable.fromPromise(ProjectModel.updateOne({ _id }, { $set: p }).exec())
             .map((res: any) => ({ num: res.n }))
         })
     } catch (e) {
@@ -155,10 +140,20 @@ export const projectCtrl = {
       .map((res: any) => ({
         num: res.result.n
       }))
+  },
+  export(pid: string) {
+    return exp.gen(pid)
+      .map((url: any) => {
+        console.log(url)
+        return { url }
+      })
+  },
+  report(file: string) {
+    return exp.readFile(file)
   }
 }
 
-let devideMember = (memberList: any=[]) => Observable.of(memberList)
+let devideMember = (memberList: any = []) => Observable.of(memberList)
   .map((list: any) => {
     let obj: any = {
       masterList: [],

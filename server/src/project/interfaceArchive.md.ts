@@ -7,7 +7,8 @@ let InterfaceLogSchemaObj:any = Object.assign(InterfaceSchemaObj, {
     type: String,
     match: /^\//,
     required: true
-  } 
+  },
+  version: String
 })
 
 delete InterfaceLogSchemaObj.needTest

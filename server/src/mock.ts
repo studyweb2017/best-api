@@ -3,12 +3,12 @@ import { InterfaceModel, Interface } from './project/interface.md'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from './util/db'
 
-export default (ctx: any) => {
+export default (ctx: any, next: any) => {
   let { method, path, query, headers, body } = ctx.request
   let _path = path.replace('/', '').split('/')
   let pid = _path.shift()
   path = '/' + _path.join('/')
-  try {
+  if(/\w{24}/.test(pid)) {
     return Observable.fromPromise(InterfaceModel.find({ pid: mongoose.Types.ObjectId(pid), method }))
       .switchMap((res: Interface[]) => Observable.from(res))
       .combineLatest(Observable.of({ path, query, body, headers }))
@@ -16,21 +16,14 @@ export default (ctx: any) => {
       .map(([ifc, { path, query, body, headers }]) => {
         let re = path2reg(ifc.url)
         let match = re.exec(path)
-        if (match) return match
-        else return 'api server'
+        if (match) {
+          ctx.body = match
+        } else {
+          next()
+        }
       })
-      .catch((e: any) => {
-        console.error(e)
-        ctx.body = e
-        return Observable.of(e)
-      })
-      .do((res: any) => ctx.body = res)
-      .toPromise()
-  } catch (e) {
-    console.error(e)
-    return new Promise((res: any) => {
-      ctx.body = e
-      res(e)
-    })
+      .toPromise() 
+  } else {
+    return next()
   }
-} 
+}

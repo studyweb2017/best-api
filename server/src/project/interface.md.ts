@@ -1,6 +1,31 @@
 import { Schema, mongoose, Model } from '../util/db'
 
-  let InterfaceSchemaObj = {
+let ParamSchema = new Schema({
+    headerList: [{
+      _id: false,
+      id: String,
+      key: String,
+      value: String
+    }],
+    paramList: [{
+      _id: false,
+      id: String,
+      pid: String,
+      name: String,
+      required: Boolean,
+      type: {
+        type: String,
+        enum: ['String', 'Number', 'Boolean', 'Object', 'Array'],
+        set(v:string) {
+          return `${v[0].toUpperCase()}${v.slice(1)}`
+        }
+      },
+      mock: String,
+      rule: String,
+      remark: String
+    }]
+})
+let InterfaceSchemaObj = {
   pid: {
     type: Schema.Types.ObjectId,
     required: true,
@@ -19,8 +44,10 @@ import { Schema, mongoose, Model } from '../util/db'
   },
   version: {
     type: String,
-    required: true
+    required: true,
+    default: new Date().getTime().toString(36)
   },
+  module: String,
   desc: {
     type: String,
     maxlength: 200,
@@ -36,15 +63,8 @@ import { Schema, mongoose, Model } from '../util/db'
     required: true,
     default: new Date()
   },
-  creatorId: {
-    type: Schema.Types.ObjectId,
-    required: true
-  },
-  editorId: {
-    type: Schema.Types.ObjectId,
-    required: true,
-    alias: 'updateMember'
-  },
+  creator: String,
+  editor: String,
   isTest: {
     type: Boolean,
     default: false
@@ -55,7 +75,7 @@ import { Schema, mongoose, Model } from '../util/db'
     type: Boolean,
     default: false
   },
-  delay: Number,
+  delay: Number, //单位：毫秒
   state: {
     type: Object,
     enum: [{
@@ -80,7 +100,7 @@ import { Schema, mongoose, Model } from '../util/db'
   exceptionList: [{
     _id: false,
     enabled: Boolean,
-    result: String,
+    response: String,
     desc: String,
     probability: {
       type: Number,
@@ -88,46 +108,8 @@ import { Schema, mongoose, Model } from '../util/db'
       max: 100
     }
   }],
-  request: {
-    headerList: [{
-      _id: false,
-      id: String,
-      key: String,
-      value: String
-    }],
-    paramList: [{
-      _id: false,
-      id: String,
-      isNecessary: Boolean,
-      dataType: {
-        type: String,
-        enum: ['String', 'Number', 'Boolean', 'Object', 'Array']
-      },
-      mockData: String,
-      validator: String,
-      desc: String
-    }]
-  },
-  response: {
-    headerList: [{
-      _id: false,
-      id: String,
-      key: String,
-      value: String
-    }],
-    paramList: [{
-      _id: false,
-      id: String,
-      isNecessary: Boolean,
-      dataType: {
-        type: String,
-        enum: ['String', 'Number', 'Boolean', 'Object', 'Array']
-      },
-      mockData: String,
-      validator: String,
-      desc: String
-    }]
-  }
+  request: ParamSchema,
+  response: ParamSchema
 }
 let InterfaceSchema = new Schema(InterfaceSchemaObj)
 
@@ -150,12 +132,11 @@ interface InterfaceInterface {
   id: string,
   url: string,
   name: string
-  version: string,
   desc: string,
   createdTime: string,
   updateTime: string,
-  creatorId: string,
-  editorId: string,
+  creator: string,
+  editor: string,
   delay?: number,
   state?: {
     id: number,
