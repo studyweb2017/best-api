@@ -65,7 +65,7 @@ export const interfaceCtrl = {
           id: '$_id'
         }
       })
-      .project({_id:0})
+      .project({ _id: 0 })
       .exec())
       .map((x: any) => x.pop())
   },
@@ -83,7 +83,7 @@ export const interfaceCtrl = {
           errConfig: '$exceptionList',
         }
       })
-      .project({_id:0})
+      .project({ _id: 0 })
       .exec())
       .map((res: any) => res.pop())
   },
@@ -101,6 +101,26 @@ export const interfaceCtrl = {
       })
       .exec())
       .map((versionList: any) => ({ versionList }))
+  },
+  /**
+   * 获取接口模块
+   * @param pid 项目id
+   */
+  getModule(pid: string) {
+    return Observable.fromPromise(InterfaceModel.aggregate()
+      .match({pid: mongoose.Types.ObjectId(pid)})
+      .group({
+        _id: null,
+        moduleList: {
+          $push: '$$CURRENT.module'
+        }
+      })
+      .project({
+        _id: 0,
+        moduleList: 1
+      })
+      .exec())
+      .map((res: any) => res.pop())
   },
   /**
    * 新增接口

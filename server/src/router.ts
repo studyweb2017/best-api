@@ -45,6 +45,7 @@ router
   .get('/report/:file', (ctx: any) => handleStatic(ctx, projectCtrl.report(ctx.params.file)))
   // 接口
   .get('/project/:pid/api', (ctx: any) => handle(ctx, interfaceCtrl.get(ctx.params.pid)))
+  .get('/project/:pid/api/module', (ctx: any) => handle(ctx, interfaceCtrl.getModule(ctx.params.pid)))
   .get('/project/:pid/api/:id', (ctx: any) => handle(ctx, interfaceCtrl.getById(ctx.params.pid, ctx.params.id)))
   .get('/project/:pid/api/:id/version', (ctx: any) => handle(ctx, interfaceCtrl.getVersionById(ctx.params.id)))
   .post('/project/:pid/api', (ctx: any) => handle(ctx, interfaceCtrl.post(ctx.params.pid, ctx.request.body)))
@@ -54,6 +55,9 @@ router
   // 成员
   .get('/member', (ctx: any) => handle(ctx, memberCtrl.get()))
   .post('/member', (ctx: any) => handle(ctx, memberCtrl.post(ctx.request.body)))
-  .post('/user/login', (ctx: any) => handle(ctx, authCtrl.login(ctx.request.body.user, ctx.request.body.password)))
+  .put('/member/:id', (ctx: any) => handle(ctx, memberCtrl.put(ctx.params.id, ctx.request.body)))
+  .del('/member/:id', (ctx: any) => handle(ctx, memberCtrl.delete(ctx.params.id)))
+  .post('/user/login', (ctx: any) => handle(ctx, authCtrl.login(ctx.request.body.account, ctx.request.body.password, ctx)))
+  .get('/user/logout', (ctx:any) => handle(ctx, authCtrl.logout(ctx)))
 
 export default router.routes()
