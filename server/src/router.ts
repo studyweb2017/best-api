@@ -18,6 +18,7 @@ const handle = (ctx: any, ob: Observable<any>): Promise<void> => ob.catch((e: an
   return Observable.of()
 })
   .do((res: any) => {
+    console.log('session', ctx.user)
     ctx.body = Object.assign({
       errCode: 0
     }, res)
