@@ -7,8 +7,20 @@ import { Schema, mongoose } from '../util/db'
 import exp from './export'
 
 export const projectCtrl = {
-  get() {
-    return Observable.fromPromise(ProjectModel.aggregate()
+  /**
+   * 项目成员可查看所属项目，管理员可查看所有项目
+   */
+  get(uId: string, isAdmin: boolean = false) {
+    let gg = ProjectModel.aggregate()
+    if (!isAdmin) {
+      gg.append({
+        $addFields: {
+          memberList: { $concatArrays: ['$developerList', '$masterList', '$guestList'] }
+        }
+      })
+        .match({ memberList: { $in: [mongoose.Types.ObjectId(uId)] } })
+    }
+    return Observable.fromPromise(gg
       .lookup({
         from: InterfaceModel.collection.collectionName,
         localField: '_id',
@@ -144,7 +156,6 @@ export const projectCtrl = {
   export(pid: string) {
     return exp.gen(pid)
       .map((url: any) => {
-        console.log(url)
         return { url }
       })
   },

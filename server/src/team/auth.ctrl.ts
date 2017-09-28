@@ -2,73 +2,71 @@ import { MemberModel } from './member.md'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from '../util/db'
 import { encrypt, hash } from '../util/crypto'
-import { SessionModel, SessionSchema } from './session.md'
 import cache from '../util/Cache'
+import { key } from '../util/config'
+import * as jwt from 'jsonwebtoken'
 
 export const authCtrl = {
-  login(account: string, password: string, ctx: any) {
-    return Observable.fromPromise(MemberModel.findOne({
+  login(account: string, password: string) {
+    let loginTime = new Date().getTime()
+    return Observable.fromPromise(MemberModel.findOneAndUpdate({
       account,
       password: encrypt(password)
-    }).select('_id name isAdmin avatarUrl'))
+    }, { $set: { loginTime } }).select('_id account password isAdmin').exec())
       .map((user: any) => {
-        let result: any = {
-          user: {
-            id: user._id,
-            name: user.name,
-            isAdmin: user.isAdmin,
-            avatar: user.avatarUrl
+        if (user) {
+          let token = jwt.sign(Object.assign(user.toObject(), { loginTime }), key)
+          return {
+            token,
+            user: {
+              id: user._id,
+              account: user.account,
+              name: user.name,
+              avatar: user.avatarUrl
+            }
+          }
+        } else {
+          return {
+            errCode: 401,
+            errMsg: '用户名或密码错误'
           }
         }
-        if (!user) {
-          result.errCode = 401
-          result.errMsg = '用户名或密码错误'
-        } else {
-          result.errCode = 0
-          result.errMsg = '登录成功'
-          let sId = hash(Math.random().toString().substring(2))
-          user.sId = sId
-          SessionModel.findOneAndUpdate({ _id: user._id }, {
-            _id: user._id,
-            session: sId
-          }, { upsert: true }).exec()
-          cache.of('user').set(sId, Object.assign(user, {session: sId}))
-          ctx.cookies.set('session', sId, { httpOnly: true, overwrite: true })
-        }
-        return result
       })
   },
-  logout(ctx: any) {
-    return Observable.fromPromise(SessionModel.findOneAndRemove({ session: ctx.cookies.get('session') }).exec())
-    .map(() => ({}))
+  logout(id: string) {
+    return Observable.fromPromise(MemberModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(id) }, { $set: { loginTime: '' } }).exec())
+      .map(() => ({}))
   },
   authorize(ctx: any, next: any) {
-    const whiteRoute = ['/api/user/login', '/api/user/signout']
-    if(whiteRoute .includes(ctx.path)) {
+    const whiteRoute = ['/api/user/login', '/api/user/logout', '/api/setting/upload/img']
+    if (whiteRoute.includes(ctx.path)) {
       return next()
-    } else if(ctx.user = cache.of('user').get(ctx.cookies.get('session'))) {
+    } else if (/(\.html|\.png|\.jpg|\.css)$/.test(ctx.path)) {
       return next()
     } else {
-      return SessionModel.findOne({
-        session: ctx.cookies.get('session')
-      }).then((user: any) => {
-        if (!user) {
-          ctx.status = 403
-          ctx.body = '请登录'
-        } else {
-          ctx.user ={
-            id: user._id,
-            name: user.name,
-            isAdmin: user.isAdmin,
-            avatar: user.avatarUrl,
-            session: user.session
+      if (ctx.headers.authorization) {
+        let user = jwt.decode(ctx.headers.authorization) || { _id: new mongoose.Types.ObjectId() }
+        return MemberModel.findOne({
+          _id: mongoose.Types.ObjectId(user._id || ''),
+          account: user.account,
+          isAdmin: user.isAdmin,
+          password: user.password,
+          loginTime: user.loginTime
+        }).then((user: any) => {
+          if (!user) {
+            ctx.status = 401
+            ctx.body = '请登录'
+          } else {
+            ctx.user = user
+            return next()
           }
-        }
-        return next()
-      }, (e: any) => {
-        ctx.body = e
-        return next()
-      })
+        }, (e: any) => {
+          ctx.body = e
+        })
+      } else {
+        ctx.status = 401
+        ctx.body = '请登录'
+      }
     }
   }
 }

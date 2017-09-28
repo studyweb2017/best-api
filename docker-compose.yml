@@ -12,6 +12,8 @@ services:
       - ./web:/app
     ports:
       - 2017:2017
+    networks: 
+      - bestapi
     command: npm run compose
   server:
     build:
@@ -26,6 +28,8 @@ services:
     ports:
       - 2018:2018
       - 8102:5858
+    networks: 
+      - bestapi
     command: npm run compose
     depends_on: 
       - db
@@ -34,6 +38,10 @@ services:
     container_name: api-db
     ports:
       - 27018:27017
+    networks: 
+      - bestapi
 volumes:
   api_web_modules:
   api_server_modules:
+networks:
+  bestapi:

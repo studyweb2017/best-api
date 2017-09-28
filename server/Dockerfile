@@ -9,3 +9,4 @@ EXPOSE 2018
 COPY ./Hongkong /etc/localtime
 RUN npm set registry https://registry.npm.taobao.org
 RUN npm i -g pm2 nodemon typescript
+RUN apk update && apk add git
