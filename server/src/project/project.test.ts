@@ -50,27 +50,27 @@ test.serial('project.getById', (t: any) => {
   })
 })
 
-test('project.put.error', (t:any) => {
+test('project.put.error', (t: any) => {
   t.plan(1)
   return projectCtrl.put('', {
     name: '111'
-  }).catch((res:any) => {
+  }).catch((res: any) => {
     t.truthy(res)
     return Observable.of()
   }).switchMap(() => t.pass())
 })
 
-test('project.post.error', (t:any) => {
+test('project.post.error', (t: any) => {
   t.plan(1)
-  return projectCtrl.post({}).catch((res:any) => {
+  return projectCtrl.post({}).catch((res: any) => {
     t.truthy(res)
     return Observable.of()
   }).switchMap(() => t.pass())
 })
 
 test.serial('project.get', (t: any) => {
-  return projectCtrl.get().do((res:any) => {
-    t.truthy(res)
+  return projectCtrl.get(member.id, member.isAdmin).do((res: any) => {
+    t.truthy(res.list.length > 0)
   })
 })
 

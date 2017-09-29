@@ -1,8 +1,8 @@
 import { Schema, mongoose } from '../util/db'
 
 let SystemSchema = new Schema({
-  coverUrl: String,
-  name: String,
+  logoUrl: String,
+  companyName: String,
   backupSize: Number,
   autoTestEnabled: Boolean,
   autoTestInterval: {
@@ -11,6 +11,16 @@ let SystemSchema = new Schema({
       enum: ['hourly', 'daily', 'monthly', 'weekly']
     },
     time: Number
+  },
+  dingInformUrl: String,
+  dingInformOperation: {
+    type: String,
+    enum: ["addInterface", "editInterface", "deleteInterface", "autoTestInterface"]
+  },
+  towerInformUrl: String,
+  towerInformOperation: {
+    type: String,
+    enum: ["addInterface", "editInterface", "deleteInterface", "autoTestInterface"]
   }
 })
 
@@ -21,6 +31,13 @@ enum SystemInterval {
   daily = 'daily',
   monthly = 'monthly',
   weekly = 'weekly'
+}
+
+enum SystemInformOperation {
+  addInterface = "addInterface", 
+  editInterface = "editInterface", 
+  deleteInterface = "deleteInterface", 
+  autoTestInterface = "autoTestInterface"
 }
 
 interface SystemInterface {
@@ -38,5 +55,6 @@ export {
   SystemSchema,
   SystemModel,
   SystemInterface,
-  SystemInterval
+  SystemInterval,
+  SystemInformOperation
 }

@@ -2,7 +2,6 @@ import { MemberModel } from './member.md'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from '../util/db'
 import { encrypt, hash } from '../util/crypto'
-import cache from '../util/Cache'
 import { key } from '../util/config'
 import * as jwt from 'jsonwebtoken'
 

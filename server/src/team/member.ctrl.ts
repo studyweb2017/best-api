@@ -4,15 +4,22 @@ import { encrypt } from '../util/crypto'
 import { mongoose } from '../util/db'
 
 export const memberCtrl = {
-  get() {
-    return Observable.fromPromise(MemberModel.aggregate().project({
-      _id: 0,
-      id: "$_id",
-      isAdmin: 1,
-      account: 1,
-      name: 1
-    }))
-      .map((memberList: MemberInterface[]) => ({ memberList }))
+  get(isAdmin: boolean) {
+    return Observable.of(isAdmin)
+    .switchMap((authorized:boolean) => {
+      if (authorized) {
+        return Observable.fromPromise(MemberModel.aggregate().project({
+          _id: 0,
+          id: "$_id",
+          isAdmin: 1,
+          account: 1,
+          name: 1
+        }))
+      } else {
+        return Observable.throw({status: 403, message: '没有操作权限'})
+      } 
+    })
+    .map((memberList: MemberInterface[]) => ({ memberList }))
   },
   post(member: any) {
     try {
