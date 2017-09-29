@@ -85,7 +85,7 @@ export default class InterfaceCtrl extends BaseCtrl {
    * 查询接口历史版本列表
    * @param iid 接口id
    */
-  getVersionById(iid: string) {
+  static getVersionById(iid: string) {
     return Observable.fromPromise(InterfaceLogModel.aggregate()
       .match({ iid: mongoose.Types.ObjectId(iid) })
       .project({
