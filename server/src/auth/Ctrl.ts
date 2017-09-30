@@ -1,11 +1,12 @@
-import { MemberModel } from './member.md'
+import { MemberModel } from '../member/model'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from '../util/db'
+import BaseCtrl from '../util/Base.ctrl'
 import { encrypt, hash } from '../util/crypto'
 import { key } from '../util/config'
 import * as jwt from 'jsonwebtoken'
 
-export const authCtrl = {
+export default class AuthCtrl extends  BaseCtrl{
   login(account: string, password: string) {
     let loginTime = new Date().getTime()
     return Observable.fromPromise(MemberModel.findOneAndUpdate({
@@ -31,12 +32,12 @@ export const authCtrl = {
           }
         }
       })
-  },
+  }
   logout(id: string) {
     return Observable.fromPromise(MemberModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(id) }, { $set: { loginTime: '' } }).exec())
       .map(() => ({}))
-  },
-  authorize(ctx: any, next: any) {
+  }
+  static authorize(ctx: any, next: any) {
     const whiteRoute = ['/api/user/login', '/api/user/logout', '/api/setting/upload/img']
     if (whiteRoute.includes(ctx.path)) {
       return next()

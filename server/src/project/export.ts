@@ -1,4 +1,4 @@
-import { InterfaceModel } from './interface.md'
+import { InterfaceModel } from '../interface/model'
 import { mongoose } from '../util/db'
 import { Observable } from 'rxjs/Rx'
 import * as _ from 'lodash'

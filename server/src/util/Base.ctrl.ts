@@ -1,4 +1,4 @@
-import { ProjectModel, role } from '../project/project.md'
+import { ProjectModel, role } from '../project/model'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from './db'
 
@@ -6,7 +6,7 @@ export default class BaseCtrl {
   /**
    * 数据模型
    */
-  protected static objectId(id: string) {
+  protected  objectId(id: string) {
     if (id) {
       return id.length === 24 ? mongoose.Types.ObjectId(id) : mongoose.Types.ObjectId()
     } else {
@@ -18,7 +18,7 @@ export default class BaseCtrl {
    * @param pid 项目id
    * @param uid 用户id
    */
-  protected static getProjectRole(pid: string, uid: string): Observable<string> {
+  protected  getProjectRole(pid: string, uid: string): Observable<string> {
     return Observable.from(ProjectModel.aggregate()
       .match({ _id: mongoose.Types.ObjectId(pid) })
       .project({
@@ -58,8 +58,19 @@ export default class BaseCtrl {
    * @param uid 用户id
    * @param roleList 角色列表
    */
-  protected static verifyProjectRole(pid: string, uid: string, roleList?: role[]) {
+  protected  verifyProjectRole(pid: string, uid: string, roleList?: role[]) {
     return this.getProjectRole(pid, uid)
       .map((r: role) => r ? (roleList || [r]).includes(r) : false)
+  }
+  /**
+   * 查询用户是否具有权限
+   * @param isAdmin 是否管理员
+   * @param pid 项目id
+   * @param uid 用户id
+   * @param roleList 角色列表
+   */
+  protected  verifyAuth(isAdmin: boolean, pid: string, uid: string, roleList?: role[]) {
+    return Observable.from(isAdmin ? Observable.of(true) : this.verifyProjectRole(pid, uid, roleList))
+      .switchMap((authorized:boolean) => authorized ? Observable.of(true): Observable.throw({status: 403, message: '访问权限不够'}))
   }
 }

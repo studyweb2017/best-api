@@ -1,18 +1,20 @@
 import { Schema, mongoose, Model } from '../util/db'
 
 let ParamSchema = new Schema({
+  _id: false,
     headerList: [{
       _id: false,
       id: String,
       key: String,
       value: String
     }],
+    urlParams: [],
     paramList: [{
       _id: false,
       id: String,
-      pid: String,
       name: String,
       required: Boolean,
+      ancestor: [String],
       type: {
         type: String,
         enum: ['String', 'Number', 'Boolean', 'Object', 'Array'],
@@ -21,11 +23,11 @@ let ParamSchema = new Schema({
         }
       },
       mock: String,
-      rule: String,
       remark: String
     }]
 })
 let InterfaceSchemaObj = {
+  iid: Schema.Types.ObjectId,
   pid: {
     type: Schema.Types.ObjectId,
     required: true,
@@ -34,8 +36,7 @@ let InterfaceSchemaObj = {
   url: {
     type: String,
     match: /^\//,
-    required: true,
-    unique: true
+    required: true
   },
   name: {
     type: String,
@@ -111,7 +112,7 @@ let InterfaceSchemaObj = {
   request: ParamSchema,
   response: ParamSchema
 }
-let InterfaceSchema = new Schema(InterfaceSchemaObj)
+
 
 enum method {
   get = 'GET',
@@ -127,59 +128,11 @@ enum dataType {
   array = 'Array'
 }
 
-interface InterfaceInterface {
-  pid: string,
-  id: string,
-  url: string,
-  name: string
-  desc: string,
-  createdTime: string,
-  updateTime: string,
-  creator: string,
-  editor: string,
-  delay?: number,
-  state?: {
-    id: number,
-    name: string
-  },
-  method: method,
-  exceptionList?: [{
-    enabled: boolean,
-    result: string,
-    desc: string,
-    probability: number
-  }],
-  request?: {
-    headerList: [{
-      key: string,
-      value: string
-    }],
-    paramList: [{
-      id: string,
-      isNecessary: boolean,
-      dataType: dataType,
-      mockData: string,
-      validator: string,
-      desc: string
-    }]
-  },
-  response?: {
-    headerList: [{
-      key: string,
-      value: string
-    }],
-    paramList: [{
-      id: string,
-      isNecessary: boolean,
-      dataType: dataType,
-      mockData: string,
-      validator: string,
-      desc: string
-    }]
-  }
-}
+let InterfaceSchema = new Schema(InterfaceSchemaObj)
+let InterfaceHistorySchema = new Schema(InterfaceSchemaObj)
 
-const InterfaceModel = mongoose.model('interface', InterfaceSchema)
+let InterfaceModel = mongoose.model('interface', InterfaceSchema)
+let InterfaceHistoryModel = mongoose.model('interfacehistory', InterfaceHistorySchema)
 
 class Interface extends Model {
   name = this.random()
@@ -190,9 +143,9 @@ class Interface extends Model {
 
 export {
   InterfaceSchema,
-  InterfaceInterface,
-  InterfaceSchemaObj,
+  InterfaceHistorySchema,
   InterfaceModel,
+  InterfaceHistoryModel,
   method,
   dataType,
   Interface

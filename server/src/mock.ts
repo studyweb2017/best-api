@@ -1,5 +1,5 @@
 import * as path2reg from 'path-to-regexp'
-import { InterfaceModel, Interface } from './project/interface.md'
+import { InterfaceModel, Interface } from './interface/model'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from './util/db'
 

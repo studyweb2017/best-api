@@ -1,5 +1,5 @@
 import { Schema, mongoose, Model } from '../util/db'
-import { MemberSchema } from '../team/member.md'
+import { MemberSchema } from '../member/model'
 import { TestSchema, TestInterface } from '../test/test.md'
 
 let ProjectSchema = new Schema({

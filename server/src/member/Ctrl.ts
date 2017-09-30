@@ -1,9 +1,10 @@
-import { MemberModel, MemberInterface } from './member.md'
+import { MemberModel, MemberInterface } from './model'
 import { Observable } from 'rxjs/Rx'
 import { encrypt } from '../util/crypto'
 import { mongoose } from '../util/db'
+import BaseCtrl from '../util/Base.ctrl'
 
-export const memberCtrl = {
+export default class MemberCtrl extends BaseCtrl {
   get(isAdmin: boolean) {
     return Observable.of(isAdmin)
     .switchMap((authorized:boolean) => {
@@ -20,7 +21,7 @@ export const memberCtrl = {
       } 
     })
     .map((memberList: MemberInterface[]) => ({ memberList }))
-  },
+  }
   post(member: any) {
     try {
       member.password = encrypt(member.password)
@@ -29,7 +30,7 @@ export const memberCtrl = {
     } catch (e) {
       return Observable.throw(e)
     }
-  },
+  }
   put(id: string, member: any) {
     try {
       if (member.password) member.password = encrypt(member.password)
@@ -39,7 +40,7 @@ export const memberCtrl = {
     } catch (e) {
       return Observable.throw(e)
     }
-  },
+  }
   delete(_id: string) {
     return Observable.fromPromise(MemberModel.remove({ _id }).exec())
       .map((res: any) => ({ num: res.result.n }))
