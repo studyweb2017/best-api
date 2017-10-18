@@ -1,6 +1,6 @@
 import { Schema, mongoose, Model } from '../util/db'
 import { MemberSchema } from '../member/model'
-import { TestSchema, TestInterface } from '../test/test.md'
+import { TestSchema, TestInterface } from '../test/model'
 
 let ProjectSchema = new Schema({
   name: {
@@ -8,10 +8,9 @@ let ProjectSchema = new Schema({
     maxlength: 20,
     required: true
   },
-  desc: {
+  description: {
     type: String,
-    maxlength: 200,
-    alias: 'description'
+    maxlength: 200
   },
   testUrl: {
     type: String,

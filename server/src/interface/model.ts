@@ -1,31 +1,55 @@
 import { Schema, mongoose, Model } from '../util/db'
 
-let ParamSchema = new Schema({
+let paramSchemaObj = {
   _id: false,
-    headerList: [{
-      _id: false,
-      id: String,
-      key: String,
-      value: String
-    }],
-    urlParams: [],
-    paramList: [{
-      _id: false,
-      id: String,
-      name: String,
-      required: Boolean,
-      ancestor: [String],
-      type: {
-        type: String,
-        enum: ['String', 'Number', 'Boolean', 'Object', 'Array'],
-        set(v:string) {
-          return `${v[0].toUpperCase()}${v.slice(1)}`
-        }
-      },
-      mock: String,
-      remark: String
-    }]
-})
+  headerList: [{
+    _id: false,
+    key: String,
+    value: String
+  }],
+  paramList: [{
+    _id: false,
+    id: String,
+    name: String,
+    required: Boolean,
+    ancestor: [String],
+    type: {
+      type: String,
+      enum: ['String', 'Number', 'Boolean', 'Object', 'Array'],
+      set(v: string) {
+        return `${v[0].toUpperCase()}${v.slice(1)}`
+      }
+    },
+    mock: String,
+    remark: String
+  }]
+}
+
+let requestSchema = new Schema(Object.assign({
+  urlParams: [{ 
+    _id: false, 
+    id: String, 
+    name: String, 
+    required: Boolean, 
+    mock: String, 
+    remark: String 
+  }]
+}, paramSchemaObj))
+
+let responseSchema = new Schema(Object.assign({
+  errList: [{
+    _id: false,
+    enabled: Boolean,
+    data: String,
+    remark: String,
+    probability: {
+      type: Number,
+      min: 0,
+      max: 100
+    }
+  }]
+}, paramSchemaObj))
+
 let InterfaceSchemaObj = {
   iid: Schema.Types.ObjectId,
   pid: {
@@ -98,21 +122,9 @@ let InterfaceSchemaObj = {
     required: true,
     uppercase: true
   },
-  exceptionList: [{
-    _id: false,
-    enabled: Boolean,
-    response: String,
-    desc: String,
-    probability: {
-      type: Number,
-      min: 0,
-      max: 100
-    }
-  }],
-  request: ParamSchema,
-  response: ParamSchema
+  request: requestSchema,
+  response: responseSchema
 }
-
 
 enum method {
   get = 'GET',

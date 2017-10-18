@@ -1,5 +1,5 @@
 import Router from '../util/Router'
-import Ctrl from './Ctrl'
+import Ctrl from './InterfaceCtrl'
 
 let interfaceRouter = new Router()
 let interfaceCtrl = new Ctrl()

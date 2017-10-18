@@ -1,7 +1,7 @@
 import { MemberModel } from '../member/model'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from '../util/db'
-import BaseCtrl from '../util/Base.ctrl'
+import BaseCtrl from '../util/BaseCtrl'
 import { encrypt, hash } from '../util/crypto'
 import { key } from '../util/config'
 import * as jwt from 'jsonwebtoken'
@@ -12,7 +12,7 @@ export default class AuthCtrl extends  BaseCtrl{
     return Observable.fromPromise(MemberModel.findOneAndUpdate({
       account,
       password: encrypt(password)
-    }, { $set: { loginTime } }).select('_id account password isAdmin').exec())
+    }, { $set: { loginTime } }).select('_id account name avatarUrl password isAdmin').exec())
       .map((user: any) => {
         if (user) {
           let token = jwt.sign(Object.assign(user.toObject(), { loginTime }), key)
@@ -22,6 +22,7 @@ export default class AuthCtrl extends  BaseCtrl{
               id: user._id,
               account: user.account,
               name: user.name,
+              isAdmin: user.isAdmin,
               avatar: user.avatarUrl
             }
           }
@@ -39,9 +40,10 @@ export default class AuthCtrl extends  BaseCtrl{
   }
   static authorize(ctx: any, next: any) {
     const whiteRoute = ['/api/user/login', '/api/user/logout', '/api/setting/upload/img']
-    if (whiteRoute.includes(ctx.path)) {
+    if (whiteRoute.includes(ctx.path)||/^\/\w{24}/.test(ctx.path)) {
+      ctx.user = {}
       return next()
-    } else if (/(\.html|\.png|\.jpg|\.css)$/.test(ctx.path)) {
+    } else if (/(\.html|\.png|\.jpg|\.css|\.svg)$/.test(ctx.path)) {
       return next()
     } else {
       if (ctx.headers.authorization) {

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs/Rx'
 import * as _ from 'lodash'
 import * as fs from 'fs'
 import * as path from 'path'
+import Mock2json from '../mock/Mock2json'
 
 const prefix = 'api'
 const dist = 'report'
@@ -46,25 +47,29 @@ const getIfc = (ifc: any) => {
   ifc.request.paramList.forEach((it: any) => {
     obj.requestParams.push({
       name: it.name,
-      desc: it.desc,
-      type: it.type,
-      rule: it.rule
+      desc: it.description,
+      type: it.type
     })
   })
   ifc.response.paramList.forEach((it: any) => {
     obj.requestParams.push({
       name: it.name,
-      desc: it.desc,
-      type: it.type,
-      rule: it.rule
+      desc: it.description,
+      type: it.type
     })
   })
-  ifc.exceptionList.forEach((it: any) => {
+  ifc.response.errList.forEach((it: any) => {
     obj.exceptions.push({
-      param: it.result,
-      desc: it.desc
+      param: it.mock,
+      desc: it.remark
     })
   })
+  if(ifc.request.paramList.length>0) {
+    ifc.requestExample = Mock2json.makeMockJson(ifc.request.paramList, 'root')
+  }
+  if(ifc.response.paramList.length>0) {
+    ifc.responseExample = Mock2json.makeMockJson(ifc.response.paramList, 'root')
+  }
   return obj
 }
 

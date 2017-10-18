@@ -22,9 +22,9 @@ let MemberSchema = new Schema({
   },
   avatarUrl: String,
   email: String,
-  openid: String,
-  interfaceNotify: Boolean,
-  testNotify: Boolean,
+  weixin: String,
+  apiInform: Boolean,
+  testInform: Boolean,
   loginTime: {
     type: Number,
     set(v:number) {

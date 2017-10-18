@@ -51,9 +51,11 @@ export default class Router {
       .do((res: any) => {
         if (/(\.png|\.jpg|\.jpeg)$/.test(ctx.path)) {
           ctx.type = 'image/' + ctx.path.replace(/.*\.(.*)$/, '$1')
-        } else {
+        } else if (/.svg/.test(ctx.path)) {
+          ctx.type = 'image/svg+xml'  
+        }else {
           ctx.type = 'text/' + ctx.path.replace(/.*\.(html|css)$/, '$1')
-        }
+        } 
         ctx.body = res
       })
       .toPromise()

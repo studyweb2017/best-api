@@ -1,11 +1,11 @@
 import { ProjectModel, ProjectInterface, role } from './model'
-import { TestModel } from '../test/test.md'
+import { TestModel } from '../test/model'
 import { MemberModel } from '../member/model'
 import { InterfaceModel } from '../interface/model'
 import { Observable } from 'rxjs/Rx'
 import { Schema, mongoose } from '../util/db'
 import exp from './export'
-import BaseCtrl from '../util/Base.ctrl'
+import BaseCtrl from '../util/BaseCtrl'
 
 export default class ProjectCtrl extends BaseCtrl {
   /**
@@ -92,7 +92,7 @@ export default class ProjectCtrl extends BaseCtrl {
             _id: 0,
             id: '$_id',
             name: 1,
-            description: '$desc',
+            description: 1,
             openTest: 1,
             testUrl: 1,
             testFailedInform: 1,

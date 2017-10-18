@@ -2,7 +2,7 @@ import { InterfaceModel, InterfaceHistoryModel } from './model'
 import { ProjectModel, role } from '../project/model'
 import { MemberInterface, MemberModel } from '../member/model'
 import { Observable } from 'rxjs/Rx'
-import BaseCtrl from '../util/Base.ctrl'
+import BaseCtrl from '../util/BaseCtrl'
 import { mongoose } from '../util/db'
 
 export default class InterfaceCtrl extends BaseCtrl {
@@ -124,20 +124,12 @@ export default class InterfaceCtrl extends BaseCtrl {
    getModule(pid: string, uid: string, isAdmin: boolean) {
     return this.verifyAuth(isAdmin, pid, uid)
       .switchMap(() => {
-        return Observable.fromPromise(InterfaceModel.aggregate()
-          .match({ pid: mongoose.Types.ObjectId(pid) })
-          .group({
-            _id: null,
-            moduleList: {
-              $push: '$module'
-            }
-          })
-          .project({
-            _id: 0,
-            moduleList: 1
-          })
+        return Observable.fromPromise(InterfaceModel.find({ pid: mongoose.Types.ObjectId(pid) })
+          .distinct( 'module')
           .exec())
-          .map((res: any) => res.pop())
+          .map((moduleList) => {
+            return {moduleList}
+          })
       })
   }
   /**
