@@ -6,12 +6,14 @@ import { Observable } from 'rxjs/Rx'
 import { Schema, mongoose } from '../util/db'
 import exp from './export'
 import BaseCtrl from '../util/BaseCtrl'
+import * as _ from 'underscore'
 
 export default class ProjectCtrl extends BaseCtrl {
+  module = '项目'
   /**
    * 项目成员可查看所属项目，管理员可查看所有项目
    */
-   get(uId: string, isAdmin: boolean) {
+  get(uId: string, isAdmin: boolean) {
     let gg = ProjectModel.aggregate()
     if (!isAdmin) {
       gg.append({
@@ -40,7 +42,7 @@ export default class ProjectCtrl extends BaseCtrl {
       .exec())
       .map((list: any) => ({ list }))
   }
-   getById(id: string, uId: string, isAdmin: boolean) {
+  getById(id: string, uId: string, isAdmin: boolean) {
     return this.verifyAuth(isAdmin, id, uId)
       .switchMap((authorized: boolean) => {
         return Observable.fromPromise(ProjectModel.aggregate()
@@ -105,7 +107,7 @@ export default class ProjectCtrl extends BaseCtrl {
           })
       })
   }
-   getRole() {
+  getRole() {
     return Observable.of({
       "roleList": [
         {
@@ -129,18 +131,30 @@ export default class ProjectCtrl extends BaseCtrl {
       ]
     })
   }
-   post(project: any) {
+  getMemberList(id: string) {
+    return Observable.from(ProjectModel.findOne({_id: mongoose.Types.ObjectId(id)}))
+    .map((project:any) => {
+      let list = project.masterList.concat(project.developerList, project.guestList)
+      let idStr:any = []
+      list.forEach((item:any) => idStr.push(item.toString()))
+      return idStr
+    })
+  }
+  post(project: any, uname: string) {
     try {
       return Observable.zip(Observable.of(project), this.devideMember(project.members), (x, y) => Object.assign(x, y))
         .switchMap((p: any) => {
           return Observable.fromPromise(ProjectModel.create(p))
             .map((proj: ProjectInterface) => ({ id: proj._id }))
         })
+        .do((pro: any) => {
+          this.newCreateMessage(pro.id, project.name, uname, _.pluck(project.members, 'id'))
+        })
     } catch (e) {
       return Observable.throw(e)
     }
   }
-   put(_id: string, project: any, uid: string, isAdmin: boolean) {
+  put(_id: string, project: any, uid: string, isAdmin: boolean, uname: string) {
     return this.verifyAuth(isAdmin, _id, uid, [role.master])
       .switchMap(() => {
         return Observable.zip(Observable.of(project), this.devideMember(project.members), (x, y) => Object.assign(x, y))
@@ -148,25 +162,33 @@ export default class ProjectCtrl extends BaseCtrl {
             return Observable.fromPromise(ProjectModel.updateOne({ _id }, { $set: p }).exec())
               .map((res: any) => ({ num: res.n }))
           })
+          .do((pro: any) => {
+            this.newUpdateMessage(_id, project.name, uname, _.pluck(project.members, 'id'))
+          })
       })
   }
-   delete(id: string, uid: string, isAdmin: boolean) {
+  delete(id: string, uid: string, isAdmin: boolean, uname: string) {
     return this.verifyAuth(isAdmin, id, uid, [role.master])
       .switchMap((authorized: boolean) => {
         if (authorized) {
-          return Observable.fromPromise(ProjectModel.remove({ _id: mongoose.Types.ObjectId(id) }))
-            .map((res: any) => ({
-              num: res.result.n
-            }))
-            .do(() =>  {
-              InterfaceModel.remove({pid: mongoose.Types.ObjectId(id)}).exec()
+          return Observable.fromPromise(ProjectModel.findOneAndRemove({ _id: mongoose.Types.ObjectId(id) }).exec())
+            .do((pro: any) => {
+              let list = pro.masterList.concat(pro.developerList, pro.guestList)
+              this.newDeleteMessage(id, pro.name, uname, _.pluck(list, 'id'))
+            })
+            .map((res: any) => {
+              let num = res ? 1 : 0
+              return { num }
+            })
+            .do(() => {
+              InterfaceModel.remove({ pid: mongoose.Types.ObjectId(id) }).exec()
             })
         } else {
           return Observable.throw({ status: 403, message: '没有访问权限' })
         }
       })
   }
-   export(pid: string, uid: string, isAdmin: boolean) {
+  export(pid: string, uid: string, isAdmin: boolean) {
     return this.verifyAuth(isAdmin, pid, uid)
       .switchMap((authorized: boolean) => {
         return exp.gen(pid)
@@ -175,10 +197,10 @@ export default class ProjectCtrl extends BaseCtrl {
           })
       })
   }
-   report(file: string) {
+  report(file: string) {
     return exp.readFile(file)
   }
-  private devideMember (memberList: any = []) {
+  private devideMember(memberList: any = []) {
     return Observable.of(memberList)
       .map((list: any) => {
         let obj: any = {

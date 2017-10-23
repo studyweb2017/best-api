@@ -8,6 +8,7 @@ import interfaceRouter from './interface/router'
 import memberRouter from './member/router'
 import authRouter from './auth/router'
 import systemRouter from './system/router'
+import messageRouter from './message/router'
 import mock from './mock/mock'
 import authCtrl from './auth/AuthCtrl'
 import SystemCtrl from './system/SystemCtrl'
@@ -23,6 +24,7 @@ app.use(projectRouter)
 app.use(interfaceRouter)
 app.use(memberRouter)
 app.use(systemRouter)
+app.use(messageRouter)
 app.use(mock)
 app.use((ctx: any) => {
   ctx.body = 'api server'

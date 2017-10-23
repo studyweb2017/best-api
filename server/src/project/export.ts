@@ -64,11 +64,15 @@ const getIfc = (ifc: any) => {
       desc: it.remark
     })
   })
-  if(ifc.request.paramList.length>0) {
-    ifc.requestExample = Mock2json.makeMockJson(ifc.request.paramList, 'root')
-  }
-  if(ifc.response.paramList.length>0) {
-    ifc.responseExample = Mock2json.makeMockJson(ifc.response.paramList, 'root')
+  try {
+    if(ifc.request.paramList.length>0) {
+      obj.requestExample = JSON.stringify(Mock2json.makeJson(ifc.request.paramList, 'root'), null, 2)
+    }
+    if(ifc.response.paramList.length>0) {
+      obj.responseExample = JSON.stringify(Mock2json.makeJson(ifc.response.paramList, 'root'), null, 2)
+    } 
+  } catch(e) {
+    console.error(e)
   }
   return obj
 }

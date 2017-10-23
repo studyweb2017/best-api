@@ -70,10 +70,10 @@ let InterfaceSchemaObj = {
   version: {
     type: String,
     required: true,
-    default: new Date().getTime().toString(36)
+    default: () => new Date().getTime().toString(36)
   },
   module: String,
-  desc: {
+  remark: {
     type: String,
     maxlength: 200,
     default: ''
@@ -81,12 +81,12 @@ let InterfaceSchemaObj = {
   createdTime: {
     type: Date,
     required: true,
-    default: new Date(),
+    default: () => new Date(),
   },
   updateTime: {
     type: Date,
     required: true,
-    default: new Date()
+    default: () => new Date()
   },
   creator: String,
   editor: String,

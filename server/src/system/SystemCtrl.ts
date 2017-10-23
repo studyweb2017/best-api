@@ -43,6 +43,22 @@ export default class SystemCtrl extends BaseCtrl {
         }, doc._doc)
       })
   }
+  put(configInfo:any, isAdmin:boolean) {
+    if(isAdmin) {
+      try {
+        fs.writeFileSync(path.join('template', 'template.css'), configInfo.reportStyle)
+        fs.writeFileSync(path.join('template', 'template.body.html'), configInfo.reportTemplate) 
+        return Observable.from(SystemModel.update(configInfo).exec()) 
+      } catch(e) {
+        return Observable.throw(e)
+      }
+    } else {
+      return Observable.throw({
+        errorCode: '403',
+        errorMsg: '没有操作权限'
+      })
+    }
+  }
   upload(files: any, isAdmin: boolean = false) {
     try {
       if (isAdmin) {

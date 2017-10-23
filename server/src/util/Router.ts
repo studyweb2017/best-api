@@ -1,12 +1,10 @@
 import * as koaRouter from 'koa-router'
 import { Observable } from 'rxjs/Rx'
 
-
 export default class Router {
   router = new koaRouter({
     prefix: '/api'
   })
-
   constructor() {
     this.router
       .param('pid', (id: string, ctx: any, next: any) => {
@@ -38,7 +36,7 @@ export default class Router {
       }
       return Observable.of()
     })
-      .do((res: any) => ctx.body = Object.assign({errCode:0}, res))
+      .do((res: any) => ctx.body = Object.assign({ errCode: 0 }, res))
       .toPromise()
   }
 
@@ -52,10 +50,10 @@ export default class Router {
         if (/(\.png|\.jpg|\.jpeg)$/.test(ctx.path)) {
           ctx.type = 'image/' + ctx.path.replace(/.*\.(.*)$/, '$1')
         } else if (/.svg/.test(ctx.path)) {
-          ctx.type = 'image/svg+xml'  
-        }else {
+          ctx.type = 'image/svg+xml'
+        } else {
           ctx.type = 'text/' + ctx.path.replace(/.*\.(html|css)$/, '$1')
-        } 
+        }
         ctx.body = res
       })
       .toPromise()

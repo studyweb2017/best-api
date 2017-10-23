@@ -4,15 +4,19 @@ import { MemberInterface, MemberModel } from '../member/model'
 import { Observable } from 'rxjs/Rx'
 import BaseCtrl from '../util/BaseCtrl'
 import { mongoose } from '../util/db'
+import ProjectCtrl from '../project/ProjectCtrl'
+
+let projectCtrl = new ProjectCtrl()
 
 export default class InterfaceCtrl extends BaseCtrl {
+  module = '接口'
   /**
    * 查询项目下的接口列表
    * @param pid 项目id
    * @param uid 用户id
    * @param isAdmin 管理员权限
    */
-   get(pid: string, uid: string, isAdmin: boolean) {
+  get(pid: string, uid: string, isAdmin: boolean) {
     return this.verifyAuth(isAdmin, pid, uid)
       .switchMap((authorized: boolean) => {
         return Observable.fromPromise(ProjectModel.aggregate()
@@ -57,14 +61,17 @@ export default class InterfaceCtrl extends BaseCtrl {
    * @param uid 用户id
    * @param isAdmin 管理员权限
    */
-   getById(pid: string, iid: string, uid: string, isAdmin: boolean) {
+  getById(pid: string, iid: string, uid: string, isAdmin: boolean) {
     return this.verifyAuth(isAdmin, pid, uid)
       .switchMap((authorized: boolean) => {
         return Observable.fromPromise(InterfaceModel.aggregate()
           .match({ _id: mongoose.Types.ObjectId(iid) })
           .append({
             $addFields: {
-              id: '$_id'
+              id: '$_id',
+              'request.dataList': '$request.paramList',
+              'response.dataList': '$response.paramList',
+              'request.paramList': '$request.urlParams'
             }
           })
           .project({ _id: 0 })
@@ -79,7 +86,7 @@ export default class InterfaceCtrl extends BaseCtrl {
    * @param uid 用户id
    * @param isAdmin 管理员权限
    */
-   getHistoryById(pid: string, iid: string, version: string, uid: string, isAdmin: boolean) {
+  getHistoryById(pid: string, iid: string, version: string, uid: string, isAdmin: boolean) {
     return this.verifyAuth(isAdmin, pid, uid)
       .switchMap((authorized: boolean) => {
         return Observable.fromPromise(InterfaceHistoryModel.aggregate()
@@ -87,7 +94,9 @@ export default class InterfaceCtrl extends BaseCtrl {
           .append({
             $addFields: {
               id: '$_id',
-              errConfig: '$exceptionList',
+              'request.dataList': '$request.paramList',
+              'response.dataList': '$response.paramList',
+              'request.paramList': '$request.urlParams'
             }
           })
           .project({ _id: 0 })
@@ -101,7 +110,7 @@ export default class InterfaceCtrl extends BaseCtrl {
    * @param uid 用户id
    * @param isAdmin 管理员权限
    */
-   getVersionById(pid: string, iid: string, uid: string, isAdmin: boolean) {
+  getVersionById(pid: string, iid: string, uid: string, isAdmin: boolean) {
     return this.verifyAuth(isAdmin, pid, uid)
       .switchMap((authorized: boolean) => {
         return Observable.fromPromise(InterfaceHistoryModel.aggregate()
@@ -121,14 +130,14 @@ export default class InterfaceCtrl extends BaseCtrl {
    * @param uid 用户id
    * @param isAdmin 管理员权限
    */
-   getModule(pid: string, uid: string, isAdmin: boolean) {
+  getModule(pid: string, uid: string, isAdmin: boolean) {
     return this.verifyAuth(isAdmin, pid, uid)
       .switchMap(() => {
         return Observable.fromPromise(InterfaceModel.find({ pid: mongoose.Types.ObjectId(pid) })
-          .distinct( 'module')
+          .distinct('module')
           .exec())
           .map((moduleList) => {
-            return {moduleList}
+            return { moduleList }
           })
       })
   }
@@ -137,12 +146,21 @@ export default class InterfaceCtrl extends BaseCtrl {
    * @param pid 项目id
    * @param ifce接口数据
    */
-   post(pid: string, ifc: any, uid: string, isAdmin: boolean) {
+  post(pid: string, ifc: any, uid: string, isAdmin: boolean, uname: string) {
     return this.verifyAuth(isAdmin, pid, uid, [role.developer, role.master])
       .switchMap(() => {
         ifc.pid = pid
+        ifc.request.urlParams = ifc.request.paramList
+        ifc.request.paramList = ifc.request.dataList
+        ifc.response.paramList = ifc.response.dataList
         return Observable.fromPromise(InterfaceModel.create(ifc))
-        .map((doc:any) => ({id: doc.id}))
+          .do((ifc: any) => {
+            projectCtrl.getMemberList(pid)
+            .subscribe((memberList:any) => {
+              this.newCreateMessage(ifc.id, ifc.name, uname, memberList, ifc.url + ' ' + ifc.method) 
+            })
+          })
+          .map((doc: any) => ({ id: doc.id }))
       })
   }
   /**
@@ -153,16 +171,23 @@ export default class InterfaceCtrl extends BaseCtrl {
    * @param uid 用户id
    * @param isAdmin 管理员权限
    */
-   put(pid: string, iid: string, ifc: any, uid: string, isAdmin: boolean) {
+  put(pid: string, iid: string, ifc: any, uid: string, isAdmin: boolean, uname: string) {
+    ifc.request.urlParams = ifc.request.paramList
+    ifc.request.paramList = ifc.request.dataList
+    ifc.response.paramList = ifc.response.dataList
     return this.verifyAuth(isAdmin, pid, uid, [role.developer, role.master])
       .switchMap(() => {
         return Observable.fromPromise(InterfaceModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(iid) }, { $set: ifc }).exec())
           .switchMap((doc: any) => {
             if (doc) {
               let log = doc.toObject()
-              log.iid = iid
+              log.iid = this.objectId(iid)
               delete log._id
               delete log.version
+              projectCtrl.getMemberList(pid)
+              .subscribe((memberList:any) => {
+                this.newUpdateMessage(iid, ifc.name, uname, memberList, ifc.url + ' ' + ifc.method)
+              })
               return Observable.fromPromise(InterfaceHistoryModel.create(log))
             } else {
               return Observable.throw('更新接口失败')
@@ -177,11 +202,17 @@ export default class InterfaceCtrl extends BaseCtrl {
    * @param uid 用户id
    * @param isAdmin 管理员权限
    */
-   delete(pid: string, iid: string, uid: string, isAdmin: boolean) {
+  delete(pid: string, iid: string, uid: string, isAdmin: boolean, uname: string) {
     return this.verifyAuth(isAdmin, pid, uid, [role.developer, role.master])
       .switchMap(() => {
-        return Observable.fromPromise(InterfaceModel.remove({ _id: mongoose.Types.ObjectId(iid) }).exec())
-          .do(() => InterfaceHistoryModel.remove({ iid: mongoose.Types.ObjectId(iid) }).exec())
+        return Observable.fromPromise(InterfaceModel.findOneAndRemove({ _id: mongoose.Types.ObjectId(iid) }).exec())
+          .do((doc: any) => {
+            projectCtrl.getMemberList(pid)
+            .subscribe((memberList:any) => {
+              this.newDeleteMessage(iid, doc.name, uname, memberList, doc.url + ' ' + doc.method)
+            })
+            InterfaceHistoryModel.remove({ iid: mongoose.Types.ObjectId(iid) }).exec()
+          })
       })
   }
 }
