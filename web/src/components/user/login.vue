@@ -1,47 +1,58 @@
 <template lang="pug">
-  div.login.ta-c
-    el-form(ref='user', :model='user', label-position='right', label-width='80px')
+  div
+    el-form(ref='userForm', :rules='rules' :model='userForm', label-position='right', label-width='80px')
       el-form-item(label='账号', prop='account')
-        el-input(v-model='user.account', placeholder="英文名或邮箱地址")
+        el-input(v-model='userForm.account', placeholder="英文名或邮箱地址", @keyup.native.enter='login')
       el-form-item(label='密码', prop='password')
-        el-input(v-model='user.password')
+        el-input(v-model='userForm.password', @keyup.native.enter='login')
       el-form-item
         el-button(type='ghost', @click='reset()') {{'重置'}}
         el-button(type='primary', @click='login()', style='margin-left: 50px') {{'登录'}}
 </template>
-
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import http from '../../service/http.ts'
 import Cache from '../../service/cache.ts'
+import http from '../../service/http.ts'
 @Component
 export default class login extends Vue {
+  $confirm: any
+  $message: any
+  $router: any
   $refs:any
-  $router:any
-  user: any = {
+  userForm: any = {
     account: '',
     password: ''
   }
-  reset () {
-    this.$refs.user.resetFields()
+  rules: any = {
+    account: [{required: true}],
+    password: [{required: true}]
   }
-  async login () {
-    let resp:any = await http.post('/api/user/login', { data: this.user })
-    if (resp.data.code === 0) {
-      Cache.set('user', resp.data.user)
-      this.$router.push('/')
-      this.$router.go(0)
-    }
+  reset () {
+    this.$refs.userForm.resetFields()
+  }
+  login () {
+    let that = this
+    that.$refs.userForm.validate(async (valid: boolean) => {
+      if (valid) {
+        let resp:any = await http.post('/api/user/login', that.userForm)
+        if (resp.user && resp.token) {
+          Cache.set('user', JSON.stringify(resp.user))
+          Cache.set('token', resp.token)
+          that.$message({type: 'success', message: '登录成功'})
+          that.$router.push('/project/list')
+        } else {
+          that.$message({type: 'warning', message: resp.errMsg})
+        }
+      }
+      return false
+    })
   }
 }
 </script>
-<style lang="stylus" scoped>
-.login
-  margin 50px auto
-  padding 50px 50px
-  text-align center
-  width 500px
-  border 1px solid #ddd
-</style>
 
+<style lang="stylus" scoped>
+.el-form
+  margin 50px auto
+  width 500px
+</style>

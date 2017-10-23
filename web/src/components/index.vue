@@ -1,16 +1,18 @@
 <template lang="pug">
-  p {{'this is index page'}}
+  div
+    Hello(name="zdl")
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
+import Hello from './Hello.vue'
 
-@Component
-export default class index extends Vue {
-  name: 'index'
+@Component({
+  components: {
+    Hello
+  }
+})
+export default class Index extends Vue {
 }
 </script>
-
-<style lang="stylus" scoped>
-</style>

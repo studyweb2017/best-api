@@ -8,3 +8,4 @@ declare module 'service' {
 }
 declare module 'element-ui'
 declare module 'mockjs'
+declare module 'qs'

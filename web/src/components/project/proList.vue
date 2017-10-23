@@ -1,22 +1,22 @@
 <template lang="pug">
-    //- pro-box.d-ib
-    //- pro-box.d-ib(v-for='(project, index) in projects',:project='project',:projects='projects', :projectIndex='index' :key='project.id')
+  div
     div.pro-list.ta-l
       div.pro-item.d-ib.p-r.cu-p.ta-c(@click='go("add")')
         el-card(:body-style='{padding:"0px"}')
           div.pro-add.p-r
       div.pro-item.d-ib.p-r.cu-p.ta-c(v-for='(pro, index) in projects', :key='pro.id', @click.stop='go("api", pro.id)')
         el-card(:body-style='{ padding: "0px" }')
-          el-button.f-r.btn-edit(@click.stop='go("edit", pro.id)', icon='edit', type='default')
-          el-button.f-r.btn-del(type='defalut', size='normal', @click.stop.prevent='delPro(pro.id, index)', icon='close')
-          p.cl-b
-            span.mr-10 总共：{{pro.api.total}}
-            span.mr-10 通过: {{pro.api.pass}}
-            span {{'未测：' + pro.api.untest}}
+          el-button.f-r.btn-edit(:title='loading?"正在生成api文档":"导出api文档"', @click.stop='go("export", pro.id)', :icon='loading?"loading":"upload2"', type='default')
+          el-button.f-r.btn-edit(title='编辑项目', @click.stop='go("edit", pro.id)', icon='edit', type='default')
+          el-button.f-r.btn-del(title='删除项目', type='defalut', @click.stop.prevent='delPro(pro.id, index)', icon='delete2')
+          div.f-l.test-data(v-show='pro.api.isTest')
+            span {{'通测:' + pro.api.pass}}
+            br
+            span {{'未测:' + pro.api.untest}}
           img.pro-img.d-b.cl-b(:src='pro.imgUrl', class='image')
           h3.pro-name
-            span {{pro.name}}
-          span.pro-id.d-b.cu-t(@click.stop.prevent='') {{pro.id}}
+            span {{pro.name + '(' + pro.api.total + ')'}}
+          span.pro-id.d-b.cu-t(title='复制项目id', @click.stop.prevent='') {{pro.id}}
 </template>
 
 <script lang="ts">
@@ -28,26 +28,31 @@ export default class proList extends Vue {
   $confirm: any
   $message: any
   $router: any
-  projects: any[] = [{
-    id: '0000',
-    name: '示例项目',
-    api: {
-      total: 0,
-      pass: 0,
-      untest: 0
-    }
-  }]
+  projects: any[] = []
+  loading: boolean = false
   async beforeMount() {
     let resp:any = await http.get('/api/project')
-    this.projects = resp.list && resp.list[0].api ? resp.list : this.projects
+    this.projects = resp.list ? resp.list : []
   }
-  go (to:any, proId?:any) {
+  async go (to:any, proId?:any) {
     if (to === 'api') {
       this.$router.push('/project/' + proId + '/api')
     } else if (to === 'edit') {
       this.$router.push('/project/' + proId + '/edit')
     } else if (to === 'add') {
       this.$router.push('/project/add')
+    } else if (to === 'export') {
+      this.loading = true
+      let resp:any = await http.get('/api/project/' + proId + '/doc')
+      if (resp.url) {
+        this.loading = false
+        // window.location.href = resp.url
+        window.open(resp.url)
+        this.$message({type: 'success', message: '文档生成成功'})
+      } else {
+        this.loading = false
+        this.$message({type: 'failed', message: resp.errMsg || '文档生成失败'})
+      }
     }
   }
   async delPro(proId:any, proIndex:any) {
@@ -58,26 +63,21 @@ export default class proList extends Vue {
         type: 'warning'
       })
       let resp:any = await http.delete('/api/project/' + proId)
-      if (resp.status === 200) {
-        resp.data.errCode === 0 ? this.projects.splice(proIndex, 1) : 1 > 0
-        this.$message({
-          type: 'success',
-          message: resp.data.errMsg || '删除成功！'
-        })
+      if (resp.errCode === 0) {
+        this.projects.splice(proIndex, 1)
+        this.$message({type: 'success', message: '删除成功！'})
+      } else {
+        this.$message({type: 'error', message: resp.errMsg || '删除失败'})
       }
-    } catch (err) {
-      this.$message({
-        type: 'info',
-        message: '已取消删除'
-      })
-    }
+    } catch (err) {}
   }
 }
 </script>
 
 <style lang="stylus" scoped>
 .pro-list
-  margin 50px
+  margin 0 auto
+  padding 50px
 .pro-item
   margin 0 20px 40px
   height 250px
@@ -87,8 +87,8 @@ export default class proList extends Vue {
     width @width
 .pro-img
   margin 20px auto
-  width 80px
-  height 80px
+  width 100px
+  height 100px
 .pro-name
   margin 10px
   height 30px
@@ -124,12 +124,11 @@ export default class proList extends Vue {
   color #20a0ff
 .btn-edit,
 .btn-del
+  margin 0
   padding 10px
   opacity 0
   border none
 .pro-item:hover
-  .el-card
-    background-color #f9f9f9
   .btn-del,
   .btn-edit
     background-color #f9f9f9

@@ -1,20 +1,21 @@
 <template lang="pug">
-  div.people
+  div.peopl
     el-tabs(v-model='activeTab')
       el-tab-pane(label='成员管理', name='member')
         member
       el-tab-pane(label='分组管理', name='group')
-      el-tab-pane(label='团队管理', name='team')
-
+        group
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
 import member from './member'
+import group from './group'
 @Component({
   components: {
-    member
+    member,
+    group
   }
 })
 export default class people extends Vue {

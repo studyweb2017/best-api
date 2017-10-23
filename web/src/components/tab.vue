@@ -21,5 +21,4 @@ export default class tab extends Vue {
     height 50px
     margin 0 auto
     text-align left
-
 </style>

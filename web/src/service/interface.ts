@@ -1,6 +1,6 @@
 export interface Tree extends Object {
-  id: string,
+  id?: string,
   name?: string,
   label?: string,
-  children: Tree[]
+  children?: Tree[]
 }

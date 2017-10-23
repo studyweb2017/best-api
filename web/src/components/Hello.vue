@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import http from '../service/http.ts'
+// import http from '../service/http.ts'
 import Component from 'vue-class-component'
 
 @Component({
@@ -17,10 +17,6 @@ import Component from 'vue-class-component'
 })
 export default class Hello extends Vue {
   msg: string = 'Welcome to Best API'
-  name: string
-  async mounted () {
-    this.msg = (await http.get('/api/11')).toString()
-  }
 }
 </script>
 

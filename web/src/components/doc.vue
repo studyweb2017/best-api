@@ -1,5 +1,6 @@
 <template lang="pug">
-  p {{'this is doc page'}}
+div.doc
+  router-link(to="#", title="title").class hello
 </template>
 
 <script lang="ts">
@@ -8,7 +9,6 @@ import Component from 'vue-class-component'
 
 @Component
 export default class doc extends Vue {
-  name: 'doc'
 }
 </script>
 

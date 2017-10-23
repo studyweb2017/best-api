@@ -1,9 +1,10 @@
 export default {
   get: (key: string) => {
-    return JSON.parse(JSON.stringify(localStorage.getItem(key)))
+    let v:any = localStorage.getItem(key)
+    return v
   },
   set: (key: string, value: any) => {
-    return localStorage.setItem(key,JSON.stringify(value))
+    return localStorage.setItem(key, value)
   },
   remove: (key: string) => {
     return localStorage.removeItem(key)
