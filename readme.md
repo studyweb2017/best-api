@@ -4,6 +4,9 @@
 * 开放API。支持调用接口访问API信息
 * API参数增加枚举类型。
 * API版本信息可编辑
+<<<<<<< HEAD
 
 # 坑
 ### element-ui官方未提供 d.ts模块声明文件，若在src里添加vue-shimes.d.ts，会造成karma测试不通过，暂时手动在node_module/element-ui/下，添加index.d.ts文件
+=======
+>>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
