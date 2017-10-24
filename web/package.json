@@ -22,7 +22,10 @@
     "iview": "^2.0.0-rc.18",
     "lodash": "^4.17.4",
     "mockjs": "^1.0.1-beta3",
+<<<<<<< HEAD
     "qs": "^6.5.1",
+=======
+>>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
     "vue": "^2.3.3",
     "vue-class-component": "^5.0.2",
     "vue-property-decorator": "^5.2.1",

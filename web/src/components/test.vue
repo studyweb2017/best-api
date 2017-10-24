@@ -1,10 +1,19 @@
 <template lang="pug">
+<<<<<<< HEAD
   div
     el-table.test-list(:data='testList')
       el-table-column(label='项目', prop='projectName', header-align='center')
       el-table-column(label='开始时间', prop='startTime', header-align='center')
       el-table-column(label='结束时间', prop='endTime', header-align='center')
       el-table-column(label='用时', prop='timeLength', header-align='center', width='100')
+=======
+  div.api-tes
+    el-table(:data='testList')
+      el-table-column(label='项目', prop='projectName', header-align='center')
+      el-table-column(label='开始时间', prop='startTime', header-align='center')
+      el-table-column(label='结束时间', prop='endTime', header-align='center')
+      el-table-column(label='用时', prop='timeLength', header-align='center')
+>>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
       el-table-column(label='发起者', prop='starter', header-align='center')
       el-table-column(label='测试结果', prop='result', header-align='center')
         template(scope='scope')
@@ -12,9 +21,15 @@
           span(v-if='!scope.row.result.allPass') {{'通测:' + scope.row.result.passTest}}
           span(v-if='!scope.row.result.allPass') {{'未测:' + scope.row.result.unTest}}
           span(v-if='!scope.row.result.allPass') {{'失败:' + scope.row.result.failTest}}
+<<<<<<< HEAD
       el-table-column(label='', width='100')
         template(scope='scope')
           el-button(size='small', v-if='!scope.row.result.allPass', @click='reTest(scope.row.projectId)') 重测
+=======
+      el-table-column(label='')
+        template(scope='scope')
+          el-button(v-if='!scope.row.result.allPass', @click='reTest(scope.row.projectId)') 重新测试
+>>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
 </template>
 
 <script lang="ts">
@@ -41,17 +56,28 @@ export default class test extends Vue {
   proId: any = ''
   testList: Test[] = []
   async beforeMount() {
+<<<<<<< HEAD
     let resp:any = await http.get('/api/test')
     this.testList = resp.list
   }
   async reTest(id:string) {
     await http.put('/api/test/' + id)
+=======
+    let resp:any = await http.get('/api/project/test')
+    this.testList = resp.list
+  }
+  async reTest(id:string) {
+    await http.put('/api/project/' + id + '/test')
+>>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
   }
 }
 </script>
 
 <style lang="stylus" scoped>
+<<<<<<< HEAD
 .test-list
   margin 50px auto 0
   width 1200px
+=======
+>>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
 </style>

@@ -1,15 +1,28 @@
 <template lang="pug">
   div#app.p-a
+<<<<<<< HEAD
     nav-bar
+=======
+    nav-bar.p-a
+>>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
     router-view.main.p-a
 </template>
 
 <script lang="ts">
   import navBar from './components/navBar'
+<<<<<<< HEAD
   export default {
     name: 'app',
     components: {
       navBar
+=======
+  import tab from './components/tab'
+  export default {
+    name: 'app',
+    components: {
+      navBar,
+      tab
+>>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
     }
   }
 </script>
