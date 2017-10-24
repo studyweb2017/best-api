@@ -336,19 +336,18 @@ export default class apiEdit extends Vue {
     }
   }
   async delData(data:any, row:any, index:any) {
+    console.log(data[2])
+    let len:any = 1
     if (row.type === 'Object' || row.type === 'Array') {
-      try {
-        await this.$confirm('对象或数组将会同时删除全部子元素, 继续?', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
-        let len:any = 1
-        data.forEach((p:any, idx:any) => {
-          if (p.ancestor.indexOf(row.id) > -1) {
-            len++
-          }
-        })
-        data.splice(index, len)
-      } catch (err) {}
+      await this.$confirm('对象或数组将会同时删除全部子元素, 继续?', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
+      data.forEach((p:any, idx:any) => {
+        if (p.ancestor.indexOf(row.id) > -1) {
+          len++
+        }
+      })
+      data.splice(index, len)
     } else {
-      data.splice(index, 1)
+      data.splice(index, len)
     }
   }
   addData(data:any, row?:any, index?:any) {
@@ -357,7 +356,9 @@ export default class apiEdit extends Vue {
     let classNameArr:string[] = ['bg-1', 'bg-2', 'bg-3']
     let className:string = classNameArr[0]
     if (row) {
+      console.log(ancestor)
       ancestor = row.ancestor.concat([row.id])
+      console.log(ancestor)
       if (row.className === classNameArr[0]) {
         className = classNameArr[1]
       } else if (row.className === classNameArr[1]) {
