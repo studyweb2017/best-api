@@ -1,5 +1,4 @@
 <template lang="pug">
-<<<<<<< HEAD
   div.nav-bar-wrap.p-a
     div.nav-bar.ta-l
       router-link.menu-item(to='/')
@@ -24,31 +23,6 @@
             el-input(v-model='userForm.account', placeholder="英文名或邮箱地址", @keyup.native.enter='login')
           el-form-item(label='密码', prop='password')
             el-input(v-model='userForm.password', @keyup.native.enter='login', type='password')
-=======
-  div.nav-bar
-    el-menu.ta-c(mode='horizontal', router=true, theme='light')
-      el-menu-item(index='/')
-        img.logo(src="../assets/logo.png")
-        small tiduyun
-      el-menu-item(index='/project/list') 项目
-      el-menu-item(index='/test') 测试
-      el-menu-item(index='/member') 成员管理
-      el-menu-item(index='/doc') 文档
-      el-menu-item(index='/set') 设置
-      el-menu-item(index='/news') 消息
-      el-menu-item.login(v-if='!isLogin', index='')
-        span(v-if='!isLogin', @click='showLoginDialog=true') 登录
-      el-menu-item.login(v-if='isLogin', index='')
-        div.d-ib.avatar {{user ? user.name : ''}}
-        span.c-f(type='text', @click='logout') {{ ' ' + '登出' }}
-      el-menu-item.el-icon-message.news(index='/news')
-      el-dialog.login-dialog(title='登录', :visible.sync='showLoginDialog')
-        el-form(ref='userForm', :rules='rules' :model='userForm', label-position='right', label-width='80px')
-          el-form-item(label='账号', prop='account')
-            el-input(v-model='userForm.account', placeholder="英文名或邮箱地址")
-          el-form-item(label='密码', prop='password')
-            el-input(v-model='userForm.password')
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
           el-form-item
             el-button(type='ghost', @click='reset()') {{'重置'}}
             el-button(type='primary', @click='login()', style='margin-left: 50px') {{'登录'}}
@@ -89,7 +63,6 @@ export default class navBar extends Vue {
     that.$refs.userForm.validate(async (valid: boolean) => {
       if (valid) {
         let resp:any = await http.post('/api/user/login', that.userForm)
-<<<<<<< HEAD
         if (resp.user && resp.token) {
           Cache.set('user', JSON.stringify(resp.user))
           Cache.set('token', resp.token)
@@ -102,23 +75,11 @@ export default class navBar extends Vue {
           that.$router.push('/project/list')
         } else {
           that.$message({type: 'warning', message: resp.errMsg})
-=======
-        if (resp.data.errCode === 0) {
-          Cache.set('user', that.userForm)
-          that.isLogin = true
-          that.user = resp.data.user
-          that.showLoginDialog = false
-          that.$message({type: 'success', message: '登录成功'})
-          that.$router.push('/')
-        } else {
-          that.$message({type: 'warning', message: resp.data.errMsg})
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
         }
       }
       return false
     })
   }
-<<<<<<< HEAD
   async logout () {
     await this.$confirm('确认退出账号？', '提示', {confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'})
     let res:any = await http.get('/api/user/logout')
@@ -132,31 +93,12 @@ export default class navBar extends Vue {
     } else {
       this.$message({type: 'error', message: res.errMsg || '退出失败'})
     }
-=======
-  logout () {
-    this.$confirm('确认退出账号？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }).then(() => {
-      Cache.remove('user')
-      this.isLogin = false
-      this.user = {}
-      this.$message({type: 'success', message: '退出成功'})
-    }).catch(() => {
-      // this.$message({
-      //   type: 'info',
-      //   message: '已取消退出'
-      // })
-    })
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="stylus">
-<<<<<<< HEAD
 .nav-bar-wrap
   top 0
   left 0
@@ -173,36 +115,10 @@ export default class navBar extends Vue {
   line-height 60px
   color #fff
   text-decoration none
-=======
-.nav-bar
-  .el-menu
-    margin 0 auto
-    background-color #20a0ff
-    .login
-      float right
-      .avatar
-        line-height 40px
-        width 40px
-        height 40px
-        border-radius 50%
-        border 1px solid #fff
-    .news
-      float right
-    .el-menu-item
-      color #fff
-      transition none
-    .el-menu-item.is-active
-      color #fff
-      background-color #44abf7
-    .el-menu-item:hover
-      background-color #44abf7
-      border 0
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
   .logo
     vertical-align middle
     width 50px
     height 50px
-<<<<<<< HEAD
 .menu-active
   color #fff
   background-color #44abf7
@@ -237,6 +153,4 @@ export default class navBar extends Vue {
     height 50px
     border-radius 50%
     border 1px solid #fff
-=======
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
 </style>

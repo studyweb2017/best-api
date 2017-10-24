@@ -1,8 +1,5 @@
 <template lang="pug">
-<<<<<<< HEAD
   div
-=======
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
     div.pro-list.ta-l
       div.pro-item.d-ib.p-r.cu-p.ta-c(@click='go("add")')
         el-card(:body-style='{padding:"0px"}')
@@ -12,7 +9,6 @@
           el-button.f-r.btn-edit(:title='loading?"正在生成api文档":"导出api文档"', @click.stop='go("export", pro.id)', :icon='loading?"loading":"upload2"', type='default')
           el-button.f-r.btn-edit(title='编辑项目', @click.stop='go("edit", pro.id)', icon='edit', type='default')
           el-button.f-r.btn-del(title='删除项目', type='defalut', @click.stop.prevent='delPro(pro.id, index)', icon='delete2')
-<<<<<<< HEAD
           div.f-l.test-data(v-show='pro.api.isTest')
             span {{'通测:' + pro.api.pass}}
             br
@@ -20,15 +16,6 @@
           img.pro-img.d-b.cl-b(:src='pro.imgUrl', class='image')
           h3.pro-name
             span {{pro.name + '(' + pro.api.total + ')'}}
-=======
-          p.cl-b
-            span.mr-10 总共：{{pro.api.total}}
-            span.mr-10 通过: {{pro.api.pass}}
-            span {{'未测：' + pro.api.untest}}
-          img.pro-img.d-b.cl-b(:src='pro.imgUrl', class='image')
-          h3.pro-name
-            span {{pro.name}}
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
           span.pro-id.d-b.cu-t(title='复制项目id', @click.stop.prevent='') {{pro.id}}
 </template>
 
@@ -45,11 +32,7 @@ export default class proList extends Vue {
   loading: boolean = false
   async beforeMount() {
     let resp:any = await http.get('/api/project')
-<<<<<<< HEAD
     this.projects = resp.list ? resp.list : []
-=======
-    this.projects = resp.list && resp.list[0].api ? resp.list : this.projects
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
   }
   async go (to:any, proId?:any) {
     if (to === 'api') {
@@ -61,19 +44,11 @@ export default class proList extends Vue {
     } else if (to === 'export') {
       this.loading = true
       let resp:any = await http.get('/api/project/' + proId + '/doc')
-<<<<<<< HEAD
       if (resp.url) {
         this.loading = false
         // window.location.href = resp.url
         window.open(resp.url)
         this.$message({type: 'success', message: '文档生成成功'})
-=======
-      if (resp.errCode === 0) {
-        this.loading = false
-        window.location.href = resp.url
-        // window.open(resp.url)
-        this.$message({type: 'success', message: resp.errMsg || '文档生成成功'})
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
       } else {
         this.loading = false
         this.$message({type: 'failed', message: resp.errMsg || '文档生成失败'})
@@ -88,7 +63,6 @@ export default class proList extends Vue {
         type: 'warning'
       })
       let resp:any = await http.delete('/api/project/' + proId)
-<<<<<<< HEAD
       if (resp.errCode === 0) {
         this.projects.splice(proIndex, 1)
         this.$message({type: 'success', message: '删除成功！'})
@@ -96,31 +70,13 @@ export default class proList extends Vue {
         this.$message({type: 'error', message: resp.errMsg || '删除失败'})
       }
     } catch (err) {}
-=======
-      if (resp.status === 200) {
-        resp.data.errCode === 0 ? this.projects.splice(proIndex, 1) : 1 > 0
-        this.$message({
-          type: 'success',
-          message: resp.data.errMsg || '删除成功！'
-        })
-      }
-    } catch (err) {
-      this.$message({
-        type: 'info',
-        message: '已取消删除'
-      })
-    }
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
   }
 }
 </script>
 
 <style lang="stylus" scoped>
 .pro-list
-<<<<<<< HEAD
   margin 0 auto
-=======
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
   padding 50px
 .pro-item
   margin 0 20px 40px
@@ -131,13 +87,8 @@ export default class proList extends Vue {
     width @width
 .pro-img
   margin 20px auto
-<<<<<<< HEAD
   width 100px
   height 100px
-=======
-  width 80px
-  height 80px
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
 .pro-name
   margin 10px
   height 30px

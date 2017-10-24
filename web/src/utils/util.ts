@@ -26,36 +26,20 @@ function formatApiToTree (apiList:any[]): Tree[] {
           name: api.module,
           id: gId(),
           children: [{
-<<<<<<< HEAD
             label:'url',
             api: api,
             name: api.name,
             id: api.id
           },{
-=======
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
             label: 'newUrl',
             name: '',
             module: api.module,
             id: gId()
-<<<<<<< HEAD
-=======
-          },
-          {
-            label:'url',
-            api: api,
-            name: api.name,
-            id: api.id
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
           }]
         })
       } else {
         urls = modules[moduleIndex].children
-<<<<<<< HEAD
         urls.unshift({
-=======
-        urls.push({
->>>>>>> 9e54e799de70785989a55f16c855fd983e7c2deb
           label: 'url',
           name: api.name,
           id: api.id,
