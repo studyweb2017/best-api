@@ -31,13 +31,15 @@ export default (ctx: any, next: any) => {
           })
           let paramValid: any = []
           // 校验占位符和地址栏参数
-          ifc.request.urlParams.forEach((it: any) => {
-            if (it.required) {
-              if (!param[it.name] && !query[it.name]) {
-                paramValid.push(`缺少URL参数'${it.name}'`)
+          if(ifc.request.urlParams) {
+            ifc.request.urlParams.forEach((it: any) => {
+              if (it.required) {
+                if (!param[it.name] && !query[it.name]) {
+                  paramValid.push(`缺少URL参数'${it.name}'`)
+                }
               }
-            }
-          })
+            }) 
+          }
           // 校验请求体
           let bodyTemplate = Mock2json.makeMockJson(ifc.request.paramList || [], 'root')
           let bodyValid = []
@@ -52,12 +54,14 @@ export default (ctx: any, next: any) => {
           } else {
             return new Promise((resolve, rejct) => {
               setTimeout(() => {
-                ifc.response.headerList.forEach((it: any) => {
-                  ctx.set(it.key, it.value)
-                })
-                if (ifc.errList.length) {
+                if(ifc.response.headerList) {
+                  ifc.response.headerList.forEach((it: any) => {
+                    ctx.set(it.key, it.value)
+                  }) 
+                }
+                if (ifc.response.errList && ifc.response.errList.length) {
                   let list:any = []
-                  ifc.exceptionList.forEach((item: any) => {
+                  ifc.response.errList.forEach((item: any) => {
                     if (item.enabled) {
                       let response
                       try {

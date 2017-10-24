@@ -2,52 +2,64 @@ import { Schema, mongoose, Model } from '../util/db'
 
 let paramSchemaObj = {
   _id: false,
-  headerList: [{
-    _id: false,
-    key: String,
-    value: String
-  }],
-  paramList: [{
-    _id: false,
-    id: String,
-    name: String,
-    required: Boolean,
-    ancestor: [String],
-    type: {
-      type: String,
-      enum: ['String', 'Number', 'Boolean', 'Object', 'Array'],
-      set(v: string) {
-        return `${v[0].toUpperCase()}${v.slice(1)}`
-      }
-    },
-    mock: String,
-    remark: String
-  }]
+  headerList: {
+    type: [{
+      _id: false,
+      key: String,
+      value: String
+    }],
+    default: []
+  },
+  paramList: {
+    type: [{
+      _id: false,
+      id: String,
+      name: String,
+      required: Boolean,
+      ancestor: [String],
+      type: {
+        type: String,
+        enum: ['String', 'Number', 'Boolean', 'Object', 'Array'],
+        set(v: string) {
+          return `${v[0].toUpperCase()}${v.slice(1)}`
+        }
+      },
+      mock: String,
+      remark: String
+    }],
+    default: []
+  }
 }
 
 let requestSchema = new Schema(Object.assign({
-  urlParams: [{ 
-    _id: false, 
-    id: String, 
-    name: String, 
-    required: Boolean, 
-    mock: String, 
-    remark: String 
-  }]
+  urlParams: {
+    type: [{
+      _id: false,
+      id: String,
+      name: String,
+      required: Boolean,
+      mock: String,
+      remark: String
+    }],
+    default: []
+  }
 }, paramSchemaObj))
 
 let responseSchema = new Schema(Object.assign({
-  errList: [{
-    _id: false,
-    enabled: Boolean,
-    data: String,
-    remark: String,
-    probability: {
-      type: Number,
-      min: 0,
-      max: 100
-    }
-  }]
+  errList: {
+    type: [{
+      _id: false,
+      enabled: Boolean,
+      data: String,
+      remark: String,
+      probability: {
+        type: Number,
+        min: 0,
+        max: 100
+      }
+    }],
+    default: []
+  }
 }, paramSchemaObj))
 
 let InterfaceSchemaObj = {

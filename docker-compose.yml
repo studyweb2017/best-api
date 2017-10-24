@@ -43,6 +43,8 @@ services:
       - 27018:27017
     networks: 
       - bestapi
+    volumes:
+      - ./data:/data/db
 volumes:
   api_web_modules:
   api_server_modules:
