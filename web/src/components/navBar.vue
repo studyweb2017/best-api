@@ -16,6 +16,7 @@
         router-link.sub-menu-item(to='/user/set', active-class='') 个人设置
         span.sub-menu-item(@click='logout()') 退出账号
       span.d-ib.f-r.user(v-show='isLogin', v-popover:popover1="")
+        span.c-f {{user.name}}
         img.avatar(:src='user.avatar', alt='avatar', :title='user.name')
         //- span.d-ib.avatar {{user.name || ''}}
       el-dialog.login-dialog(title='登录', :visible.sync='showLoginDialog')
@@ -150,9 +151,9 @@ export default class navBar extends Vue {
   color #fff
   background-color #20a0ff
   .avatar
-    line-height 50px
     width 50px
     height 50px
     border-radius 50%
     border 1px solid #fff
+    vertical-align middle
 </style>
