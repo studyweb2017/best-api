@@ -1,5 +1,5 @@
 <template lang="pug">
-  div.message
+  div
     div.message-list
       h3.message-title 全部通知
       el-row(v-for='(m, index) in messageInfo.list', :key='index')
@@ -14,7 +14,7 @@
         el-col(:span='2')
           el-button(v-if='m.read', type='text', disabled) 已读
           el-button(v-if='!m.read', @click='mark(m, index)', type='text') 标为已读
-      el-pagination.mt-10(layout="sizes, prev, pager, next, total", :page-size='messageInfo.size', :total='messageInfo.total', @current-change='changePage', @size-change='changeSize', :current-page.sync='messageInfo.page')
+      el-pagination.mt-20(layout="sizes, prev, pager, next, total", :page-size='messageInfo.size', :total='messageInfo.total', @current-change='changePage', @size-change='changeSize', :current-page.sync='messageInfo.page')
 </template>
 
 <script lang="ts">
@@ -75,9 +75,9 @@ export default class message extends Vue {
   width 960px
 .message-title
   margin 0
-  line-height 100px
+  line-height 80px
   border-bottom 1px solid #ddd
 .el-row
-  line-height 50px
+  line-height 30px
   border-bottom 1px solid #ddd
 </style>

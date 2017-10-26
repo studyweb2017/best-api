@@ -1,6 +1,6 @@
 <template lang="pug">
-  div.nav-bar-wrap.p-a
-    div.nav-bar.ta-l
+  div.nav-bar-wrap.p-a.t-0.r-0.l-0.h-40
+    div.nav-bar.ta-l.p-r
       router-link.menu-item(to='/')
         img.logo(src="../assets/logo.png")
         small tiduyun
@@ -19,6 +19,10 @@
         span.c-f {{user.name}}
         img.avatar(:src='user.avatar', alt='avatar', :title='user.name')
         //- span.d-ib.avatar {{user.name || ''}}
+      el-badge.f-r(:value='10', class='message')
+        i.fa.fa-bell-o
+      //- el-popover(ref='popover2', title='通知' placement='bottom', width='200', trigger='hover')
+      //-   router-link.sub-menu-item(to='/message', active-class='') 查看全部
       el-dialog.login-dialog(title='登录', :visible.sync='showLoginDialog')
         el-form(ref='userForm', :rules='rules' :model='userForm', label-position='right', label-width='80px')
           el-form-item(label='账号', prop='account')
@@ -102,32 +106,32 @@ export default class navBar extends Vue {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="stylus">
-.nav-bar-wrap
-  top 0
-  left 0
-  right 0
-  height 60px
 .nav-bar
   margin 0 auto
   background-color #20a0ff
   color #fff
 .menu-item
   display inline-block
-  padding 0 10px
-  height 60px
-  line-height 60px
+  padding 0 20px
+  height 40px
+  line-height 40px
   color #fff
   text-decoration none
   .logo
     vertical-align middle
-    width 50px
-    height 50px
+    width 40px
+    height 40px
 .menu-active
   color #fff
   background-color #44abf7
 .menu-item:hover
   background-color #44abf7
   border 0
+.message
+  margin-top 10px
+  margin-right 50px
+  width 20px
+  height 20px
 .el-popover
   padding 0
   min-width 0
@@ -145,14 +149,14 @@ export default class navBar extends Vue {
   width 100px
 .user
   width 100px
-  height 60px
-  line-height 60px
+  height 40px
+  line-height 40px
   vertical-align middle
   color #fff
   background-color #20a0ff
   .avatar
-    width 50px
-    height 50px
+    width 40px
+    height 40px
     border-radius 50%
     border 1px solid #fff
     vertical-align middle

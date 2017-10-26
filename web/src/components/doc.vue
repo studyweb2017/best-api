@@ -1,6 +1,7 @@
 <template lang="pug">
-div.doc
+div
   router-link(to="#", title="title").class hello
+  i.fa.fa-camera-retro
 </template>
 
 <script lang="ts">

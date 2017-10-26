@@ -1,5 +1,5 @@
 <template lang="pug">
-  div
+ div
     div.pro-list.ta-l
       div.pro-item.d-ib.p-r.cu-p.ta-c(@click='go("add")')
         el-card(:body-style='{padding:"0px"}')

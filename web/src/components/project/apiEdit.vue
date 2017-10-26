@@ -1,8 +1,6 @@
 <template lang="pug">
   div.api-add-wrap.p-r
     el-form.ov-a.api-add#edit-form(ref='api', :model='api', :rules='rules', label-position='right', label-width='100px')
-      el-form-item.ta-l(label='接口描述', prop='remark')
-        el-input(v-model='api.remark')
       el-form-item.ta-l(label='所属模块', prop='module')
         el-select.w-200(v-model='api.module', filterable, allow-create, placeholder="选择或新建模块")
           el-option(v-for='(m, index) in modules', :key='index', :value='m', :label='m')
@@ -13,6 +11,8 @@
       el-form-item.ta-l(label='请求方法', prop='method')
         el-select.w-200(v-model='api.method')
           el-option(v-for='(m, index) in methods', :value='m', :key='index')
+      el-form-item.ta-l(label='接口描述', prop='remark')
+        el-input(v-model='api.remark')
       el-form-item.ta-l(label='请求参数')
         el-button(@click='copy(api.request.paramList)', size='small') 复制
         el-button(@click='paste("request", "paramList")', size='small') 粘贴
@@ -107,8 +107,8 @@
                   el-button(size='mini', @click='delItem("header", header, scope.row, scope.$index)', icon='close', type='danger')
             div.append-table-row.ta-c
               el-button(type='primary', size='small', icon='plus', @click='addItem("header", header)')
-    el-form.ov-a.pre-mock.p-a#pre-mock
-        div#drag-line.drag-line(@mousedown='mousedown')
+    el-form.ov-a.pre-mock.p-a.t-0.r-0.b-0#pre-mock
+        div#drag-line.drag-line.t-0.l-0.b-0(@mousedown='mousedown')
         el-form-item.ta-l(label='请求url')
           pre.pre {{requestUrl}}
         el-form-item.ta-l(label='请求体')
@@ -117,7 +117,7 @@
         el-form-item.ta-l(label='响应体')
           el-button(type='primary', size='small', @click='preJson("response")') 刷新预览
           pre.pre {{responseExample}}
-    div.ta-c.submit-btns
+    div.ta-c.submit-btns.p-a.l-0.r-0.b-0
       el-button.mr-50(@click='cancel()') 取消
       el-button(type='primary', @click='submit()') {{ api.id ? '保存' : '提交' }}
 
@@ -169,8 +169,7 @@ interface Param extends Object {
   remark?: string,
   className?: string
 }
-@Component({
-})
+@Component
 export default class apiEdit extends Vue {
   // 变量类型声明
   Mock: any
@@ -189,6 +188,7 @@ export default class apiEdit extends Vue {
   apiId: string
   api: Api = {
     isTest: false,
+    delay: 0,
     name: '',
     url: '',
     method: '',
@@ -236,12 +236,8 @@ export default class apiEdit extends Vue {
       {type: 'string', required: true, message: '请输入请求路径'},
       {message: '请求路径不合法,"/"开头', pattern: /^\//}],
     method: [{type: 'string', required: true, message: '请选择一个请求方法'}],
-    requestParams: [
-      {type: 'array', required: false, message: '请至少选择一个项目成员'}
-    ],
-    responseParams: [
-      {type: 'array'}
-    ]
+    requestParams: [{type: 'array', required: false, message: '请至少选择一个项目成员'}],
+    responseParams: [{type: 'array'}]
   }
   async beforeMount() {
     this.proId = this.$route.params.proId
@@ -254,25 +250,7 @@ export default class apiEdit extends Vue {
       this.api = resp
     } else if (this.mode === 'add') {
       this.apiId = ''
-      this.api = {
-        isTest: false,
-        delay: 0,
-        name: '',
-        url: '',
-        method: 'GET',
-        remark: '',
-        module: this.$route.query.module,
-        request: {
-          paramList: [],
-          dataList: [],
-          headerList: []
-        },
-        response: {
-          dataList: [],
-          headerList: [],
-          errList: []
-        }
-      }
+      this.api.module = this.$route.query.module
     }
     this.api.url && this.api.request.paramList ? this.preJson('requestUrl') : 1 > 0
     this.api.request.dataList ? this.preJson('request') : 1 > 0
@@ -286,7 +264,6 @@ export default class apiEdit extends Vue {
     that.$refs.api.validate(async (valid:boolean) => {
       if (valid) {
         let op = that.mode === 'edit' ? '修改' : '添加'
-        // await that.$confirm('确认' + op + 'api', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
         let resp:any = that.mode === 'edit'
         ? await http.put('/api/project/' + that.proId + '/api/' + that.$route.params.apiId, that.api)
         : await http.post('/api/project/' + that.proId + '/api', that.api)
@@ -312,27 +289,17 @@ export default class apiEdit extends Vue {
   changeType(data:any, row:any, index:any) {
     let len:any = 0
     data.forEach((p:any, idx:any) => {
-      if (p.ancestor.indexOf(row.id) > -1) {
-        len++
-      }
+      if (p.ancestor.indexOf(row.id) > -1) { len++ }
     })
     data.splice(index + 1, len)
-    switch (row.type) {
-      case 'String' :
-        row.mock = '@string'
-        break
-      case 'Boolean' :
-        row.mock = '@boolean'
-        break
-      case 'Number' :
-        row.mock = '@integer()'
-        break
-      case 'Array' :
-        row.mock = '1-5'
-        break
-      default:
-        row.mock = ''
-        break
+    if (row.type === 'String') {
+      row.mock = '@string'
+    } else if (row.type === 'Boolean') {
+      row.mock = '@boolean'
+    } else if (row.type === 'Number') {
+      row.mock = '@integer(0,0)'
+    } else if (row.type === 'Array') {
+      row.mock = '1-5'
     }
   }
   async delData(data:any, row:any, index:any) {
@@ -384,25 +351,11 @@ export default class apiEdit extends Vue {
   addItem(tag:any, list:any) {
     let item:any = {}
     if (tag === 'param') {
-      item = {
-        id: '',
-        name: '',
-        required: '',
-        mock: '',
-        remark: ''
-      }
+      item = { id: '', name: '', required: '', mock: '', remark: '' }
     } else if (tag === 'header') {
-      item = {
-        key: '',
-        value: ''
-      }
+      item = { key: '', value: '' }
     } else if (tag === 'err') {
-      item = {
-        enabled: false,
-        remark: '',
-        probability: '',
-        data: '{}'
-      }
+      item = { enabled: false, remark: '', probability: '', data: '{}' }
     }
     list.push(item)
   }
@@ -492,9 +445,6 @@ export default class apiEdit extends Vue {
 .drag-line
   position absolute
   width 3px
-  top 0
-  left 0
-  bottom 0
   z-index 1000
   border-left 1px solid #ccc
   cursor e-resize
@@ -541,22 +491,14 @@ export default class apiEdit extends Vue {
   line-height 40px
 .pre-mock
   z-index 99
-  top 0
-  right 0
-  bottom 0
   padding-left 20px
   padding-bottom 80px
   width 250px
-  // border-left 1px solid #ccc
   background-color #fff
 .pre
   line-height 1.5
 .submit-btns
   z-index 9999
-  position absolute
-  left 0
-  right 0
-  bottom 0
   padding 20px
   border-top 1px solid #ccc
   background-color #eee
