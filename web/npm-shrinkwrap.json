@@ -2135,7 +2135,15 @@
       "version": "4.15.4",
       "from": "express@>=4.14.1 <5.0.0",
       "resolved": "https://registry.npm.taobao.org/express/download/express-4.15.4.tgz",
-      "dev": true
+      "dev": true,
+      "dependencies": {
+        "qs": {
+          "version": "6.5.0",
+          "from": "qs@6.5.0",
+          "resolved": "https://registry.npm.taobao.org/qs/download/qs-6.5.0.tgz",
+          "dev": true
+        }
+      }
     },
     "extend": {
       "version": "3.0.1",
@@ -4812,10 +4820,9 @@
       "dev": true
     },
     "qs": {
-      "version": "6.5.0",
-      "from": "qs@6.5.0",
-      "resolved": "https://registry.npm.taobao.org/qs/download/qs-6.5.0.tgz",
-      "dev": true
+      "version": "6.5.1",
+      "from": "qs@>=6.5.1 <7.0.0",
+      "resolved": "https://registry.npm.taobao.org/qs/download/qs-6.5.1.tgz"
     },
     "query-string": {
       "version": "4.3.4",

@@ -49,7 +49,7 @@
                 el-button.p-a.cu-p.btn-add-child-param(title='点击添加成员属性', v-if='scope.row.type==="Object" || scope.row.type === "Array"', size='mini', icon='plus', type='primary', @click='addData(data, scope.row, scope.$index)')
             el-table-column(prop='type', label='类型', header-align='center', width='105')
               template(scope='scope')
-                el-select(v-model='scope.row.type', size='small', @change='index===0?preJson("request"):preJson("response");changeType(data, scope.row, scope.$index)')
+                el-select(v-model='scope.row.type', :key='scope.row.id', size='small', @change='index===0?preJson("request"):preJson("response");changeType(data, scope.row, scope.$index)')
                   el-option(v-for='(t, index) in types', :value='t', :key='index', :label='t')
             el-table-column(prop='required', label='必传', width='50', align='center')
               template(scope='scope')
@@ -336,7 +336,6 @@ export default class apiEdit extends Vue {
     }
   }
   async delData(data:any, row:any, index:any) {
-    console.log(data[2])
     let len:any = 1
     if (row.type === 'Object' || row.type === 'Array') {
       await this.$confirm('对象或数组将会同时删除全部子元素, 继续?', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
@@ -356,9 +355,7 @@ export default class apiEdit extends Vue {
     let classNameArr:string[] = ['bg-1', 'bg-2', 'bg-3']
     let className:string = classNameArr[0]
     if (row) {
-      console.log(ancestor)
       ancestor = row.ancestor.concat([row.id])
-      console.log(ancestor)
       if (row.className === classNameArr[0]) {
         className = classNameArr[1]
       } else if (row.className === classNameArr[1]) {
