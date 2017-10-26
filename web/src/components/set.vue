@@ -39,9 +39,9 @@
               el-radio(label='monthly') 每月
         el-col.template(:span='12')
             span 接口导出模板
-            el-input(type='textarea', rows='7', v-model='setting.reportTemplate')
+            el-input(type='textarea', :rows='7', v-model='setting.reportTemplate')
             span 自定义样式
-            el-input(type='textarea', rows='7', v-model='setting.reportStyle', @change='previewApiTemplate')
+            el-input(type='textarea', :rows='7', v-model='setting.reportStyle', @change='previewApiTemplate')
             span 预览
             el-row
               span(:style='style.name') {{'接口名称:' + api.name}}
