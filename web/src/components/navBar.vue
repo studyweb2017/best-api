@@ -16,7 +16,8 @@
         router-link.sub-menu-item(to='/user/set', active-class='') 个人设置
         span.sub-menu-item(@click='logout()') 退出账号
       span.d-ib.f-r.user(v-show='isLogin', v-popover:popover1="")
-        span.d-ib.avatar {{user.name || ''}}
+        img.avatar(:src='user.avatar', alt='avatar', :title='user.name')
+        //- span.d-ib.avatar {{user.name || ''}}
       el-dialog.login-dialog(title='登录', :visible.sync='showLoginDialog')
         el-form(ref='userForm', :rules='rules' :model='userForm', label-position='right', label-width='80px')
           el-form-item(label='账号', prop='account')
@@ -40,6 +41,7 @@ export default class navBar extends Vue {
   $router: any
   $refs:any
   user:any = {}
+  avatarElement:any = 'img'
   beforeMount() {
     let u = JSON.parse(Cache.get('user'))
     this.user = u || this.user
