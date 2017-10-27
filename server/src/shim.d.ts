@@ -3,6 +3,7 @@ declare module 'process'
 declare module 'crypto'
 declare module 'fs'
 declare module 'path'
+declare module 'events'
 
 /* 3rd modules */
 declare module 'koa'
@@ -17,3 +18,4 @@ declare module 'jsonwebtoken'
 declare module 'mockjs'
 declare module 'jsonschema'
 declare module 'underscore'
+declare module 'axios'

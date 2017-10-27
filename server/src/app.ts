@@ -9,12 +9,15 @@ import memberRouter from './member/router'
 import authRouter from './auth/router'
 import systemRouter from './system/router'
 import messageRouter from './message/router'
+import agentRouter from './agent/router'
 import mock from './mock/mock'
 import authCtrl from './auth/AuthCtrl'
 import SystemCtrl from './system/SystemCtrl'
-// 系统初始化
-let system = new SystemCtrl()
-system.init()
+import engine from './thirdparty/ThirdPartyEngine'
+// 初始化系统配置
+new SystemCtrl()
+// 启动第三方消息引擎
+new engine()
 
 const app = new Koa()
 app.use(body({ uploadDir }))
@@ -25,6 +28,7 @@ app.use(interfaceRouter)
 app.use(memberRouter)
 app.use(systemRouter)
 app.use(messageRouter)
+app.use(agentRouter)
 app.use(mock)
 app.use((ctx: any) => {
   ctx.body = 'api server'

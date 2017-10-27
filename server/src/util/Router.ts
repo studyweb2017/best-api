@@ -23,9 +23,23 @@ export default class Router {
       })
   }
 
+  public handleProxy(ctx: any, ob: Observable<any>): Promise<void> {
+    return ob.catch((e: any) => {
+      ctx.body = {
+        data:e.response.data,
+        headers: e.response.headers,
+        status: e.response.status,
+        statusText: e.response.statusText
+      }
+      return Observable.of()
+    })
+      .do((res: any) => ctx.body = res)
+      .toPromise()
+  }
+
   public handle(ctx: any, ob: Observable<any>): Promise<void> {
     return ob.catch((e: any) => {
-      console.error(e)
+      console.error('请求出错', e)
       if (e.status) {
         ctx.throw(e.status, e.message || '操作失败')
       } else {

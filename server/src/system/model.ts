@@ -25,24 +25,6 @@ let SystemSchema = new Schema({
   testTime: {
     type: Number,
     default: ''
-  },
-  dingInformUrl: {
-    type: String,
-    default: ''
-  },
-  dingInformOperation: {
-    type: String,
-    enum: ["", "addInterface", "editInterface", "deleteInterface", "autoTestInterface"],
-    default: ''
-  },
-  towerInformUrl: {
-    type: String,
-    default: ''
-  },
-  towerInformOperation: {
-    type: String,
-    default: '',
-    enum: ["", "addInterface", "editInterface", "deleteInterface", "autoTestInterface"]
   }
 })
 

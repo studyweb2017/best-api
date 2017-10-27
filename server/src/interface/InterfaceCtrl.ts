@@ -5,6 +5,7 @@ import { Observable } from 'rxjs/Rx'
 import BaseCtrl from '../util/BaseCtrl'
 import { mongoose } from '../util/db'
 import ProjectCtrl from '../project/ProjectCtrl'
+import engine from '../thirdparty/ThirdPartyEngine'
 
 let projectCtrl = new ProjectCtrl()
 
@@ -157,6 +158,7 @@ export default class InterfaceCtrl extends BaseCtrl {
           .do((ifc: any) => {
             projectCtrl.getMemberList(pid)
             .subscribe((memberList:any) => {
+              engine.notify(engine.c, ifc)
               this.newCreateMessage(ifc.id, ifc.name, uname, memberList, ifc.url + ' ' + ifc.method) 
             })
           })
@@ -186,6 +188,7 @@ export default class InterfaceCtrl extends BaseCtrl {
               delete log.version
               projectCtrl.getMemberList(pid)
               .subscribe((memberList:any) => {
+                engine.notify(engine.u, ifc)
                 this.newUpdateMessage(iid, ifc.name, uname, memberList, ifc.url + ' ' + ifc.method)
               })
               return Observable.fromPromise(InterfaceHistoryModel.create(log))
@@ -209,6 +212,7 @@ export default class InterfaceCtrl extends BaseCtrl {
           .do((doc: any) => {
             projectCtrl.getMemberList(pid)
             .subscribe((memberList:any) => {
+              engine.notify(engine.d, doc)
               this.newDeleteMessage(iid, doc.name, uname, memberList, doc.url + ' ' + doc.method)
             })
             InterfaceHistoryModel.remove({ iid: mongoose.Types.ObjectId(iid) }).exec()

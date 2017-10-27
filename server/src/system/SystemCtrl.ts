@@ -6,7 +6,8 @@ import BaseCtrl from '../util/BaseCtrl'
 import { SystemModel } from './model'
 
 export default class SystemCtrl extends BaseCtrl {
-  private initSystemConfig() {
+  constructor() {
+    super()
     Observable.from(SystemModel.find().exec())
       .subscribe((list: any) => {
         if (!list.length) {
@@ -17,9 +18,6 @@ export default class SystemCtrl extends BaseCtrl {
           })
         }
       })
-  }
-  init() {
-    this.initSystemConfig()
   }
   get() {
     return Observable.fromPromise(SystemModel.findOne().exec())

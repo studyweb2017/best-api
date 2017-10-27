@@ -2,7 +2,34 @@ import { Schema, mongoose, Model } from '../util/db'
 import { MemberSchema } from '../member/model'
 import { TestSchema, TestInterface } from '../test/model'
 
-let ProjectSchema = new Schema({
+let informObj = {
+  token: {
+    type: String,
+    default: ''
+  },
+  createEnabled: {
+    type: Boolean,
+    default: false
+  },
+  updateEnabled: {
+    type: Boolean,
+    default: false
+  },
+  deleteEnabled: {
+    type: Boolean,
+    default: false
+  },
+  testEnabled: {
+    type: Boolean,
+    default: false
+  },
+  memberList: {
+    type: Array,
+    default: []
+  }
+}
+
+let schemaObj = {
   name: {
     type: String,
     maxlength: 20,
@@ -17,14 +44,13 @@ let ProjectSchema = new Schema({
     maxlength: 200,
     alias: 'testAddress'
   },
-  apiChangedInform: {
-    type: Boolean,
-    default: false
-  },
-  testFailedInform: {
-    type: Boolean,
-    default: false
-  },
+  dingInform: informObj,
+  towerInform: Object.assign({
+    projectId: {
+      type: String,
+      default: ''
+    }
+  }, informObj),
   openTest: {
     type: Boolean,
     default: false
@@ -32,7 +58,9 @@ let ProjectSchema = new Schema({
   masterList: [Schema.Types.ObjectId],
   developerList: [Schema.Types.ObjectId],
   guestList: [Schema.Types.ObjectId],
-})
+}
+
+let ProjectSchema = new Schema(schemaObj)
 
 enum role {
   guest = 'guest',
