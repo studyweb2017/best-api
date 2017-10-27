@@ -12,7 +12,7 @@
           span {{api.url}}
         el-form-item.ta-l(label='请求参数')
           span(v-if='api.request.paramList&&api.request.paramList.length<1') 无
-          el-button(@click='copy(api.request.paramList)', size='small') 复制
+          el-button(v-if='api.request.paramList&&api.request.paramList.length>0', @click='copy(api.request.paramList)', size='small') 复制
           //- el-button(@click='paste(api.request.paramList)', size='small') 粘贴
           el-table(:data='api.request.paramList', v-if='api.request.paramList&&api.request.paramList.length>0')
             el-table-column(label='参数名', prop='name', width='180', align='left')
@@ -27,7 +27,7 @@
           template(v-for='(data, index) in [api.request.dataList, api.response.dataList]')
             el-form-item.ta-l(:label='index===0?"请求体":"响应体"', :key='index')
               span(v-if='data&&data.length<1') 无
-              el-button(@click='copy(data)', size='small') 复制
+              el-button(v-if='data&&data.length>0', @click='copy(data)', size='small') 复制
               el-table(:data='data', v-if='data&&data.length>0')
                 el-table-column(prop='name', label='参数名', width='180')
                   template(scope='scope')
@@ -55,7 +55,7 @@
             span {{api.delay + '毫秒'}}
           el-form-item.ta-l(label='异常处理')
             span(v-if='api.response.errList&&api.response.errList.length<1') 无
-            el-button(@click='copy(api.response.errList)', size='small') 复制
+            el-button(v-if='api.response.errList&&api.response.errList.length>0', @click='copy(api.response.errList)', size='small') 复制
             el-table(:data='api.response.errList', border, v-if='api.response.errList&&api.response.errList.length>0')
               el-table-column(label='是否启用', prop='enabled', width='100')
                 template(scope='scope')
@@ -68,7 +68,7 @@
           template(v-for='(header, index) in [api.request.headerList, api.response.headerList]')
             el-form-item.ta-l(:label='index===0?"请求header":"响应header"', :key='index')
               span(v-if='header&&header.length<1') 无
-              el-button(@click='copy(header)', size='small') 复制
+              el-button(v-if='header&&header.length>0', @click='copy(header)', size='small') 复制
               el-table(:data='header', border, v-if='header&&header.length>0')
                 el-table-column(label='key', prop='key')
                 el-table-column(label='value', prop='value')
