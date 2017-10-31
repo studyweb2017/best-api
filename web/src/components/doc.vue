@@ -4,15 +4,15 @@ div
     span.c-red {{errMsg}}
     div.editor.f-l
       table.p-r
-        tr.va-t.line.p-r.ov-a
+        tr.va-t.line.p-r.ov-h
           td.col-1.bg-grey-1
-            span(v-for='(line, index) in inputLineInfo') {{index}}
+            span(v-for='(line, index) in inputLineInfo') {{index + 1}}
           td.col-2
             span(v-for='(line, index) in inputLineInfo', :class='{"bg-yellow":line.selectable}') {{line.selectable ? '可选' : ''}}
           td.col-3.bg-grey-2
             span(v-for='(line, index) in inputLineInfo') {{line.type || ''}}
           td.p-r.col-4
-            el-input.inputText(type='textarea', @focus='onFocus', @keyup.enter='onEnter', @blur='1>0', :autofocus='true', autosize, :autosize='{minRows:1}' v-model='inputText', @input='onInput')
+            el-input.inputText(type='textarea', @focus='onFocus', @blur='onBlur', :autofocus='true', autosize, :autosize='{minRows:25}' v-model='inputText', @keyup.up='onKeyup', @change='onChange')
     pre.output.f-l {{ mockJsonStr }}
     pre.output.f-l {{ dataJsonStr }}
 </template>
@@ -25,26 +25,46 @@ import Mock from 'mockjs'
 export default class doc extends Vue {
   Mock:any
   inputText:string = '{\n\n}'
+  _inputText:string = '{\n\n}'
   inputLineInfo:any[] = [{}, {}, {}]
   mockJsonStr:string = ''
   dataJsonStr:string = ''
   mockJson:any = {}
   dataJson:any = {}
   errMsg:string = ''
+  beforeMount() {
+    this._inputText = '{\n\n}'
+  }
   makeLineInfo(inputText:string) {
-    let lines:string[] = inputText.split('\n')
+    let lines:string[] = inputText.trim().split('\n')
     let infos:any[] = []
     lines.forEach((line:string, index:number) => {
       let info:any = {}
       line = line.trim()
-      if (/^\?\S/.test(line)) { info.selectable = true }
-      if (!line || /^\}|^\]/.test(line)) {
+      if (/^\?/.test(line)) {
+        info.selectable = true // 是否可选?
+        line = line.slice(1)   // 清理问号
+      }
+      // line.replace(/(true|false|0|[1-9]\d*|@\w)(,?)(\s*\/\/.*?)$/, '$1$2')
+      // if (/^{/.test(line)) {
+      //   info.type = 'Object'
+      // } else if (/^\[/.test(line)) {
+      //   info.type = 'Array'
+      // } else if (/^(true|false),?\s*(\/\/?.*)?$/.test(line)) {
+      //   info.type = 'Boolean'
+      // } else if (/(0|[1-9]\d*?),?\s*(\/\/?.*)?$/.test(line)) {
+      //   info.type = 'Number'
+      // } else if (/^".*?",?\s*(\/\/?.*)?/.test(line)) {
+      //   info.type = 'String'
+      // }
+      // else if ()
+      if (!line || /^(\}|\]|\/\/)/.test(line)) {
         info.type = ''
       } else if (/:?\[/.test(line) || /:@range/.test(line)) {
         info.type = 'Array'
       } else if (/:?{/.test(line)) {
         info.type = 'Object'
-      } else if (/(^true|^false|:(true|false|@boolean))/.test(line)) {
+      } else if (/:(true|false|@boolean)/.test(line)) {
         info.type = 'Boolean'
       } else if (/(^\d|:(@integer|@natural|@float|\d))/.test(line)) {
         info.type = 'Number'
@@ -67,7 +87,30 @@ export default class doc extends Vue {
     })
     return newLines.join('\n')
   }
-  onInput(e:any) {
+  onKeyup(e:any) {
+    if (this.inputText !== this._inputText) {
+      if (this.inputText.length > this._inputText.length) {
+      }
+      const pos = this.textElement.selectionEnd
+      let letter:any = this.inputText[pos - 1]
+      let str:any = ''
+      let len:any = 0
+      switch (letter) {
+        case '{':
+          str = '\n\t\n}'
+          len = 2
+          break
+        case '[':
+          str = '\n\t\n]'
+          len = 2
+          break
+      }
+      if (str) this.textElement.value = this.inputText.slice(0, pos) + str + this.inputText.slice(pos)
+      this.textElement.setSelectionRange(pos + len, pos + len)
+    }
+    this._inputText = this.inputText
+  }
+  onChange(val:any) {
     this.inputLineInfo = this.makeLineInfo(this.inputText)
     this.mockJsonStr = this.makeMockJsonStr(this.inputText)
     try {
@@ -77,15 +120,23 @@ export default class doc extends Vue {
       this.errMsg = ''
     } catch (err) { this.errMsg = '输入格式有误' }
   }
-  onEnter(e:any) { if (e.keyCode === 13) { this.makeLineInfo(this.inputText) } }
-  onFocus(e:any) { document.addEventListener('keypress', this.onEnter) }
+  textElement:any
+  onFocus(e:any) {
+    this.textElement = e.target
+    document.addEventListener('keyup', this.onKeyup)
+  }
+  onBlur(e:any) {
+    document.removeEventListener('keyup', this.onKeyup)
+  }
 }
 </script>
 <style lang="stylus">
 .el-textarea
+  min-height 498px
   textarea
     border 0 !important
     width 100%
+    height 498px
     resize none
     padding 0
     font-family Arial, Helvetica, sans-serif
@@ -102,19 +153,28 @@ table, th, td
   margin 50px
 .editor
   width 500px
+  height 500px
+  overflow-y auto
   border 1px solid #ccc
-.line
-  height 498px
-  min-height 498px
+// .line
+//   height 498px
 .col-1, .col-2, .col-3
   width 40px
+  height 100%
   span
     display block
     height 21px
+    width 40px
     font-size 14px
     line-height 1.5
+.col-1
+  span
+    width 20px
 .col-3
-  width 50px
+  span
+    width 50px
+.col-4
+  width 100%
 .output
   vertical-align top
   width 200px
