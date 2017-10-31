@@ -11,17 +11,11 @@ test.serial('memeber.post', (t: any) => {
 test.serial('member.get', (t: any) => {
   return memberCtrl.get()
     .do((res: any) => {
-      member.id = res.list.filter((x: any) => member.account === x.account)[0].id
+      member.id = res.memberList.filter((x: any) => member.account === x.account)[0].id
     })
-    .do((res: any) => t.truthy(res.list.length > 0))
+    .do((res: any) => t.truthy(res.memberList.length > 0))
 })
 
-test.serial('member.getMap', (t: any) => {
-  return memberCtrl.getMap()
-    .do((res:any) => {
-      t.truthy(res[member.id])
-    })
-})
 
 test.serial('member.delete', (t: any) => {
   return memberCtrl.delete(member.id)

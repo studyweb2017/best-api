@@ -16,7 +16,7 @@ test.before('create member,project', (t: any) => {
     .do((res: any) => {
       member.id = res.id
       t.truthy(res.id)
-      project.memberList = [{
+      project.members = [{
         role: role.master,
         id: res.id
       }]
@@ -32,7 +32,11 @@ test.serial('project.post', (t: any) => {
 
 test.serial('project.put', (t: any) => {
   return projectCtrl.put(project.id, {
-    name: 'hello'
+    name: 'hello',
+    members: [{
+      id: member.id,
+      role: role.guest
+    }]
   })
     .do((res: any) => {
       t.truthy(res.num)
@@ -41,35 +45,35 @@ test.serial('project.put', (t: any) => {
 
 test.serial('project.getById', (t: any) => {
   return projectCtrl.getById(project.id).do((res: any) => {
-    t.deepEqual(project.id, res.id)
-    t.truthy(res.members.length>0)
+    t.deepEqual('hello', res.name)
+    t.deepEqual(res.members[0].role, role.guest)
   })
 })
 
-test('project.put.error', (t:any) => {
+test('project.put.error', (t: any) => {
   t.plan(1)
   return projectCtrl.put('', {
     name: '111'
-  }).catch((res:any) => {
+  }).catch((res: any) => {
     t.truthy(res)
     return Observable.of()
   }).switchMap(() => t.pass())
 })
 
-test('project.post.error', (t:any) => {
+test('project.post.error', (t: any) => {
   t.plan(1)
-  return projectCtrl.post({}).catch((res:any) => {
+  return projectCtrl.post({}).catch((res: any) => {
     t.truthy(res)
     return Observable.of()
   }).switchMap(() => t.pass())
 })
 
 test.serial('project.get', (t: any) => {
-  return projectCtrl.get().do((res:any) => {
-    t.truthy(res)
+  return projectCtrl.get(member.id, member.isAdmin).do((res: any) => {
+    t.truthy(res.list.length > 0)
   })
 })
 
-// test.serial('project.delete', (t: any) => {
-//   return projectCtrl.delete(project.id).do((res: any) => t.deepEqual(res.num, 1))
-// })
+test.serial('project.delete', (t: any) => {
+  return projectCtrl.delete(project.id).do((res: any) => t.deepEqual(res.num, 1))
+})

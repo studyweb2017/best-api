@@ -1,13 +1,12 @@
 <template lang="pug">
   div
-    el-form(ref='userForm', :rules='rules' :model='userForm', label-position='right', label-width='80px')
+    el-form(ref='userForm', :rules='rules' :model='userForm', label-position='left', label-width='5em')
       el-form-item(label='账号', prop='account')
-        el-input(v-model='userForm.account', placeholder="英文名或邮箱地址", @keyup.native.enter='login')
+        el-input(v-model='userForm.account', placeholder="", @keyup.native.enter='login')
       el-form-item(label='密码', prop='password')
-        el-input(v-model='userForm.password', @keyup.native.enter='login')
+        el-input(v-model='userForm.password', type="password", @keyup.native.enter='login')
       el-form-item
-        el-button(type='ghost', @click='reset()') {{'重置'}}
-        el-button(type='primary', @click='login()', style='margin-left: 50px') {{'登录'}}
+        el-button.login-btn(type='primary', @click='login()') {{'登录'}}
 </template>
 <script lang="ts">
 import Vue from 'vue'
@@ -53,6 +52,8 @@ export default class login extends Vue {
 
 <style lang="stylus" scoped>
 .el-form
-  margin 50px auto
-  width 500px
+  margin 20% auto
+  width 400px
+  .login-btn
+    width 100%
 </style>

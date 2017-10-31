@@ -13,10 +13,6 @@
       <td>参数</td>
       <td>类型</td>
       <td>说明</td>
-<<<<<<< HEAD
-      <td>校验</td>
-=======
->>>>>>> 47fa4b2307a070bbd57f634601c0e6c52d3650d2
     </tr>
     <% requestParams.forEach(it => { %>
       <tr>
@@ -29,16 +25,6 @@
         <td>
           <%= it.desc %>
         </td>
-<<<<<<< HEAD
-        <td>
-          <%= it.rule %>
-        </td>
-      </tr>
-      <% }) %>
-  </table>
-  <p>请求示例</p>
-  <pre><%=requestExample%></pre>
-=======
       </tr>
       <% }) %>
   </table>
@@ -46,7 +32,6 @@
     <p>请求示例</p>
     <pre><%=requestExample%></pre> 
   </div>
->>>>>>> 47fa4b2307a070bbd57f634601c0e6c52d3650d2
 </section>
 <section <%= responseParams.length>0 ? '' : 'style="display:none"'%> >
   <p>返回参数</p>
@@ -55,10 +40,6 @@
       <td>参数</td>
       <td>类型</td>
       <td>说明</td>
-<<<<<<< HEAD
-      <td>校验</td>
-=======
->>>>>>> 47fa4b2307a070bbd57f634601c0e6c52d3650d2
     </tr>
     <% responseParams.forEach(it => { %>
       <tr>
@@ -71,24 +52,13 @@
         <td>
           <%=it.desc%>
         </td>
-<<<<<<< HEAD
-        <td>
-          <%=it.rule%>
-        </td>
       </tr>
       <% }) %>
   </table>
-  <p>返回示例</p>
-  <pre><%=responseExample%></pre>
-=======
-      </tr>
-      <% }) %>
-  </table>
-  <div <%= responseExample ? '' : 'style="display:none"'%> >
+  <div  >
     <p>返回示例</p>
     <pre><%=responseExample%></pre>
   </div>
->>>>>>> 47fa4b2307a070bbd57f634601c0e6c52d3650d2
 </section>
 <section <%= exceptions.length>0 ? '' : 'style="display:none"'%> >
   <p>异常处理</p>

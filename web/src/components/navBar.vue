@@ -4,22 +4,22 @@
       router-link.menu-item(to='/')
         img.logo(src="../assets/logo.png")
         small tiduyun
-      router-link.menu-item(to='/project/list', active-class='menu-active') 项目
-      router-link.menu-item(to='/test', active-class='menu-active') 测试
+      router-link.menu-item(v-if='user.name', to='/project/list', active-class='menu-active') 项目
+      router-link.menu-item(v-if='user.name', to='/test', active-class='menu-active') 测试
       router-link.menu-item(v-if='user.isAdmin', to='/member', active-class='menu-active') 成员管理
-      router-link.menu-item(to='/doc', active-class='menu-active') 文档
-      router-link.menu-item(to='/set', active-class='menu-active') 设置
-      router-link.menu-item(to='/message', active-class='menu-active') 动态
+      router-link.menu-item(v-if='user.name', to='/doc', active-class='menu-active') 文档
+      router-link.menu-item(v-if='user.name', to='/set', active-class='menu-active') 设置
+      router-link.menu-item(v-if='user.name', to='/message', active-class='menu-active') 动态
       router-link.menu-item.logout(v-if='!isLogin', to='')
-        span(v-if='!isLogin', @click='showLoginDialog=true') 登录
+        span(v-if='!isLogin&&!isLoginPage', @click='showLoginDialog=true') 登录
       el-popover(ref="popover1", placement="top-start", width="100", trigger='hover')
         router-link.sub-menu-item(to='/user/set', active-class='') 个人设置
         span.sub-menu-item(@click='logout()') 退出账号
       span.d-ib.f-r.user(v-show='isLogin', v-popover:popover1="")
         span.c-f {{user.name}}
-        img.avatar(:src='user.avatar', alt='avatar', :title='user.name')
+          img.avatar(:src='user.avatar', alt='avatar', :title='user.name')
         //- span.d-ib.avatar {{user.name || ''}}
-      el-badge.f-r(:value='10', class='message')
+      el-badge.f-r(v-if="isLogin", :value='10', class='message')
         i.fa.fa-bell-o
       //- el-popover(ref='popover2', title='通知' placement='bottom', width='200', trigger='hover')
       //-   router-link.sub-menu-item(to='/message', active-class='') 查看全部
@@ -39,6 +39,8 @@ import Vue from 'vue'
 import Component from 'vue-class-component'
 import Cache from '../service/cache.ts'
 import http from '../service/http.ts'
+import { Watch } from 'vue-property-decorator'
+
 @Component
 export default class navBar extends Vue {
   $confirm: any
@@ -47,13 +49,16 @@ export default class navBar extends Vue {
   $refs:any
   user:any = {}
   avatarElement:any = 'img'
-  beforeMount() {
+  @Watch('$route')
+  routeChanged(to:any) {
     let u = JSON.parse(Cache.get('user'))
     this.user = u || this.user
     this.isLogin = !!u
+    this.isLoginPage = to.name === 'login'
   }
   showLoginDialog: boolean = false
   isLogin: boolean = false
+  isLoginPage: boolean = false
   userForm: any = {
     account: '',
     password: ''
@@ -96,7 +101,7 @@ export default class navBar extends Vue {
       this.isLogin = false
       this.user = {}
       this.$message({type: 'success', message: '退出成功'})
-      this.$router.push('/')
+      this.$router.push('/user/login')
     } else {
       this.$message({type: 'error', message: res.errMsg || '退出失败'})
     }

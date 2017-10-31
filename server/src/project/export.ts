@@ -1,12 +1,14 @@
-import { InterfaceModel } from './interface.md'
+import { InterfaceModel } from '../interface/model'
 import { mongoose } from '../util/db'
 import { Observable } from 'rxjs/Rx'
 import * as _ from 'lodash'
 import * as fs from 'fs'
 import * as path from 'path'
+import Mock2json from '../mock/Mock2json'
 
-const src = 'template'
+const prefix = 'api'
 const dist = 'report'
+const src = 'template'
 const title = 'API文档'
 
 const getFile = (name: string) => {
@@ -31,7 +33,7 @@ const setFile = (name: string, data: string) => {
 const exist = (name: string) => fs.existsSync(path.join('template', name))
 
 const getIfc = (ifc: any) => {
-  let obj:any = {
+  let obj: any = {
     name: ifc.name,
     method: ifc.method,
     desc: ifc.desc,
@@ -45,25 +47,33 @@ const getIfc = (ifc: any) => {
   ifc.request.paramList.forEach((it: any) => {
     obj.requestParams.push({
       name: it.name,
-      desc: it.desc,
-      type: it.type,
-      validator: it.validator
+      desc: it.description,
+      type: it.type
     })
   })
   ifc.response.paramList.forEach((it: any) => {
     obj.requestParams.push({
       name: it.name,
-      desc: it.desc,
-      type: it.type,
-      validator: it.validator
+      desc: it.description,
+      type: it.type
     })
   })
-  ifc.exceptionList.forEach((it: any) => {
+  ifc.response.errList.forEach((it: any) => {
     obj.exceptions.push({
-      param: it.param,
-      desc: it.desc
+      param: it.mock,
+      desc: it.remark
     })
   })
+  try {
+    if(ifc.request.paramList.length>0) {
+      obj.requestExample = JSON.stringify(Mock2json.makeJson(ifc.request.paramList, 'root'), null, 2)
+    }
+    if(ifc.response.paramList.length>0) {
+      obj.responseExample = JSON.stringify(Mock2json.makeJson(ifc.response.paramList, 'root'), null, 2)
+    } 
+  } catch(e) {
+    console.error(e)
+  }
   return obj
 }
 
@@ -74,7 +84,7 @@ export default {
     let bodyTpl = exist('template.body.html') ? getFile('template.body.html') : getFile('default.body.html')
     let css = exist('template.css') ? getFile('template.css') : getFile('default.css')
     let head = _.template(headTpl)({ css: `${pid}.css`, title })
-    Observable.fromPromise(InterfaceModel.find({ pid: mongoose.Types.ObjectId(pid) }))
+    return Observable.fromPromise(InterfaceModel.find({ pid: mongoose.Types.ObjectId(pid) }))
       .map((interfaceList: any) => {
         let str = ''
         interfaceList.forEach((ifc: any) => str += _.template(bodyTpl)(getIfc(ifc)))
@@ -84,11 +94,14 @@ export default {
         console.error(e)
         return Observable.of(e)
       })
-      .do((body: any) => {
+      .map((body: any) => {
         let html = _.template(htmlTpl)({ head, body })
         setFile(`${pid}.css`, css)
         setFile(`${pid}.html`, html)
+        return path.join('/', prefix, dist, `${pid}.html`)
       })
-      .subscribe()
+  },
+  readFile(filePath: string) {
+    return Observable.of(fs.readFileSync(path.join(dist, filePath)))
   }
 }

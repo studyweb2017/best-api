@@ -7,5 +7,6 @@ VOLUME ["/app"]
 EXPOSE 2018
 
 COPY ./Hongkong /etc/localtime
+RUN apk update && apk add git
 RUN npm set registry https://registry.npm.taobao.org
 RUN npm i -g pm2 nodemon typescript
