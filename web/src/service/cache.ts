@@ -9,5 +9,5 @@ export default {
   remove: (key: string) => {
     return localStorage.removeItem(key)
   },
-  clear: localStorage.clear
+  clear: () => localStorage.clear()
 }

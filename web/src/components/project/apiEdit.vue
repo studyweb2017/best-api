@@ -128,7 +128,7 @@ import Vue from 'vue'
 import Component from 'vue-class-component'
 import http from '../../service/http.ts'
 import cache from '../../service/cache.ts'
-import {gId} from '../../utils/util.ts'
+import {gId} from '../../service/util.ts'
 import Mock from 'mockjs'
 // import _ from 'lodash'
 interface Api extends Object {

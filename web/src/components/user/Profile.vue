@@ -24,10 +24,11 @@
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import http from '../../service/http.ts'
-import cache from '../../service/cache.ts'
+import http from '../../service/http'
+import cache from '../../service/cache'
+
 @Component
-export default class userSet extends Vue {
+export default class Profile extends Vue {
   $message: any
   $router: any
   user: any = {

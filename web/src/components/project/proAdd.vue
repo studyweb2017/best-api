@@ -59,9 +59,10 @@
 <script lang='ts'>
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import http from '../../service/http.ts'
-import cache from '../../service/cache.ts'
-import rules from '../../service/rules.ts'
+import http from '../../service/http'
+import cache from '../../service/cache'
+import rules from '../../service/rules'
+
 interface Project extends Object {
   name: string,
   description?: string,

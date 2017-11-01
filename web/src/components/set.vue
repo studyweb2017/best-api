@@ -4,7 +4,7 @@
       el-row
         el-col(:span='12')
           el-form-item.ta-l.mb-10(label='')
-            img.company-logo.d-ib(:src='setting.companyLogo', alt='公司logo')
+            //- img.company-logo.d-ib(:src='setting.companyLogo', alt='公司logo')
             el-upload.d-ib(action='/api/upload/img', :headers='headers', :show-file-list='false', :on-success='uploadSuccess', :on-err='uploadFail') 上传图片
           el-form-item.ta-l.mb-10(label='公司名称')
             el-input.w-200(v-model='setting.companyName', size='small')
@@ -54,12 +54,12 @@
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import http from '../service/http.ts'
-import cache from '../service/cache.ts'
+import http from '../service/http'
+import cache from '../service/cache'
+
 @Component
-export default class set extends Vue {
+export default class Set extends Vue {
   $message: any
-  $router: any
   api:any = {
     name: '示例接口',
     url: '/example.com/xx',

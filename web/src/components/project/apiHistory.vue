@@ -206,7 +206,6 @@ export default class apiHistory extends Vue {
                   return itemR.name === itemL.name && _.isEqual(itemR.ancestor, itemL.ancestor)
                 }
               })
-              console.log(i1)
               let i2:any = _.findIndex(this.apiLeft[k][kk], (itemL:any) => {
                 if (kk === 'headerList') {
                   return itemR.key === itemL.key && itemR.value === itemL.value

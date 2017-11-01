@@ -1,3 +1,5 @@
+import {Tree} from '../service/interface'
+
 let gId:Function = (size?: number) => {
   let t = (new Date()).getTime()
   let p = (Math.random().toString(16) + '00000000').substr(2,8)
@@ -14,7 +16,6 @@ let gVersion:Function = () => {
   let s = t.getSeconds()
   return y + '' +  (m < 10 ? '0' : '') + m + (d < 10 ? '0' : '') + d + '' + '.' + (h < 10 ? '0' : '') + h + (mi < 10 ? '0' : '') + mi + (s < 10 ? '0' : '') + s + '.' + (Math.random().toString(16) + '00000000').substr(2,4)
 }
-import {Tree} from '../service/interface.ts'
 function formatApiToTree (apiList:any[]): Tree[] {
     let modules:any = []
     let urls:any = []

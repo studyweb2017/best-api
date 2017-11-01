@@ -1,37 +1,23 @@
 <template lang="pug">
-  div.nav-bar-wrap.p-a.t-0.r-0.l-0.h-40
-    div.nav-bar.ta-l.p-r
-      router-link.menu-item(to='/')
-        img.logo(src="../assets/logo.png")
-        small tiduyun
-      router-link.menu-item(v-if='user.name', to='/project/list', active-class='menu-active') 项目
-      router-link.menu-item(v-if='user.name', to='/test', active-class='menu-active') 测试
-      router-link.menu-item(v-if='user.isAdmin', to='/member', active-class='menu-active') 成员管理
-      router-link.menu-item(v-if='user.name', to='/doc', active-class='menu-active') 文档
-      router-link.menu-item(v-if='user.name', to='/set', active-class='menu-active') 设置
-      router-link.menu-item(v-if='user.name', to='/message', active-class='menu-active') 动态
-      router-link.menu-item.logout(v-if='!isLogin', to='')
-        span(v-if='!isLogin&&!isLoginPage', @click='showLoginDialog=true') 登录
-      el-popover(ref="popover1", placement="top-start", width="100", trigger='hover')
-        router-link.sub-menu-item(to='/user/set', active-class='') 个人设置
-        span.sub-menu-item(@click='logout()') 退出账号
-      span.d-ib.f-r.user(v-show='isLogin', v-popover:popover1="")
-        span.c-f {{user.name}}
-          img.avatar(:src='user.avatar', alt='avatar', :title='user.name')
-        //- span.d-ib.avatar {{user.name || ''}}
-      el-badge.f-r(v-if="isLogin", :value='10', class='message')
-        i.fa.fa-bell-o
-      //- el-popover(ref='popover2', title='通知' placement='bottom', width='200', trigger='hover')
-      //-   router-link.sub-menu-item(to='/message', active-class='') 查看全部
-      el-dialog.login-dialog(title='登录', :visible.sync='showLoginDialog')
-        el-form(ref='userForm', :rules='rules' :model='userForm', label-position='right', label-width='80px')
-          el-form-item(label='账号', prop='account')
-            el-input(v-model='userForm.account', placeholder="英文名或邮箱地址", @keyup.native.enter='login')
-          el-form-item(label='密码', prop='password')
-            el-input(v-model='userForm.password', @keyup.native.enter='login', type='password')
-          el-form-item
-            el-button(type='ghost', @click='reset()') {{'重置'}}
-            el-button(type='primary', @click='login()', style='margin-left: 50px') {{'登录'}}
+div.nav-bar-wrap.p-a.t-0.r-0.l-0.h-40
+  div.nav-bar.ta-l.p-r
+    div.d-ib.company
+      img.logo(src="")
+      small company name
+    router-link.menu-item(v-for="item in menu", :key="item.routeName", v-if='!item.needAdmin||user.isAdmin', :to='{name:item.routeName}', active-class='menu-active', v-text="item.name")
+    el-popover(ref="popover1", placement="top-start", width="100", trigger='hover')
+      router-link.sub-menu-item(:to="{name: 'userProfile'}") 个人设置
+      span.sub-menu-item(@click='logout()') 退出账号
+    span.d-ib.f-r.user(v-show='user.name', v-popover:popover1="")
+      span.c-f.username {{user.name}}
+      img.avatar(:src='user.avatar', alt='avatar', :title='user.name')
+    router-link(:to="{name:'messageIndex'}")
+      el-badge.f-r.message(v-if="user.name", :value='10')
+        i.fa.fa-bell-o.va-m
+    el-popover(ref='popover2', title='通知' placement='bottom', width='200', trigger='hover')
+      router-link.sub-menu-item(to='/message', active-class='') 查看全部
+    el-dialog(size="tiny", :visible.sync='showLoginDialog', :show-close="false", :close-on-click-modal="false", :close-on-press-escape="false")
+      LoginForm(@success="hideDialog")
 </template>
 
 <script lang="ts">
@@ -40,68 +26,64 @@ import Component from 'vue-class-component'
 import Cache from '../service/cache.ts'
 import http from '../service/http.ts'
 import { Watch } from 'vue-property-decorator'
+import LoginForm from './LoginForm'
 
-@Component
+@Component({
+  components: {
+    LoginForm
+  }
+})
 export default class navBar extends Vue {
   $confirm: any
   $message: any
   $router: any
   $refs:any
   user:any = {}
-  avatarElement:any = 'img'
-  @Watch('$route')
-  routeChanged(to:any) {
-    let u = JSON.parse(Cache.get('user'))
-    this.user = u || this.user
-    this.isLogin = !!u
-    this.isLoginPage = to.name === 'login'
-  }
   showLoginDialog: boolean = false
-  isLogin: boolean = false
-  isLoginPage: boolean = false
-  userForm: any = {
-    account: '',
-    password: ''
-  }
   rules: any = {
     account: [{required: true}],
     password: [{required: true}]
   }
-  reset () {
-    this.$refs.userForm.resetFields()
-  }
-  login () {
-    let that = this
-    that.$refs.userForm.validate(async (valid: boolean) => {
-      if (valid) {
-        let resp:any = await http.post('/api/user/login', that.userForm)
-        if (resp.user && resp.token) {
-          Cache.set('user', JSON.stringify(resp.user))
-          Cache.set('token', resp.token)
-          Cache.set('password', that.userForm.password)
-          Cache.set('account', that.userForm.account)
-          that.isLogin = true
-          that.user = resp.user
-          that.showLoginDialog = false
-          that.$message({type: 'success', message: '登录成功'})
-          that.$router.push('/project/list')
-        } else {
-          that.$message({type: 'warning', message: resp.errMsg})
-        }
-      }
-      return false
+  menu: any = [{
+    name: '项目',
+    routeName: 'projectIndex'
+  }, {
+    name: '测试',
+    routeName: 'testIndex'
+  }, {
+    name: '成员',
+    routeName: 'memberIndex',
+    needAdmin: true
+  }, {
+    name: '文档',
+    routeName: 'docIndex'
+  }, {
+    name: '设置',
+    routeName: 'setIndex',
+    needAdmin: true
+  }]
+  mounted() {
+    let _this = this
+    http.initLogin(() => {
+      _this.showLoginDialog = true
     })
+    this.routeChanged()
+  }
+  @Watch('$route')
+  routeChanged() {
+    this.user = JSON.parse(Cache.get('user'))
+  }
+  hideDialog() {
+    this.showLoginDialog = false
   }
   async logout () {
     await this.$confirm('确认退出账号？', '提示', {confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'})
     let res:any = await http.get('/api/user/logout')
     if (res.errCode === 0) {
-      Cache.remove('user')
-      Cache.remove('token')
-      this.isLogin = false
-      this.user = {}
-      this.$message({type: 'success', message: '退出成功'})
-      this.$router.push('/user/login')
+      Cache.clear()
+      this.$router.push({
+        name: 'login'
+      })
     } else {
       this.$message({type: 'error', message: res.errMsg || '退出失败'})
     }
@@ -109,8 +91,9 @@ export default class navBar extends Vue {
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="stylus">
+.company
+  padding 0 20px
 .nav-bar
   margin 0 auto
   background-color #20a0ff
@@ -122,10 +105,11 @@ export default class navBar extends Vue {
   line-height 40px
   color #fff
   text-decoration none
-  .logo
-    vertical-align middle
-    width 40px
-    height 40px
+.logo
+  vertical-align middle
+  height 30px
+  min-width 30px
+  margin-right 10px
 .menu-active
   color #fff
   background-color #44abf7
@@ -133,10 +117,14 @@ export default class navBar extends Vue {
   background-color #44abf7
   border 0
 .message
+  color #fff
+  cursor pointer
   margin-top 10px
-  margin-right 50px
+  margin-right 40px
   width 20px
   height 20px
+  sup
+    border-width 0
 .el-popover
   padding 0
   min-width 0
@@ -153,12 +141,16 @@ export default class navBar extends Vue {
   float right
   width 100px
 .user
-  width 100px
   height 40px
   line-height 40px
   vertical-align middle
   color #fff
+  margin-right 20px
   background-color #20a0ff
+  .username
+    cursor default
+    margin-right 10px 
+    user-select none
   .avatar
     width 40px
     height 40px

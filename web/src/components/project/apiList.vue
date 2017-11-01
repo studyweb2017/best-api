@@ -20,7 +20,7 @@ import Vue from 'vue'
 import Component from 'vue-class-component'
 import { Watch } from 'vue-property-decorator'
 import http from '../../service/http.ts'
-import {formatApiToTree, gId} from '../../utils/util.ts'
+import {formatApiToTree, gId} from '../../service/util.ts'
 @Component
 export default class apiList extends Vue {
   // 变量类型声明
