@@ -153,7 +153,8 @@ const router: any = new Router({
         ...docRouter,
         ...userRouter,
         ...setRouter,
-        ...messageRouter
+        ...messageRouter,
+        ...memberRouter
       ]
     }
   ]

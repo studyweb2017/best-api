@@ -2,29 +2,27 @@
 div.nav-bar-wrap.p-a.t-0.r-0.l-0.h-40
   div.nav-bar.ta-l.p-r
     div.d-ib.company
-      img.logo(src="")
-      small company name
+      img.logo(:src="logo")
+      small {{company}}
     router-link.menu-item(v-for="item in menu", :key="item.routeName", v-if='!item.needAdmin||user.isAdmin', :to='{name:item.routeName}', active-class='menu-active', v-text="item.name")
     el-popover(ref="popover1", placement="top-start", width="100", trigger='hover')
-      router-link.sub-menu-item(:to="{name: 'userProfile'}") 个人设置
-      span.sub-menu-item(@click='logout()') 退出账号
+      router-link.ta-c.sub-menu-item(:to="{name: 'userProfile'}") 个人设置
+      span.ta-c.sub-menu-item(@click='logout()') 退出账号
     span.d-ib.f-r.user(v-show='user.name', v-popover:popover1="")
       span.c-f.username {{user.name}}
       img.avatar(:src='user.avatar', alt='avatar', :title='user.name')
-    router-link(:to="{name:'messageIndex'}")
-      el-badge.f-r.message(v-if="user.name", :value='10')
-        i.fa.fa-bell-o.va-m
-    el-popover(ref='popover2', title='通知' placement='bottom', width='200', trigger='hover')
-      router-link.sub-menu-item(to='/message', active-class='') 查看全部
-    el-dialog(size="tiny", :visible.sync='showLoginDialog', :show-close="false", :close-on-click-modal="false", :close-on-press-escape="false")
-      LoginForm(@success="hideDialog")
+    // router-link(:to="{name:'messageIndex'}")
+    //   el-badge.f-r.message(v-if="user.name", :value='10')
+    //     i.fa.fa-bell-o.va-m
+    // el-popover(ref='popover2', title='通知' placement='bottom', width='200', trigger='hover')
+    //   router-link.sub-menu-item(to='/message', active-class='') 查看全部
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import Cache from '../service/cache.ts'
-import http from '../service/http.ts'
+import Cache from '../service/cache'
+import http from '../service/http'
 import { Watch } from 'vue-property-decorator'
 import LoginForm from './LoginForm'
 
@@ -33,12 +31,13 @@ import LoginForm from './LoginForm'
     LoginForm
   }
 })
-export default class navBar extends Vue {
+export default class NavBar extends Vue {
   $confirm: any
   $message: any
   $router: any
-  $refs:any
   user:any = {}
+  company: string = ''
+  logo: string = ''
   showLoginDialog: boolean = false
   rules: any = {
     account: [{required: true}],
@@ -61,13 +60,19 @@ export default class navBar extends Vue {
     name: '设置',
     routeName: 'setIndex',
     needAdmin: true
+  }, {
+    name: '消息',
+    routeName: 'messageIndex'
   }]
-  mounted() {
+  async mounted() {
     let _this = this
     http.initLogin(() => {
       _this.showLoginDialog = true
     })
     this.routeChanged()
+    let systemInfo:any = await http.get('/api/setting')
+    this.company = systemInfo.companyName
+    this.logo = systemInfo.companyLogo
   }
   @Watch('$route')
   routeChanged() {
@@ -81,7 +86,7 @@ export default class navBar extends Vue {
     let res:any = await http.get('/api/user/logout')
     if (res.errCode === 0) {
       Cache.clear()
-      this.$router.push({
+      this.$router.replace({
         name: 'login'
       })
     } else {
@@ -93,6 +98,7 @@ export default class navBar extends Vue {
 
 <style lang="stylus">
 .company
+  color #2D2F33
   padding 0 20px
 .nav-bar
   margin 0 auto
@@ -129,6 +135,7 @@ export default class navBar extends Vue {
   padding 0
   min-width 0
 .sub-menu-item
+  color #666
   display block
   padding 0 10px
   height 40px
@@ -152,9 +159,8 @@ export default class navBar extends Vue {
     margin-right 10px 
     user-select none
   .avatar
-    width 40px
-    height 40px
+    width 30px
+    height 30px
     border-radius 50%
-    border 1px solid #fff
     vertical-align middle
 </style>

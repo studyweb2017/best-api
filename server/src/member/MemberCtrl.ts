@@ -12,7 +12,7 @@ export default class MemberCtrl extends BaseCtrl {
     let str = avatar.replace('TEXT', id.substring(0,1)).replace('COLOR', '#'+Math.random().toString(16).substring(2, 8))
     let filename = path.join(staticPath, id+'.svg')
     fs.writeFileSync(filename, str)
-    return path.join('api', filename)
+    return path.join('/api', filename)
   }
   resetPassword(payload:any, user:any, id:string) {
     if(user && user.isAdmin) {

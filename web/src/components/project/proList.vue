@@ -126,7 +126,7 @@ export default class proList extends Vue {
   color #20a0ff
 .btn-edit,
 .btn-del
-  margin 5px 7px 10px 7px
+  margin 7px 7px 10px 7px
   padding 0px
   opacity 0
   border none
