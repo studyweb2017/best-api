@@ -9,10 +9,10 @@ import * as path from 'path'
 
 export default class MemberCtrl extends BaseCtrl {
   private createAvatar(id:string):string {
-    let str = avatar.replace('TEXT', id.substring(0,1)).replace('COLOR', '#'+Math.random().toString(16).substring(2, 8))
-    let filename = path.join(staticPath, id+'.svg')
+    const str = avatar.replace('TEXT', id.substring(0,1)).replace('COLOR', '#'+Math.random().toString(16).substring(2, 8))
+    const filename = path.join(staticPath, id+'.svg')
     fs.writeFileSync(filename, str)
-    return path.join('/api', filename)
+    return path.join('/', 'api', filename)
   }
   resetPassword(payload:any, user:any, id:string) {
     if(user && user.isAdmin) {
@@ -28,21 +28,14 @@ export default class MemberCtrl extends BaseCtrl {
       }) 
     }
   }
-  get(isAdmin: boolean) {
-    return Observable.of(isAdmin)
-    .switchMap((authorized:boolean) => {
-      if (authorized) {
-        return Observable.fromPromise(MemberModel.aggregate().project({
-          _id: 0,
-          id: "$_id",
-          isAdmin: 1,
-          account: 1,
-          name: 1
-        }))
-      } else {
-        return Observable.throw({status: 403, message: '没有操作权限'})
-      } 
-    })
+  get() {
+    return this.from(MemberModel.aggregate().project({
+      _id: 0,
+      id: "$_id",
+      isAdmin: 1,
+      account: 1,
+      name: 1
+    }))
     .map((memberList: MemberInterface[]) => ({ memberList }))
   }
   getInfo(id: string) {

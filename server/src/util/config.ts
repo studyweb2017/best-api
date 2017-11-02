@@ -8,7 +8,7 @@ export const dbPort = env.DB_PORT || 27017
 export const dbName = 'api'
 export const uploadPath = 'upload'
 export const staticPath = 'static'
-export const avatar = `<svg xmlns="http://www.w3.org/2000/svg">
+export const avatar = `<svg xmlns="http://www.w3.org/2000/svg" height="100px" width="100px">
   <style>
     .background {
       fill: COLOR

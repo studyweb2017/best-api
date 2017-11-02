@@ -31,4 +31,6 @@ li
   list-style none
 .wrap 
   padding 30px
+.el-form
+  background-color #fff
 </style>

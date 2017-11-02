@@ -5,7 +5,7 @@ let memberRouter = new Router()
 let memberCtrl = new Ctrl()
 
 export default memberRouter.router
-  .get('/member', (ctx: any) => memberRouter.handle(ctx, memberCtrl.get(ctx.user.isAdmin)))
+  .get('/member', (ctx: any) => memberRouter.handle(ctx, memberCtrl.get()))
   .get('/user', (ctx: any) => memberRouter.handle(ctx, memberCtrl.getInfo(ctx.user._id)))
   .put('/user', (ctx: any) => memberRouter.handle(ctx, memberCtrl.put(ctx.user._id, ctx.request.fields)))
   .post('/member', (ctx: any) => memberRouter.handle(ctx, memberCtrl.post(ctx.request.fields)))

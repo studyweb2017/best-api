@@ -1,18 +1,18 @@
 <template lang="pug">
- div.wrap
-    div.pro-list.ta-l
-      el-button.mb-10.d-b.ml-20(type='text', icon='plus', @click='go("add")') 新建项目
-      div.pro-item.d-ib.p-r.cu-d.ta-c(v-for='(pro, index) in projects', :key='pro.id', @click.stop='go("api", pro.id)')
-        el-card(:body-style='{ padding: "0px" }')
-          span.f-l.api-num(:title="'接口总数：'+pro.api.total") {{pro.api.total}}
-          span.f-r.btn-edit(title='复制项目', @click.stop='go("copy", pro.id)')
-            i.fa.fa-copy
-          el-button.f-r.btn-edit(:title='loading?"正在生成api文档":"导出api文档"', @click.stop='go("export", pro.id)', :icon='loading?"loading":"upload2"', type='default')
-          el-button.f-r.btn-edit(title='编辑项目', @click.stop='go("edit", pro.id)', icon='edit', type='default')
-          el-button.f-r.btn-del(title='删除项目', type='defalut', @click.stop.prevent='delPro(pro.id, index)', icon='delete2')
-          img.pro-img.d-b.cl-b(:src='pro.imgUrl', class='image')
-          h3.pro-name.ov-h.to-e {{pro.name}}
-          span.pro-id.d-b.cu-t(title='项目id，用于向mock服务器发送请求，前端开发调试利器', @click.stop.prevent='') {{pro.id}}
+div.wrap
+  div.pro-list.ta-l
+    el-button.mb-10.d-b.ml-20(type='text', icon='plus', @click='go("add")') 新建项目
+    div.pro-item.d-ib.p-r.cu-d.ta-c(v-for='(pro, index) in projects', :key='pro.id')
+      el-card(:body-style='{ padding: "0px" }')
+        span.f-l.api-num(:title="'接口总数：'+pro.api.total") {{pro.api.total}}
+        span.cu-p.f-r.btn-edit(title='复制项目', @click.stop='go("copy", pro.id, pro)')
+          i.fa.fa-copy
+        el-button.f-r.btn-edit(:title='loading?"正在生成api文档":"导出api文档"', @click.stop='go("export", pro.id)', :icon='loading?"loading":"upload2"', type='default')
+        el-button.f-r.btn-edit(v-if="pro.editable", title='编辑项目', @click.stop='go("edit", pro.id)', icon='edit', type='default')
+        el-button.f-r.btn-del(v-if="pro.deletable", title='删除项目', type='defalut', @click.stop.prevent='delPro(pro.id, index)', icon='delete2')
+        img.pro-img.d-b.cl-b.image.cu-p(:src='pro.logo', @click.stop='go("api", pro.id)')
+        h3.pro-name.ov-h.to-e {{pro.name}}
+        span.pro-id.d-b.cu-t(title='项目id，用于向mock服务器发送请求，前端开发调试利器', @click.stop.prevent='') {{pro.id}}
 </template>
 
 <script lang="ts">
@@ -23,6 +23,7 @@ import http from '../../service/http.ts'
 export default class proList extends Vue {
   $confirm: any
   $message: any
+  $prompt: any
   $router: any
   projects: any[] = []
   loading: boolean = false
@@ -33,7 +34,7 @@ export default class proList extends Vue {
   beforeMount() {
     this.getProList()
   }
-  async go (to:any, proId?:any) {
+  async go (to: string, proId?: string, project?: any) {
     if (to === 'api') {
       this.$router.push('/project/' + proId + '/api')
     } else if (to === 'edit') {
@@ -41,11 +42,23 @@ export default class proList extends Vue {
     } else if (to === 'add') {
       this.$router.push('/project/add')
     } else if (to === 'copy') {
-      let resp:any = await http.get('/api/project/' + proId)
-      delete resp.id
-      resp.name = resp.name + '副本'
-      let resp2:any = await http.post('/api/project', resp)
-      resp2.errCode === 0 ? this.getProList() : this.$message({type: 'error', message: resp2.errMsg || '复制失败'})
+      try {
+        let prompt = await this.$prompt('请输入新项目名称', '复制项目' + project.name, {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPattern: /^.{1,20}$/,
+          inputErrorMessage: '项目名称格式不正确'
+        })
+        let resp:any = await http.post('/api/project/' + proId, {name: prompt.value})
+        if (resp.errCode) {
+          this.$message({type: 'error', message: resp.errMsg || '复制失败'})
+        } else {
+          this.$message({type: 'success', message: '创建项目成功'})
+          this.getProList()
+        }
+      } catch (e) {
+        console.error(e)
+      }
     } else if (to === 'export') {
       this.loading = true
       let resp:any = await http.get('/api/project/' + proId + '/doc')
@@ -87,9 +100,9 @@ export default class proList extends Vue {
     height @height
     width @width
 .pro-img
-  margin 20px auto
-  width 80px
-  height 80px
+  margin 0 auto
+  width 100px
+  height 100px
 .pro-name
   margin 0
   height 30px

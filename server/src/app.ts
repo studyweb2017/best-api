@@ -33,7 +33,7 @@ app.use(messageRouter)
 app.use(agentRouter)
 app.use(mock)
 app.use((ctx: any) => {
-  ctx.body = 'api server'
+  ctx.status = 404
 })
 app.listen(2018)
 

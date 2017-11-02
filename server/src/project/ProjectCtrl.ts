@@ -1,4 +1,4 @@
-import { ProjectModel, ProjectInterface, role } from './model'
+import { ProjectModel,role } from './model'
 import { TestModel } from '../test/model'
 import { MemberModel } from '../member/model'
 import { InterfaceModel } from '../interface/model'
@@ -33,6 +33,8 @@ export default class ProjectCtrl extends BaseCtrl {
       .project({
         id: '$_id',
         name: 1,
+        logo: 1,
+        masterList: 1,
         api: {
           total: { $size: '$list' },
           pass: { $literal: 0 },
@@ -40,7 +42,18 @@ export default class ProjectCtrl extends BaseCtrl {
         }
       })
       .exec())
-      .map((list: any) => ({ list }))
+      .map((list: any) => { 
+        list.forEach((pro:any) => {
+          pro.editable = pro.deletable = false || isAdmin
+          pro.masterList.forEach((userId:any) => {
+            if(userId.toString()===uId.toString()) {
+              pro.editable = pro.deletable = true
+            }
+          })
+          delete pro.masterList
+        })
+        return {list}
+      })
   }
   getById(id: string, uId: string, isAdmin: boolean) {
     return this.verifyAuth(isAdmin, id, uId)
@@ -93,12 +106,13 @@ export default class ProjectCtrl extends BaseCtrl {
           .project({
             _id: 0,
             id: '$_id',
+            logo: 1,
             name: 1,
             description: 1,
             openTest: 1,
             testUrl: 1,
-            testFailedInform: 1,
-            apiChangedInform: 1,
+            towerInform: 1,
+            dingInform: 1,
             members: { $concatArrays: ['$m', '$d', '$g'] }
           })
           .exec())
@@ -142,10 +156,12 @@ export default class ProjectCtrl extends BaseCtrl {
   }
   post(project: any, uname: string) {
     try {
+      project.creator = uname
+      project.createdTime = new Date()
       return Observable.zip(Observable.of(project), this.devideMember(project.members), (x, y) => Object.assign(x, y))
         .switchMap((p: any) => {
           return Observable.fromPromise(ProjectModel.create(p))
-            .map((proj: ProjectInterface) => ({ id: proj._id }))
+            .map((proj: any) => ({ id: proj._id }))
         })
         .do((pro: any) => {
           this.newCreateMessage(pro.id, project.name, uname, _.pluck(project.members, 'id'))
@@ -199,6 +215,38 @@ export default class ProjectCtrl extends BaseCtrl {
   }
   report(file: string) {
     return exp.readFile(file)
+  }
+  copy(id: string, name: string, uname: string) {
+    // 复制项目
+    return this.from(ProjectModel.findOne({
+      _id: this.objectId(id)
+    }))
+    .switchMap((project: any) => {
+      let pro = project.toJSON()
+      delete pro._id
+      pro.name = name
+      pro.creator = uname
+      pro.createdTime = new Date()
+      return this.from(ProjectModel.create(pro))
+    })
+    .switchMap((resp:any) => {
+      const pid = this.objectId(resp._doc._id)
+      return this.from(InterfaceModel.find({pid: this.objectId(id)}))
+        .map((ifcList:any) => {
+          let list:any = []
+          ifcList.forEach((ifc:any) => {
+            let obj = ifc.toJSON()
+            delete obj._id
+            obj.pid = pid
+            list.push(obj)
+          })
+          return list
+        })
+    })
+    .switchMap((ifcList:any) => {
+      return ifcList.length?this.from(InterfaceModel.create(ifcList)):this.of()
+    })
+    // 复制API
   }
   private devideMember(memberList: any = []) {
     return Observable.of(memberList)

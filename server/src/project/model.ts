@@ -3,10 +3,6 @@ import { MemberSchema } from '../member/model'
 import { TestSchema, TestInterface } from '../test/model'
 
 let informObj = {
-  token: {
-    type: String,
-    default: ''
-  },
   createEnabled: {
     type: Boolean,
     default: false
@@ -35,6 +31,10 @@ let schemaObj = {
     maxlength: 20,
     required: true
   },
+  logo: {
+    type: String,
+    default: ''
+  },
   description: {
     type: String,
     maxlength: 200
@@ -44,9 +44,30 @@ let schemaObj = {
     maxlength: 200,
     alias: 'testAddress'
   },
-  dingInform: informObj,
+  creator: {
+    type: String,
+    maxlength: 20,
+    default: ''
+  },
+  createdTime: {
+    type: Date
+  },
+  dingInform: Object.assign({
+    token: {
+      type: String,
+      default: ''
+    }
+  }, informObj),
   towerInform: Object.assign({
     projectId: {
+      type: String,
+      default: ''
+    },
+    username: {
+      type: String,
+      default: ''
+    },
+    password: {
       type: String,
       default: ''
     }
