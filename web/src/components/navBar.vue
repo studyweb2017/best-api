@@ -1,12 +1,12 @@
 <template lang="pug">
 div.nav-bar-wrap.p-a.t-0.r-0.l-0.h-40
   div.nav-bar.ta-l.p-r
-    div.d-ib.company
+    div.d-ib.company.cu-d.us-n(@click="refresh")
       img.logo(:src="logo")
       small {{company}}
     router-link.menu-item(v-for="item in menu", :key="item.routeName", v-if='!item.needAdmin||user.isAdmin', :to='{name:item.routeName}', active-class='menu-active', v-text="item.name")
     div.f-r
-      router-link(:to='{name: "messageIndex"}', replace="", title="点击查看消息")
+      router-link(:to='{name: "messageIndex"}', title="点击查看消息")
         i.fa.fa-bell-o.va-m.bell
         el-badge.message(v-if="user.name&&messageNum", :value='messageNum')
       el-popover(ref="popover1", placement="bottom", width="100", trigger='hover')
@@ -71,6 +71,9 @@ export default class NavBar extends Vue {
     this.logo = systemInfo.companyLogo
     let messageInfo: any = await http.get('/api/message')
     this.messageNum = messageInfo.total
+  }
+  refresh(event:any) {
+    this.$router.go(0)
   }
   @Watch('$route')
   routeChanged() {

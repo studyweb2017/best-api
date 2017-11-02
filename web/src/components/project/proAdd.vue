@@ -1,7 +1,7 @@
 <template lang='pug'>
 div
   div.pro-add
-    el-form(ref='pro', :rules='rules', :model='pro', label-position='right', label-width='80px')
+    el-form(ref='pro', :rules='rules', :model='pro', label-position='right', label-width='100px')
       el-form-item(label='项目封面', prop='logo')
         el-upload.avatar-uploader.ta-l(:headers="headers", action="/api/upload/img", :show-file-list="false", :on-success="handleAvatarSuccess", :before-upload="beforeAvatarUpload")
           img.avatar(v-if="pro.logo", :src="pro.logo")
@@ -13,7 +13,7 @@ div
       el-form-item(label='测试地址', prop='testUrl')
         el-input(v-model='pro.testUrl', placeholder="测试服务器域名或IP，用于自动化测试")
       el-form-item(label='新增成员')
-        el-row(:gutter='10')
+        el-row(:gutter='12')
           el-col.ml-5(:span='5')
             el-form-item(prop='newMember')
               el-select(v-model='newMember', value-key='name', placeholder='名称')

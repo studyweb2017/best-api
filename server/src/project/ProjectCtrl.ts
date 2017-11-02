@@ -45,7 +45,7 @@ export default class ProjectCtrl extends BaseCtrl {
       .map((list: any) => { 
         list.forEach((pro:any) => {
           pro.editable = pro.deletable = false || isAdmin
-          pro.masterList.forEach((userId:any) => {
+          Array.prototype.forEach.call(pro.masterList || [], (userId:any) => {
             if(userId.toString()===uId.toString()) {
               pro.editable = pro.deletable = true
             }

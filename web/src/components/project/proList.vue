@@ -19,6 +19,7 @@ div.wrap
 import Vue from 'vue'
 import Component from 'vue-class-component'
 import http from '../../service/http.ts'
+
 @Component
 export default class proList extends Vue {
   $confirm: any
