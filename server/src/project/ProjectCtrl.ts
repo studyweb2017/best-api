@@ -200,7 +200,7 @@ export default class ProjectCtrl extends BaseCtrl {
               InterfaceModel.remove({ pid: mongoose.Types.ObjectId(id) }).exec()
             })
         } else {
-          return Observable.throw({ status: 403, message: '没有访问权限' })
+          return Observable.throw({ status: 403, message: '没有操作权限' })
         }
       })
   }

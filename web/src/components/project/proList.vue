@@ -65,7 +65,6 @@ export default class proList extends Vue {
       let resp:any = await http.get('/api/project/' + proId + '/doc')
       if (resp.url) {
         this.loading = false
-        // window.location.href = resp.url
         window.open(resp.url)
       } else {
         this.loading = false

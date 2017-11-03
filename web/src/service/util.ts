@@ -31,11 +31,6 @@ function formatApiToTree (apiList:any[]): Tree[] {
             api: api,
             name: api.name,
             id: api.id
-          },{
-            label: 'newUrl',
-            name: '',
-            module: api.module,
-            id: gId()
           }]
         })
       } else {

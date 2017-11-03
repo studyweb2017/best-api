@@ -15,6 +15,7 @@ import doc from '../components/doc.vue'
 import set from '../components/set.vue'
 import Profile from '../components/user/Profile.vue'
 import Login from '../components/user/Login.vue'
+import Api from '../components/project/Api.vue'
 
 const projectRouter = [
   {
@@ -43,8 +44,8 @@ const projectRouter = [
   },
   {
     path: 'project/:proId/api',
-    name: 'proApiList',
-    component: apiList,
+    name: 'api',
+    component: Api,
     children: [
       {
         path: 'add',

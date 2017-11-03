@@ -8,7 +8,11 @@ let request = (method: string, url: string, data: any, config: any = {}) => new 
   Object.assign(config, { method, url, data })
   try {
     let response = await axios(config)
-    resolve(response.data)
+    if(response.data.errCode) {
+      reject(response.data.errMsg)
+    } else {
+      resolve(response.data) 
+    }
   } catch (e) {
     reject(e.response.data)
     const { data, status, statusText } = e.response

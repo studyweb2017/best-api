@@ -136,6 +136,6 @@ export default class BaseCtrl {
    */
   protected verifyAuth(isAdmin: boolean, pid: string, uid: string, roleList?: role[]) {
     return Observable.from(isAdmin ? Observable.of(true) : this.verifyProjectRole(pid, uid, roleList))
-      .switchMap((authorized: boolean) => authorized ? Observable.of(true) : Observable.throw({ status: 403, message: '访问权限不够' }))
+      .switchMap((authorized: boolean) => authorized ? Observable.of(true) : Observable.throw({ status: 403, message: '操作权限不够' }))
   }
 }

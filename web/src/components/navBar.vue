@@ -1,7 +1,7 @@
 <template lang="pug">
 div.nav-bar-wrap.p-a.t-0.r-0.l-0.h-40
   div.nav-bar.ta-l.p-r
-    div.d-ib.company.cu-d.us-n(@click="refresh")
+    div.d-ib.company.cu-d.us-n(@click="refresh", title="点击刷新页面")
       img.logo(:src="logo")
       small {{company}}
     router-link.menu-item(v-for="item in menu", :key="item.routeName", v-if='!item.needAdmin||user.isAdmin', :to='{name:item.routeName}', active-class='menu-active', v-text="item.name")
