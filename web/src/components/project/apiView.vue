@@ -1,5 +1,11 @@
 <template lang="pug">
-  el-row.api-view
+  el-row.api-view(v-if="apiId")
+    div.api-detail-wrap.p-r#detail-wrap
+      el-row.border-b.operation-btns.p-a.ta-l
+        el-button(size='small', icon='edit', type='default', @click='editApi(apiId)') 编辑
+        el-button(size='small', icon='document', type='default') 复制
+        el-button(size='small', icon='view', type='default', @click='viewHistory(apiId)') 版本
+        el-button(size='small', icon='menu', type='default') 调试
     el-col.api-latest.ov-a.p-r
       el-form(ref='api', :data='api', label-position='right', label-width='100px')
         el-form-item.ta-l.mb-10(label='接口描述')
@@ -8,7 +14,7 @@
           span {{api.module + '/'}}
           span {{api.name}}
         el-form-item.ta-l.mb-10(label='请求路径')
-          el-button.mr-10(type='primary', size='small') {{api.method}}
+          el-tag.mr-10(:type="methodType") {{api.method}}
           span {{api.url}}
         el-form-item.ta-l(label='请求参数')
           span(v-if='api.request.paramList&&api.request.paramList.length<1') 无
@@ -79,6 +85,8 @@ import Vue from 'vue'
 import Component from 'vue-class-component'
 import http from '../../service/http.ts'
 import cache from '../../service/cache.ts'
+import {Prop} from 'vue-property-decorator'
+
 interface Api extends Object {
   id?: string,
   name?: string,
@@ -113,12 +121,17 @@ interface Param extends Object {
   remark?: string,
   className?: string
 }
+const tagType:any = {
+  GET: 'primary',
+  POST: 'success',
+  PUT: 'warning',
+  DELETE: 'danger'
+}
 @Component
 export default class apiView extends Vue {
-  $refs: any
-  $route: any
-  $router: any
+  @Prop()
   proId: string
+  @Prop()
   apiId: string
   api: Api = {
     isTest: true,
@@ -137,15 +150,44 @@ export default class apiView extends Vue {
       errList: []
     }
   }
+  $message: any
+  $confirm: any
   showAdvancedConfig: boolean = false
-  async beforeMount() {
-    this.proId = this.$route.params.proId
-    this.apiId = this.$route.params.apiId
-    let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.$route.params.apiId)
-    this.api = resp || this.api
+  methodType: string
+  async created() {
+    if (this.proId && this.apiId) {
+      let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
+      this.api = resp || this.api
+      this.methodType = this.api.method ? tagType[this.api.method] : ''
+    }
   }
   copy(data:any) {
     data ? cache.set('copyData', JSON.stringify(data)) : 1 > 0
+  }
+  async delApi(data:any, store:any) {
+    if (data.label === 'url') {
+      await this.$confirm('确认删除接口' + data.name + '?', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
+      let resp:any = await http.delete('/api/project/' + this.proId + '/api/' + data.id)
+      if (resp.errCode === 0) {
+        this.$message({ type: 'info', message: '删除成功' })
+        store.remove(data)
+      } else {
+        this.$message({ type: 'error', message: resp.errMsg || '删除失败' })
+      }
+    } else if (data.label === 'module') {
+      if (data.children.length < 2) {
+        store.remove(data)
+      } else {
+        await this.$confirm('确认删除模块' + data.name + '及该模块下全部接口？', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
+        let resp:any = await http.delete('/api/project/' + this.proId + '/api/?module=' + data.name)
+        if (resp.errCode === 0) {
+          this.$message({ type: 'info', message: '删除成功' })
+          store.remove(data)
+        } else {
+          this.$message({ type: 'error', message: resp.errMsg || '删除失败' })
+        }
+      }
+    }
   }
 }
 </script>
@@ -166,7 +208,6 @@ export default class apiView extends Vue {
   .api-history
     height 100%
 .el-form
-  height 100%
   padding 30px 20px 10px 0
 .api-history
   border-left 1px solid #ddd

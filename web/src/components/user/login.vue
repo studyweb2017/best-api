@@ -21,5 +21,7 @@ export default class Login extends Vue {
 
 <style lang="stylus" scoped>
 .pt
-  margin-top 20%
+  padding-top 20%
+  background-image url(../../assets/bg.jpg)
+  height 100%
 </style>

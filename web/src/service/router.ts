@@ -5,9 +5,6 @@ import Main from '../components/Main.vue'
 import proAdd from '../components/project/proAdd.vue'
 import proList from '../components/project/proList.vue'
 import apiList from '../components/project/apiList.vue'
-import apiView from '../components/project/apiView.vue'
-import apiEdit from '../components/project/apiEdit.vue'
-import apiHistory from '../components/project/apiHistory.vue'
 import test from '../components/test.vue'
 import message from '../components/message.vue'
 import member from '../components/member.vue'
@@ -15,7 +12,7 @@ import doc from '../components/doc.vue'
 import set from '../components/set.vue'
 import Profile from '../components/user/Profile.vue'
 import Login from '../components/user/Login.vue'
-import Api from '../components/project/Api.vue'
+import ApiIndex from '../components/project/ApiIndex.vue'
 
 const projectRouter = [
   {
@@ -45,41 +42,7 @@ const projectRouter = [
   {
     path: 'project/:proId/api',
     name: 'api',
-    component: Api,
-    children: [
-      {
-        path: 'add',
-        name: 'apiAdd',
-        component: apiEdit,
-        meta: {
-          requireLogin: true
-        }
-      },
-      {
-        path: ':apiId/detail',
-        name: 'apiView',
-        component: apiView,
-        meta: {
-          requireLogin: true
-        },
-      },
-      {
-        path: ':apiId/edit',
-        name: 'apiEdit',
-        component: apiEdit,
-        meta: {
-          requireLogin: true
-        }
-      },
-      {
-        path: ':apiId/history',
-        name: 'apiHistory',
-        component: apiHistory,
-        meta: {
-          requireLogin: true
-        }
-      }
-    ]
+    component: ApiIndex
   }
 ]
 const testRouter = [{

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { MessageBox } from 'element-ui'
+import { Message } from 'element-ui'
 import Cache from './cache'
 import router from './router'
 
@@ -20,9 +20,9 @@ let request = (method: string, url: string, data: any, config: any = {}) => new 
       Cache.clear()
       pleaseLogin()
     } else if (status === 403) {
-      MessageBox.alert(data)
+      Message({message: data, type: 'error'})
     } else {
-      MessageBox.alert(status + ',' + statusText)
+      Message({message: status + ',' + statusText, type: 'error'})
     }
   }
 })

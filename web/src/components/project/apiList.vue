@@ -1,15 +1,15 @@
 <template lang="pug">
   div.api-wrap.p-r.us-n(:style="treeStyle")
     div(v-show="parseInt(treeStyle.width)>=visibleWidth")
-      el-input.api-search(size='small', v-show='showTree', icon='search', v-model='filterText', placeholder="查询接口")
+      el-input.api-search(size='small', v-show='showTree', @keydown.esc.native="esc", icon='search', v-model='filterText', placeholder="查询接口[alt+f]")
       div.api-operation.ta-r
-        i.el-icon-plus.cu-p.c-blue(title="添加模块", @click="addModule")
+        i.el-icon-plus.cu-p.c-blue(title="添加模块[alt+m]", @click="addModule")
       div.api-tree
         el-tree.ta-l.ov-y-a.ov-x-h(v-show='showTree', ref='apiTree', @node-click='selectApi',
         class='filter-tree', :data="apiList", :props='defaultProps', :expand-on-click-node='true',
           :default-expanded-keys='["0"]', node-key='id', highlight-current,
-          :filter-node-method='filterNode', :render-content='renderBtn')
-    div#drag-line.drag-line(@mousedown='mousedown')
+          :filter-node-method='filterNode', :render-content='renderBtn', empty-text="请先添加模块")
+    div.drag-line(@mousedown='mousedown')
 </template>
 
 <script lang="ts">
@@ -18,6 +18,8 @@ import Component from 'vue-class-component'
 import { Watch, Prop } from 'vue-property-decorator'
 import http from '../../service/http.ts'
 import {formatApiToTree, gId} from '../../service/util.ts'
+import hotkeys from 'hotkeys-js'
+import EventDelegate from '../../service/EventDelegate'
 
 @Component
 export default class apiList extends Vue {
@@ -28,8 +30,6 @@ export default class apiList extends Vue {
   apiId: string
   Mock: any
   $refs: any
-  $route: any
-  $router: any
   $message: any
   $confirm: any
   $prompt: any
@@ -45,13 +45,13 @@ export default class apiList extends Vue {
   mousedown(e:any) {
     this.startX = e.clientX
     this.startWidth = parseInt(this.treeStyle.width)
-    document.addEventListener('mouseup', this.mouseup)
-    document.addEventListener('mousemove', this.drag)
-  }
-  mouseup = (e:any) => {
-    document.removeEventListener('mousemove', this.drag)
+    EventDelegate.bind('mousemove', this.drag, 'ApiList')
+    EventDelegate.bind('mouseup', () => {
+      EventDelegate.unbind('mousemove', 'ApiList')
+    }, 'ApiList')
   }
   drag(e:any) {
+    console.log(e)
     let moveX:any = e.clientX - this.startX
     let width = '0px'
     if (moveX > 0) {
@@ -78,7 +78,7 @@ export default class apiList extends Vue {
         },
         nativeOn: {
           click(e:any) {
-            e.preventDefault()
+            data.operation = icon
             __this.clickNodeBtn(data, icon)
           }
         }
@@ -106,16 +106,27 @@ export default class apiList extends Vue {
     ])
   }
   clickNodeBtn(item: any, icon: string) {
-    if (icon === 'document') {
-      this.$emit(item, 'add')
-    } else if (item.label === 'module') {
-      this.modifyModule(item.name, icon)
-    } else {
-      this.$emit(item, icon)
+    switch (icon) {
+      case 'document':
+        this.$emit('add', item.name)
+        break
+      case 'edit':
+        if (item.label === 'module') {
+          this.editModule(item.name)
+        } else {
+          this.$emit('edit', item.id)
+        }
+        break
+      case 'delete':
+        if (item.label === 'module') {
+          this.deleteModule(item.name)
+        } else {
+          this.$emit('delete', item.id)
+        }
+        break
     }
   }
   async refreshApiList() {
-    console.log('proid' + this.proId)
     this.refreshing = true
     let resp: any = await http.get('/api/project/' + this.proId + '/api')
     let resp2: any = await http.get('/api/project/' + this.proId)
@@ -130,6 +141,23 @@ export default class apiList extends Vue {
   }
   mounted() {
     this.refreshApiList()
+    hotkeys('alt+m', (e:any) => {
+      e.preventDefault()
+      this.addModule()
+    })
+    hotkeys('alt+f', (e:any) => {
+      e.preventDefault()
+      let input:any = document.querySelector('.api-search input')
+      input ? input.focus() : void 0
+    })
+  }
+  esc(e:any) {
+    this.filterText = ''
+    e.target.blur()
+  }
+  destroyed() {
+    hotkeys.unbind('alt+m')
+    hotkeys.unbind('alt+f')
   }
   defaultProps: Object = {
     children: 'children',
@@ -144,10 +172,13 @@ export default class apiList extends Vue {
     if (!value) return true
     return data.name.indexOf(value) !== -1
   }
-  async selectApi(data:any, node:any, tree:any, a:any) {
-    this.$emit('clickNode', data, 'select')
+  selectApi(data:any, node:any, tree:any) {
+    if (!data.operation) {
+      this.$emit('view', data.id, data.name, data.label)
+    }
+    delete data.operation
   }
-  async addModule(data:any) {
+  async addModule() {
     let {value} = await this.$prompt('请输入模块名', '提示', {confirmButtonText: '确定', cancelButtonText: '取消'})
     if (value) {
       this.apiList.unshift({
@@ -158,44 +189,41 @@ export default class apiList extends Vue {
       })
     }
   }
-  async modifyModule(name: string, icon: string) {
-    if (icon === 'edit') {
-      let {value} = await this.$prompt('请输入模块名', '修改模块:' + name, {confirmButtonText: '确定', cancelButtonText: '取消'})
-      try {
-        if (value) {
-          await http.put('/api/module', {
-            name,
-            newName: value
-          })
-          this.apiList.forEach((item:any) => {
-            if (item.name === name) {
-              item.name = value
-            }
-          })
-        }
-      } catch (e) {
-        this.$message.error(e)
+  async editModule(name: string) {
+    let {value} = await this.$prompt('请输入模块名', '修改模块:' + name, {confirmButtonText: '确定', cancelButtonText: '取消'})
+    try {
+      if (value) {
+        await http.put('/api/module', {
+          name,
+          newName: value
+        })
+        this.apiList.forEach((item:any) => {
+          if (item.name === name) {
+            item.name = value
+          }
+        })
       }
-    } else if (icon === 'delete') {
-      try {
-        await this.$confirm(`确认删除模块${name}?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        })
-        await http.delete('/api/module', {
-          name
-        })
-        let idx = 0
-        this.apiList.forEach((item: any, index: number) => {
-          if (item.name === name) idx = index
-        })
-        this.apiList.splice(idx, 1)
-      } catch (e) {
-        this.$message.error(e)
-      }
-    } else {
-      console.error('操作类型出错：' + icon)
+    } catch (e) {
+      this.$message.error(e)
+    }
+  }
+  async deleteModule(name: string) {
+    try {
+      await this.$confirm(`确认删除模块${name}?`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+      await http.delete('/api/module', {
+        name
+      })
+      let idx = 0
+      this.apiList.forEach((item: any, index: number) => {
+        if (item.name === name) idx = index
+      })
+      this.apiList.splice(idx, 1)
+    } catch (e) {
+      this.$message.error(e)
     }
   }
 }
@@ -206,6 +234,7 @@ export default class apiList extends Vue {
     display flex
     height 30px
     line-height 30px
+    overflow-y hidden
     .el-tree-node__expand-icon
       margin-top 10px
     .tree-node:hover

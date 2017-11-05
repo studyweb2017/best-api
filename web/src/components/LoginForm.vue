@@ -55,6 +55,7 @@ export default class LoginForm extends Vue {
 .el-form
   margin 0 auto
   width 250px
+  background-color transparent
   .login-btn
     width 100%
 </style>

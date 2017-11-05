@@ -1,5 +1,5 @@
 <template lang="pug">
-  div.api-add-wrap.p-r
+  div.api-add-wrap.p-r.ov-a
     el-form.ov-a.api-add#edit-form(ref='api', :model='api', :rules='rules', label-position='right', label-width='100px')
       el-form-item.ta-l.mb-10(label='所属模块', prop='module')
         el-select.w-200(v-model='api.module', size='small', filterable, allow-create, placeholder="选择或新建模块")
@@ -107,20 +107,19 @@
                   el-button(size='mini', @click='delItem("header", header, scope.row, scope.$index)', icon='close', type='danger')
             div.append-table-row.ta-c
               el-button(type='primary', size='small', icon='plus', @click='addItem("header", header)')
-    el-form.ov-a.pre-mock.p-a.t-0.r-0.b-0#pre-mock
-        div#drag-line.drag-line.t-0.l-0.b-0(@mousedown='mousedown')
-        el-form-item.ta-l(label='请求url')
-          pre.pre {{requestUrl}}
-        el-form-item.ta-l(label='请求体')
-          el-button(type='primary', size='small', @click='preJson("request")') 刷新预览
-          pre.pre {{requestExample}}
-        el-form-item.ta-l(label='响应体')
-          el-button(type='primary', size='small', @click='preJson("response")') 刷新预览
-          pre.pre {{responseExample}}
-    div.ta-c.submit-btns.p-a.l-0.r-0.b-0
-      el-button.mr-50(@click='cancel()') 取消
-      el-button(type='primary', @click='submit()') {{ api.id ? '保存' : '提交' }}
-
+    // el-form.ov-a.pre-mock.p-a.t-0.r-0.b-0#pre-mock
+    //     div.drag-line.t-0.l-0.b-0(@mousedown='mousedown')
+    //     el-form-item.ta-l(label='请求url')
+    //       pre.pre {{requestUrl}}
+    //     el-form-item.ta-l(label='请求体')
+    //       el-button(type='primary', size='small', @click='preJson("request")') 刷新预览
+    //       pre.pre {{requestExample}}
+    //     el-form-item.ta-l(label='响应体')
+    //       el-button(type='primary', size='small', @click='preJson("response")') 刷新预览
+    //       pre.pre {{responseExample}}
+    div.ta-c.submit-btns
+      el-button.mr-50(@click='cancel()', size="small") 取 消
+      el-button(type='primary', @click='submit()', size="small") 保 存 
 </template>
 
 <script lang="ts">
@@ -130,7 +129,9 @@ import http from '../../service/http.ts'
 import cache from '../../service/cache.ts'
 import {gId} from '../../service/util.ts'
 import Mock from 'mockjs'
-// import _ from 'lodash'
+import EventDelegate from '../../service/EventDelegate'
+import {Prop} from 'vue-property-decorator'
+
 interface Api extends Object {
   version?: string,
   id?: string,
@@ -171,7 +172,12 @@ interface Param extends Object {
 }
 @Component
 export default class apiEdit extends Vue {
-  // 变量类型声明
+  @Prop()
+  moduleName: string
+  @Prop()
+  apiId: string
+  @Prop()
+  proId: string
   Mock: any
   $refs: any
   $route: any
@@ -183,9 +189,6 @@ export default class apiEdit extends Vue {
   methods: string[] = ['GET', 'POST', 'PUT', 'DELETE']
   types: string[] = ['String', 'Object', 'Array', 'Number', 'Boolean', 'File']
   modules: string[] = []
-  // 从父组件共享属性，要做声明， 并且只读，赋值会报错，此时建议
-  proId: string
-  apiId: string
   api: Api = {
     isTest: false,
     delay: 0,
@@ -217,11 +220,10 @@ export default class apiEdit extends Vue {
   mousedown(e:any) {
     this.eleMock = document.getElementById('pre-mock')
     this.startX = e.pageX
-    document.addEventListener('mouseup', this.mouseup)
-    document.addEventListener('mousemove', this.drag)
-  }
-  mouseup = (e:any) => {
-    document.removeEventListener('mousemove', this.drag)
+    EventDelegate.bind('mousemove', this.drag, 'ApiEdit')
+    EventDelegate.bind('mouseup', () => {
+      EventDelegate.unbind('mousemove', 'ApiEdit')
+    }, 'ApiEdit')
   }
   drag(e:any) {
     let moveX:any = Number(this.startX - e.pageX)
@@ -240,17 +242,14 @@ export default class apiEdit extends Vue {
     responseParams: [{type: 'array'}]
   }
   async beforeMount() {
-    this.proId = this.$route.params.proId
-    this.mode = this.$route.params.apiId ? 'edit' : 'add'
+    this.mode = this.apiId ? 'edit' : 'add'
     let resp:any = await http.get('/api/project/' + this.proId + '/api/module')
     this.modules = resp.moduleList || []
     if (this.mode === 'edit' || this.mode === 'view') {
-      this.apiId = this.$route.params.apiId
-      let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.$route.params.apiId)
+      let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
       this.api = resp
     } else if (this.mode === 'add') {
-      this.apiId = ''
-      this.api.module = this.$route.query.module
+      this.api.module = this.moduleName
     }
     this.api.url && this.api.request.paramList ? this.preJson('requestUrl') : 1 > 0
     this.api.request.dataList ? this.preJson('request') : 1 > 0
@@ -265,26 +264,20 @@ export default class apiEdit extends Vue {
       if (valid) {
         let op = that.mode === 'edit' ? '修改' : '添加'
         let resp:any = that.mode === 'edit'
-        ? await http.put('/api/project/' + that.proId + '/api/' + that.$route.params.apiId, that.api)
+        ? await http.put('/api/project/' + that.proId + '/api/' + that.apiId, that.api)
         : await http.post('/api/project/' + that.proId + '/api', that.api)
-        if (resp.errCode === 0) {
-          that.$message({ type: 'success', message: op + '成功' })
-          let apiId:string = that.$route.params.apiId || resp.id
-          that.$emit('update')
-          that.$router.push({path: '/project/' + that.proId + '/api/' + apiId + '/detail'})
-        } else {
+        if (resp.errCode) {
           that.$message({ type: 'error', message: resp.errMsg || op + '失败' })
+        } else {
+          that.$message({ type: 'success', message: op + '成功' })
+          that.$emit('updated')
         }
       }
       return false
     })
   }
   cancel() {
-    if (this.mode === 'edit') {
-      this.$router.push({path: '/project/' + this.proId + '/api/' + this.$route.params.apiId + '/detail'})
-    } else {
-      this.$router.go(-1)
-    }
+    this.$emit('cancel')
   }
   changeType(data:any, row:any, index:any) {
     let len:any = 0
@@ -452,14 +445,11 @@ export default class apiEdit extends Vue {
   border 1px solid #dfe6ec
   border-top 0
 .api-add-wrap
-  width 100%
   height 100%
-  padding-right 300px
 .api-add
   padding 20px
   padding-bottom 80px
   width 100%
-  height 100%
 .btn-add-child-param
   top 50%
   transform translateY(-50%)
@@ -499,8 +489,8 @@ export default class apiEdit extends Vue {
   line-height 1.5
 .submit-btns
   z-index 9999
-  padding 20px
+  padding 2px
   border-top 1px solid #ccc
-  background-color #eee
+  background-color #F9FAFC
 </style>
 
