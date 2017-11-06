@@ -6,8 +6,8 @@
         i.el-icon-plus.cu-p.c-blue(title="添加模块[alt+m]", @click="addModule")
       div.api-tree
         el-tree.ta-l.ov-y-a.ov-x-h(v-show='showTree', ref='apiTree', @node-click='selectApi',
-        class='filter-tree', :data="apiList", :props='defaultProps', :expand-on-click-node='true',
-          :default-expanded-keys='["0"]', node-key='id', highlight-current,
+        class='filter-tree', :data="apiList", :props='defaultProps', :expand-on-click-node='false',
+          :default-expanded-keys='expandedKeys', node-key='id', :highlight-current="true",
           :filter-node-method='filterNode', :render-content='renderBtn', empty-text="请先添加模块")
     div.drag-line(@mousedown='mousedown')
 </template>
@@ -28,6 +28,8 @@ export default class apiList extends Vue {
   proId: string
   @Prop()
   apiId: string
+  @Prop()
+  clickedId: string
   Mock: any
   $refs: any
   $message: any
@@ -36,11 +38,11 @@ export default class apiList extends Vue {
   proName: string
   apiList: any[] = []
   showTree: boolean = true
-  visibleWidth: number = 250
+  visibleWidth: number = 200
   startX: number = 0
   startWidth: number
   treeStyle: any = {
-    width: '250px'
+    width: '200px'
   }
   mousedown(e:any) {
     this.startX = e.clientX
@@ -51,7 +53,6 @@ export default class apiList extends Vue {
     }, 'ApiList')
   }
   drag(e:any) {
-    console.log(e)
     let moveX:any = e.clientX - this.startX
     let width = '0px'
     if (moveX > 0) {
@@ -163,6 +164,22 @@ export default class apiList extends Vue {
     children: 'children',
     label: 'name'
   }
+  get expandedKeys() {
+    let keys: string[] = []
+    this.apiList.forEach((api:any) => {
+      api.children = api.children || []
+      api.children.forEach((ifc:any) => {
+        if (ifc.id === this.clickedId) {
+          keys = [api.id, this.clickedId]
+          setTimeout(() => {
+            let dom: any = document.querySelector('.api-tree [title="' + ifc.name + '"]')
+            dom ? dom.click() : void 0
+          }, 0)
+        }
+      })
+    })
+    return keys
+  }
   filterText: string = ''
   @Watch('filterText')
   onFilterTextChanged(val: string, oldVal: string) {
@@ -176,7 +193,8 @@ export default class apiList extends Vue {
     if (!data.operation) {
       this.$emit('view', data.id, data.name, data.label)
     }
-    delete data.operation
+    // debounce
+    setTimeout(() => delete data.operation, 0)
   }
   async addModule() {
     let {value} = await this.$prompt('请输入模块名', '提示', {confirmButtonText: '确定', cancelButtonText: '取消'})
@@ -275,22 +293,10 @@ export default class apiList extends Vue {
 .api-search
   padding 5px
 .api-tree
-  width 250px
+  width 100%
   .el-tree
     border-width 0
     padding-bottom 1px
-.api-detail-wrap
-  height 100%
-  padding-top 40px
-  background-color #fff
-.operation-btns
-  z-index 100
-  top 0
-  left 0
-  right 0
-  padding-left 40px
-  line-height 40px
-  background-color #eee
 .btn-add-child-param
   top 50%
   transform translateY(-50%)
