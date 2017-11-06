@@ -22,7 +22,7 @@ div
             el-form-item(prop='newMemberRole')
               el-select(v-model='newMemberRole', placeholder='角色')
                 el-option(v-for='(ro, index) in roles', :value='ro.name', :key='ro.index', :label='ro.name')
-          el-col.c-blue(:span=2)
+          el-col.c-blue(:span=3)
             span.cu-p(@click='addMember()') 添加
             el-popover(ref="popover1", placement="bottom", width="500", trigger="hover")
               el-table(:data='roles', border, fit, style='width: 100%', align='center')

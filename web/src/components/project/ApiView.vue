@@ -39,9 +39,9 @@
                   span.ov-a.nowrap {{scope.row.remark}}
           el-form-item.ta-l.mb-10(label='示例', :key='index', v-if='data&&data.length>0')
             pre {{data.example}}
-        el-form-item.cl-b.ta-l(label='开启测试')
+        el-form-item.cl-b.ta-l(label='可测试', v-if="api.isTest")
           span {{api.isTest}}
-        el-form-item.ta-l(label='延迟响应')
+        el-form-item.ta-l(label='延迟响应', v-if="api.delay")
           span {{api.delay + '毫秒'}}
         el-form-item.ta-l(label='异常处理', v-if='api.response.errList&&api.response.errList.length>0')
           el-table(:data='api.response.errList', border)

@@ -1,5 +1,5 @@
 <template lang="pug">
-  div.api-wrap.p-r.us-n(:style="treeStyle")
+  div.api-list-wrap.p-r.us-n(:style="treeStyle")
     div(v-show="parseInt(treeStyle.width)>=visibleWidth")
       el-input.api-search(size='small', v-show='showTree', @keydown.esc.native="esc", icon='search', v-model='filterText', placeholder="查询接口[alt+f]")
       div.api-operation.ta-r
@@ -127,6 +127,10 @@ export default class apiList extends Vue {
         break
     }
   }
+  setNodeClicked(name: string, isModule: boolean=true) {
+    let firstLeaf:any = document.querySelector(`.api-list-wrap ${isModule ? '.tree-node' : ''}[title="${name}"]`)
+    firstLeaf.click()
+  }
   async refreshApiList() {
     this.refreshing = true
     let resp: any = await http.get('/api/project/' + this.proId + '/api')
@@ -142,14 +146,27 @@ export default class apiList extends Vue {
   }
   mounted() {
     this.refreshApiList()
+    // 创建模块
     hotkeys('alt+m', (e:any) => {
       e.preventDefault()
       this.addModule()
     })
+    // 创建API
+    hotkeys('alt+n', (e:any) => {
+      let btn: any = document.querySelector('.api-tree .is-current .el-icon-document')
+      btn.click()
+    })
+    // 聚焦到搜索框
     hotkeys('alt+f', (e:any) => {
       e.preventDefault()
       let input:any = document.querySelector('.api-search input')
       input ? input.focus() : void 0
+    })
+    // 聚焦到第一个节点
+    hotkeys('alt+t', (e:any) => {
+      e.preventDefault()
+      let leaf: any = document.querySelector('.api-tree .el-tree-node')
+      leaf.click()
     })
   }
   esc(e:any) {
@@ -205,6 +222,7 @@ export default class apiList extends Vue {
         name: value,
         children: []
       })
+      setTimeout(() => this.setNodeClicked(value), 0)
     }
   }
   async editModule(name: string) {
@@ -268,7 +286,7 @@ export default class apiList extends Vue {
           color #FF4949
 </style>
 <style lang="stylus" scoped>
-.api-wrap
+.api-list-wrap
   background-color #fff
   border 1px solid #eee
   border-right-width 0

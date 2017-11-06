@@ -6,7 +6,7 @@
       div.api-detail-wrap.p-r#detail-wrap.ta-l
         el-button(size='small', icon='edit', type='default', @click='editApi(apiId)') 编辑
         el-button(size='small', icon='document', type='default') 复制
-        el-button(size='small', icon='view', type='default', @click='viewHistory(apiId)') 版本
+        el-button(size='small', icon='view', type='default', @click='viewHistory(apiId)') 历史
         el-button(size='small', icon='menu', type='default') 调试
       ApiView.f-1(:proId="proId", :apiId="apiId")
 </template>
