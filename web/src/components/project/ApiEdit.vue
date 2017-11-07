@@ -58,7 +58,7 @@
                     el-input(v-model='scope.row.mock', size='small')
             el-tab-pane(label="JSON", name="json")
             el-tab-pane(label="Schema", name="schema")
-              pre.schema(contenteditable="") {{api.request.dataSchema}}
+              pre.schema(contenteditable="", @keyup='schemaChanged($event, index)') {{index==0?api.request.dataSchema:api.response.dataSchema}}
             
       el-form-item.ta-l(label='高级配置')
         span(@click='showAdvancedConfig=!showAdvancedConfig')
@@ -180,11 +180,13 @@ class Api {
   request: {
     paramList: Param[],
     dataList: Param[],
+    dataSchema: any,
     headerList: any[]
   }
   response: {
     dataList: Param[],
     headerList: any[],
+    dataSchema: any,
     errList: Err[]
   }
   constructor(moduleName?: string) {
@@ -200,6 +202,7 @@ class Api {
         isRoot: true,
         required: true
       }],
+      dataSchema: {},
       headerList: []
     }
     this.response = {
@@ -213,6 +216,7 @@ class Api {
         required: true
       }],
       headerList: [],
+      dataSchema: {},
       errList: []
     }
   }
@@ -278,11 +282,41 @@ export default class apiEdit extends Vue {
     if (tabName === 'schema') {
       try {
         data.dataSchema = this.list2schema(JSON.parse(JSON.stringify(data.dataList)))
-        console.log('schema:', data.dataSchema)
       } catch (e) {
         console.error('转换schema失败：' + e)
       }
     }
+  }
+  schemaChanged(e: any, index: number) {
+    const text = e.target.innerText
+    try {
+      let data: any
+      if (index === 0) {
+        data = this.api.request
+      } else if (index === 1) {
+        data = this.api.response
+      } else {
+        console.error('找不到对应的数据对象:' + index)
+        return
+      }
+      data.dataSchema = JSON.parse(text)
+      data.dataList = this.schema2list(data.dataSchema)
+    } catch (e) {
+      console.error('转换schema失败' + e)
+    }
+  }
+  schema2list(schemaObj: any) {
+    let travel = (schema: any, list: Param[]) => {
+      switch (schema.type) {
+        case 'object':
+          break
+        case 'array':
+          break
+        default:
+        // todo
+      }
+    }
+    return travel(schemaObj, [])
   }
   list2schema(list: Param[]) {
     let append2parent = (ancestor: string[], origin: any, node: any, required: boolean): any => {
@@ -327,7 +361,6 @@ export default class apiEdit extends Vue {
         id: row.id,
         description: row.remark
       }
-      console.log(JSON.stringify(node, null, 2))
       if (row.property) {
         try {
           Object.assign(node, JSON.parse(row.property))
@@ -596,5 +629,6 @@ export default class apiEdit extends Vue {
   margin-left 5px
 pre.schema
   line-height 20px
+  margin 0
 </style>
 
