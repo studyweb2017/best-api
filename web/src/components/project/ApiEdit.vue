@@ -1,67 +1,65 @@
 <template lang="pug">
   .api-add-wrap.p-r.ov-a
     el-form.ov-a.api-add#edit-form(ref='api', :model='api', :rules='rules', label-position='right', label-width='100px')
-      el-form-item.ta-l.mb-10(label='所属模块', prop='module')
+      el-form-item.ta-l.mb-20(label='所属模块', prop='module')
         el-select.w-200(v-model='api.module', size='small', filterable, allow-create, placeholder="选择或新建模块")
           el-option(v-for='(m, index) in modules', :key='index', :value='m', :label='m')
-      el-form-item.ta-l.mb-10(label='接口名称', prop='name')
+      el-form-item.ta-l.mb-20(label='接口名称', prop='name')
         el-input.w-200(v-model='api.name', size='small', autofocus='')
-      el-form-item.ta-l.mb-10(label='请求路径', prop='url')
-        el-input.w-200(v-model='api.url', size='small', @change='preJson("requestUrl")')
-      el-form-item.ta-l.mb-10(label='请求方法', prop='method')
+      el-form-item.ta-l.mb-20(label='请求路径', prop='url')
+        el-input.w-200(v-model='api.url', size='small', @keydown.shift.native='noParam')
+        span.ml-20.c-silver(v-show="showUrlMsg") 请将参数填入“请求参数”表格中
+      el-form-item.ta-l.mb-20(label='请求方法', prop='method')
         el-select.w-200(v-model='api.method', size='small')
           el-option(v-for='(m, index) in methods', :value='m', :key='index')
-      el-form-item.ta-l.mb-10(label='接口描述', prop='remark')
+      el-form-item.ta-l.mb-20(label='接口描述', prop='remark')
         el-input(v-model='api.remark', size='small')
-      el-form-item.ta-l.mb-10(label='请求参数')
-        el-button(@click='copy(api.request.paramList)', size='small') 复制
-        el-button(@click='paste("request", "paramList")', size='small') 粘贴
+      el-form-item.ta-l.mb-20(label='请求参数')
         el-table(:data='api.request.paramList', border)
           el-table-column(label='参数名', prop='name', width='200')
             template(scope='scope')
-              el-input(v-model='scope.row.name', size='small', @change='preJson("requestUrl")')
+              el-input(v-model='scope.row.name', size='small')
           el-table-column(label='说明', prop='remark', min-width='200', align='center')
             template(scope='scope')
               el-input(v-model='scope.row.remark', size='small')
           el-table-column(label='Mock', prop='mock', min-width='100', align='center')
             template(scope='scope')
-              el-input(v-model='scope.row.mock', size='small', @change='preJson("requestUrl")')
+              el-input(v-model='scope.row.mock', size='small')
           el-table-column(label='', width='50')
               template(scope='scope')
                 el-button(size='mini', @click='delItem("param", api.request.paramList, scope.row, scope.$index)', icon='close', type='danger')
         div.append-table-row.ta-c
           el-button(type='primary', size='small', icon='plus', @click='addItem("param", api.request.paramList)')
+
       template(v-for='(data, index) in [api.request.dataList, api.response.dataList]')
         el-form-item.ta-l(:label='index===0?"请求体":"响应体"', :key='index', v-if='!(index===0&&api.method==="GET")')
-          el-button(@click='copy(data)', size='small') 复制
-          el-button(@click="index===0?paste('request', 'dataList'):paste('response', 'dataList')", size='small') 粘贴
-          el-table(:data='data', border)
-            el-table-column(prop='name', label='参数名', header-align='left', width='300')
-              template(scope='scope')
-                template(v-for='(id, index) in scope.row.ancestor')
-                  span.d-ib.icon-node-space-2.f-l(v-if='index>1')
-                span.d-ib.icon-node-space-1.f-l(v-if='scope.row.ancestor.length>1')
-                span.d-ib.icon-node.f-l(v-if='scope.row.ancestor.length>1')
-                el-input.d-ib.w-150.param-name(v-model='scope.row.name', size='small', :class='scope.row.className', @change='index===0?preJson("request"):preJson("response")')
-                el-button.p-a.cu-p.btn-add-child-param(title='点击添加成员属性', v-if='scope.row.type==="Object" || scope.row.type === "Array"', size='mini', icon='plus', type='primary', @click='addData(data, scope.row, scope.$index)')
-            el-table-column(prop='type', label='类型', header-align='center', width='105')
-              template(scope='scope')
-                el-select(v-model='scope.row.type', :key='scope.row.id', size='small', @change='index===0?preJson("request"):preJson("response");changeType(data, scope.row, scope.$index)')
-                  el-option(v-for='(t, index) in types', :value='t', :key='index', :label='t')
-            el-table-column(prop='required', label='必传', width='50', align='center')
-              template(scope='scope')
-                el-checkbox(v-model='scope.row.required', size='normal')
-            el-table-column(prop='mock', label='Mock', header-align='center', width='250')
-              template(scope='scope')
-                el-input(v-model='scope.row.mock', size='small', @change='index===0?preJson("request"):preJson("response")')
-            el-table-column(prop='remark', label='说明', header-align='center', min-width='100')
-              template(scope='scope')
-                el-input(v-model='scope.row.remark', size='small')
-            el-table-column(label='', width='50')
-              template(scope='scope')
-                el-button(size='mini', @click='delData(data, scope.row, scope.$index)', icon='close', type='danger')
-          div.append-table-row.ta-c
-            el-button(type='primary', size='small', icon='plus', @click='addData(data)')
+          el-tabs(v-model="activeTab[index]", type="border-card", @tab-click="tabClick(index, activeTab[index])")
+            el-tab-pane(label="表格", name="table")  
+              el-table.data-list-table(:data='data', border)
+                el-table-column.d-f(prop='name', label='参数名', header-align='left')
+                  template(scope='scope')
+                    span.d-ib.icon-node(v-if='scope.row.ancestor.length>0', :class="scope.row.className")
+                    span.c-silver.root(v-if="scope.row.isRoot") {{scope.row.name}} 
+                    el-input.d-ib.f-1.param-name(v-if="!scope.row.isRoot", v-model='scope.row.name', 
+                    :class="scope.row.className", size='small')
+                    el-select.data-select(:disabled="scope.row.isRoot", v-model='scope.row.type', 
+                    :key='scope.row.id', size='small', @change='changeType(data, scope.row, scope.$index)')
+                      el-option(v-for='(t, index) in types', :value='t', :key='index', :label='t')
+                    i.el-icon-plus.plus-btn.c-blue.cu-p(v-if='scope.row.type.toLowerCase()==="object" || scope.row.type.toLowerCase() === "array"', @click='addData(data, scope.row, scope.$index)')
+                    i.el-icon-close.c-red.cu-p.plus-btn.ml-10(size='mini', v-if="!scope.row.isRoot", @click='delData(data, scope.row, scope.$index)', icon='close', type='danger')
+                el-table-column(prop='remark', label='说明', header-align='center', min-width='100')
+                  template(scope='scope')
+                    el-input(v-if="!scope.row.isRoot", v-model='scope.row.remark', size='small')
+                el-table-column(prop='required', label='必传', width='50', align='center')
+                  template(scope='scope')
+                    el-checkbox(v-if="!scope.row.isRoot", v-model='scope.row.required', size='normal')
+                el-table-column(prop='mock', label='JSONSchema属性', header-align='center', width='250')
+                  template(scope='scope')
+                    el-input(v-model='scope.row.mock', size='small')
+            el-tab-pane(label="JSON", name="json")
+            el-tab-pane(label="Schema", name="schema")
+              pre {{data.dataSchema}}
+            
       el-form-item.ta-l(label='高级配置')
         span(@click='showAdvancedConfig=!showAdvancedConfig')
           el-button(:icon='showAdvancedConfig?"arrow-down":"arrow-right"', type='text', @click.stop='showAdvancedConfig=!showAdvancedConfig')
@@ -73,19 +71,19 @@
           span 毫秒
         el-form-item.ta-l(label='异常处理')
           el-table(:data='api.response.errList', border)
+            el-table-column(label='返回值', min-width='200')
+              template(scope='scope')
+                el-input(v-model='scope.row.data', size='small', width='50')
+            el-table-column(label='说明')
+              template(scope='scope')
+            el-table-column(label='概率（用于调试）')
+              template(scope='scope')
+                el-input(v-model='scope.row.probability', size='small', min-width='200')
+                el-input(v-model='scope.row.remark', size='small')
             el-table-column(label='启用', prop='enabled', width='50')
               template(scope='scope')
                 el-checkbox(v-model='scope.row.enabled', size='small')
-            el-table-column(label='异常结果（json格式）', min-width='200')
-              template(scope='scope')
-                el-input(v-model='scope.row.data', size='small', width='50')
-            el-table-column(label='异常概率（用于调试）')
-              template(scope='scope')
-                el-input(v-model='scope.row.probability', size='small', min-width='200')
-            el-table-column(label='异常描述')
-              template(scope='scope')
-                el-input(v-model='scope.row.remark', size='small')
-            el-table-column(label='操作', width='50')
+            el-table-column(label='', width='50')
               template(scope='scope')
                 el-button(size='mini', @click='delItem("err", api.response.errList, scope.row, scope.$index)', icon='close', type='danger')
           div.append-table-row.ta-c
@@ -115,42 +113,42 @@
     //       el-button(type='primary', size='small', @click='preJson("response")') 刷新预览
     //       pre.pre {{responseExample}}
     div.ta-c.submit-btns
-      el-button.mr-50(@click='cancel()', size="small") 取 消
-      el-button(type='primary', @click='submit()', size="small") 保 存 
+      el-button.mr-50(@click='cancel()') 取 消
+      el-button(type='primary', @click='submit()') 保 存 
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
 import http from '../../service/http.ts'
-import cache from '../../service/cache.ts'
 import {gId} from '../../service/util.ts'
 import Mock from 'mockjs'
 import EventDelegate from '../../service/EventDelegate'
-import {Prop} from 'vue-property-decorator'
+import {Prop, Watch} from 'vue-property-decorator'
+// import * as jsf from 'json-schema-faker'
 
-interface Api extends Object {
-  version?: string,
-  id?: string,
-  name: string,
-  url: string,
-  method: string,
-  module?: string,
-  remark?: string,
-  isTest?: boolean,
-  request: {
-    paramList: Param[],
-    dataList: Param[],
-    headerList: any[]
-  },
-  response: {
-    dataList: Param[],
-    headerList: any[],
-    errList: Err[]
-  },
-  delay?: number,
-  [key:string]:any
-}
+// interface Api extends Object {
+//   version?: string,
+//   id?: string,
+//   name: string,
+//   url: string,
+//   method: string,
+//   module?: string,
+//   remark?: string,
+//   isTest?: boolean,
+//   request: {
+//     paramList: Param[],
+//     dataList: Param[],
+//     headerList: any[]
+//   },
+//   response: {
+//     dataList: Param[],
+//     headerList: any[],
+//     errList: Err[]
+//   },
+//   delay?: number,
+//   [key:string]:any
+// }
 interface Err extends Object {
   enabled?: string,
   data?: string,
@@ -163,9 +161,60 @@ interface Param extends Object {
   name: string,
   type: string,
   required: boolean,
-  mock: string,
+  isRoot?: boolean,
+  mock?: string,
   remark?: string,
   className?: string
+}
+class Api {
+  version: string = ''
+  id: string = ''
+  name: string = ''
+  url: string = ''
+  method: string = ''
+  module: string = ''
+  remark: string = ''
+  isTest: boolean = false
+  delay: number = 0
+  request: {
+    paramList: Param[],
+    dataList: Param[],
+    headerList: any[]
+  }
+  response: {
+    dataList: Param[],
+    headerList: any[],
+    errList: Err[]
+  }
+  constructor(moduleName?: string) {
+    this.module = moduleName || ''
+    this.request = {
+      paramList: [],
+      dataList: [{
+        id: 'root',
+        ancestor: [],
+        name: 'root',
+        type: 'object',
+        remark: '',
+        isRoot: true,
+        required: true
+      }],
+      headerList: []
+    }
+    this.response = {
+      dataList: [{
+        id: 'root',
+        ancestor: [],
+        name: 'root',
+        type: 'object',
+        remark: '',
+        isRoot: true,
+        required: true
+      }],
+      headerList: [],
+      errList: []
+    }
+  }
 }
 @Component
 export default class apiEdit extends Vue {
@@ -181,39 +230,29 @@ export default class apiEdit extends Vue {
   $router: any
   $message: any
   $confirm: any
+  activeTab: [string, string] = ['table', 'table']
   // 下拉列表选项
   showAdvancedConfig: boolean = false
   methods: string[] = ['GET', 'POST', 'PUT', 'DELETE']
-  types: string[] = ['String', 'Object', 'Array', 'Number', 'Boolean', 'File']
+  types: string[] = ['string', 'object', 'array', 'number', 'boolean', 'file']
   modules: string[] = []
-  api: Api = {
-    isTest: false,
-    delay: 0,
-    name: '',
-    url: '',
-    method: '',
-    module: '',
-    remark: '',
-    request: {
-      paramList: [],
-      dataList: [],
-      headerList: []
-    },
-    response: {
-      dataList: [],
-      headerList: [],
-      errList: []
-    }
-  }
-  copy(data:any) {
-    data ? cache.set('copyData', JSON.stringify(data)) : 1 > 0
-  }
-  paste(key1:any, key2:any) {
-    let data:any = JSON.parse(cache.get('copyData'))
-    this.api[key1][key2] = data
-  }
+  showUrlMsg: boolean = false
+  api: Api = new Api()
+  requestUrl: string = ''
+  requestExample:any = ''
+  responseExample: any = ''
   startX:any = 0
   eleMock:any = document.getElementById('pre-mock')
+  noParam(e: any) {
+    const forbidSignal = [55, 191]
+    if (forbidSignal.indexOf(e.keyCode) > -1) {
+      this.showUrlMsg = true
+      e.preventDefault()
+      setTimeout(() => {
+        this.showUrlMsg = false
+      }, 3000)
+    }
+  }
   mousedown(e:any) {
     this.eleMock = document.getElementById('pre-mock')
     this.startX = e.pageX
@@ -226,7 +265,18 @@ export default class apiEdit extends Vue {
     let moveX:any = Number(this.startX - e.pageX)
     this.eleMock.style.width = 250 + moveX + 'px'
   }
-  mode: string = ''
+  tabClick(index: 0|1, tabName: string) {
+    let data: any
+    if (index === 0) {
+      data = this.api.request
+    } else if (index === 1) {
+      data = this.api.response
+    }
+    data.dataSchema = this.list2schema(data.dataList)
+  }
+  list2schema(list: Param[]) {
+    // todo...
+  }
   rules: Object = {
     name: [{required: true}],
     module: [{required: true}],
@@ -238,23 +288,26 @@ export default class apiEdit extends Vue {
     requestParams: [{type: 'array', required: false, message: '请至少选择一个项目成员'}],
     responseParams: [{type: 'array'}]
   }
-  async beforeMount() {
-    this.mode = this.apiId ? 'edit' : 'add'
-    let resp:any = await http.get('/api/project/' + this.proId + '/api/module')
-    this.modules = resp.moduleList || []
-    if (this.mode === 'edit' || this.mode === 'view') {
+  async refreshApi() {
+    if (this.mode === 'edit') {
       let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
       this.api = resp
     } else if (this.mode === 'add') {
-      this.api.module = this.moduleName
+      this.api = new Api(this.moduleName)
     }
-    this.api.url && this.api.request.paramList ? this.preJson('requestUrl') : 1 > 0
-    this.api.request.dataList ? this.preJson('request') : 1 > 0
-    this.api.response.dataList ? this.preJson('response') : 1 > 0
   }
-  requestUrl: string = ''
-  requestExample:any = ''
-  responseExample: any = ''
+  async beforeMount() {
+    let resp:any = await http.get('/api/project/' + this.proId + '/api/module')
+    this.modules = resp.moduleList || []
+    this.refreshApi()
+  }
+  @Watch('mode')
+  async modeChanged() {
+    this.refreshApi()
+  }
+  get mode() {
+    return this.apiId ? 'edit' : 'add'
+  }
   async submit() {
     let that = this
     that.$refs.api.validate(async (valid:boolean) => {
@@ -294,7 +347,7 @@ export default class apiEdit extends Vue {
   }
   async delData(data:any, row:any, index:any) {
     let len:any = 1
-    if (row.type === 'Object' || row.type === 'Array') {
+    if (row.type.toLowerCase() === 'object' || row.type.toLowerCase() === 'array') {
       await this.$confirm('对象或数组将会同时删除全部子元素, 继续?', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
       data.forEach((p:any, idx:any) => {
         if (p.ancestor.indexOf(row.id) > -1) {
@@ -309,17 +362,8 @@ export default class apiEdit extends Vue {
   addData(data:any, row?:any, index?:any) {
     let id: string = gId()
     let ancestor:string[] = ['root']
-    let classNameArr:string[] = ['bg-1', 'bg-2', 'bg-3']
-    let className:string = classNameArr[0]
     if (row) {
       ancestor = row.ancestor.concat([row.id])
-      if (row.className === classNameArr[0]) {
-        className = classNameArr[1]
-      } else if (row.className === classNameArr[1]) {
-        className = classNameArr[2]
-      } else {
-        className = classNameArr[0]
-      }
     }
     data.splice(row ? index + 1 : data.length, 0, {
       id: id,
@@ -329,14 +373,11 @@ export default class apiEdit extends Vue {
       required: true,
       mock: '@string',
       remark: '',
-      className: className
+      className: 'bg-' + ancestor.length
     })
   }
   delItem(tag:string, list:any, row:any, index:any) {
     list.splice(index, 1)
-    this.preJson('requestUrl')
-    this.preJson('request')
-    this.preJson('response')
   }
   addItem(tag:any, list:any) {
     let item:any = {}
@@ -384,12 +425,12 @@ export default class apiEdit extends Vue {
       let arr:any[] = []
       list.forEach((p:any) => {
         if (p.ancestor[p.ancestor.length - 1] === pid) {
-          let t:any = p.type
-          if (t === 'Number' || t === 'String' || t === 'Boolean') {
+          let t:any = p.type.toLowerCase()
+          if (t === 'number' || t === 'string' || t === 'boolean') {
             arr.push(p.mock)
-          } else if (t === 'Object') {
+          } else if (t === 'object') {
             arr.push(this.makeMockJson(list, p.id))
-          } else if (t === 'Array') {
+          } else if (t === 'array') {
             arr.push(this.makeMockJson(list, p.id, true))
           }
         }
@@ -399,14 +440,14 @@ export default class apiEdit extends Vue {
       let obj:any = {}
       list.forEach((p:any) => {
         if (p.ancestor[p.ancestor.length - 1] === pid && p.name) {
-          let t = p.type
-          if (t === 'Number' || t === 'String' || t === 'Boolean') {
+          let t = p.type.toLowerCase()
+          if (t === 'number' || t === 'string' || t === 'boolean') {
             let key:any = p.name + ((p.mock.split('|')[1] ? ('|' + p.mock.split('|')[1]) : ''))
             obj[key] = p.mock.split('|')[0]
-          } else if (t === 'Object') {
+          } else if (t === 'object') {
             let key:any = p.name + (p.mock ? '|' + p.mock : '')
             obj[key] = this.makeMockJson(list, p.id)
-          } else if (t === 'Array') {
+          } else if (t === 'array') {
             let key:any = p.name + (p.mock ? '|' + p.mock : '')
             obj[key] = this.makeMockJson(list, p.id, true)
           }
@@ -418,18 +459,24 @@ export default class apiEdit extends Vue {
 }
 </script>
 <style lang="stylus">
-.bg-1 input
-  background-color #f1cece
-.bg-2 input
-  background-color #f5f5cb
-.bg-3 input
-  background-color #cde4f5
-.el-table
-  td,
-  th
-    height 40
+.api-add-wrap
+  for num in (1..10)
+    .bg-{num} input
+      background-color convert('#f'+num+'f'+num+'f'+num)
+    span.bg-{num}
+      margin-left unit(num,em)
+  .plus-btn
+    margin-left 5px
+    line-height 40px
+  .el-table
+    td,
+    th
+      height 40
+      .cell
+        padding 0 5px !important
+  .data-list-table
     .cell
-      padding 0 5px !important
+      display flex
 </style>
 <style lang="stylus" scoped>
 .drag-line
@@ -465,16 +512,6 @@ export default class apiEdit extends Vue {
   height 1px
   bottom 50%
   border-bottom 1px solid #ccc
-.icon-node-space-1
-  position relative
-  width 15px
-  height 40px
-  line-height 1
-.icon-node-space-2
-  position relative
-  width 30px
-  height 40px
-  line-height 1
 .param-name
   line-height 40px
 .pre-mock
@@ -490,5 +527,11 @@ export default class apiEdit extends Vue {
   padding 2px
   border-top 1px solid #ccc
   background-color #F9FAFC
+.root
+  line-height 40px
+.data-select
+  line-height 40px
+  width 90px
+  margin-left 5px
 </style>
 

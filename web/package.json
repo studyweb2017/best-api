@@ -20,6 +20,7 @@
     "axios": "^0.16.2",
     "element-ui": "^1.4.9",
     "hotkeys-js": "^2.0.4",
+    "json-schema-faker": "^0.4.6",
     "lodash": "^4.17.4",
     "mockjs": "^1.0.1-beta3",
     "vue": "^2.3.3",

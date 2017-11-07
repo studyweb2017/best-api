@@ -9,7 +9,7 @@ div.nav-bar-wrap.p-a.t-0.r-0.l-0.h-40
       router-link(:to='{name: "messageIndex"}', title="点击查看消息")
         i.fa.fa-bell-o.va-m.bell
         el-badge.message(v-if="user.name&&messageNum", :value='messageNum')
-      el-popover(ref="popover1", placement="bottom", width="100", trigger='hover')
+      el-popover(ref="popover1", placement="bottom", width="60", trigger='hover')
         router-link.ta-c.sub-menu-item(:to="{name: 'userProfile'}") 个人设置
         span.ta-c.sub-menu-item(@click='logout()') 退出账号
       span.d-ib.user(v-show='user.name', v-popover:popover1="")
@@ -96,7 +96,8 @@ export default class NavBar extends Vue {
 }
 </script>
 
-<style lang="stylus">
+
+<style lang="stylus" scoped>
 .company
   color #D3DCE6
   padding 0 20px
@@ -132,9 +133,6 @@ export default class NavBar extends Vue {
   height 20px
   sup
     border-width 0
-.el-popover
-  padding 0
-  min-width 0
 .sub-menu-item
   color #666
   display block
@@ -143,6 +141,7 @@ export default class NavBar extends Vue {
   line-height 40px
   text-decoration none
   cursor pointer
+  margin 0 -10px
 .sub-menu-item:hover
   background-color #eee
 .logout

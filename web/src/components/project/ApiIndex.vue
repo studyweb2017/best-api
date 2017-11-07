@@ -1,7 +1,7 @@
 <template lang="pug">
   div.p-a.l-0.r-0.b-0.t-40.d-f.bg-white
     ApiList(:proId="proId", :clickedId="apiId", @add="addApi", @view="viewApi", @edit="editApi", @delete="deleteApi")
-    ApiEdit.f-1.ov-y-a(v-if="mode==='edit'", :proId="proId", :apiId="apiId", :moduleName="moduleName", @updated="apiModified",  @cancel="cancelEdit")
+    ApiEdit.f-1.ov-y-a(v-if="mode==='edit'", :proId="proId", :apiId="mode==='edit'?apiId:''", :moduleName="moduleName", @updated="apiModified",  @cancel="cancelEdit")
     div.d-f.fd-c.f-1.ov-y-a(v-if="mode==='view'")
       div.api-detail-wrap.p-r#detail-wrap.ta-l
         el-button(size='small', icon='edit', type='default', @click='editApi(apiId)') 编辑
@@ -16,7 +16,6 @@ import Component from 'vue-class-component'
 import ApiList from './ApiList.vue'
 import ApiView from './ApiView.vue'
 import ApiEdit from './ApiEdit.vue'
-import {Watch} from 'vue-property-decorator'
 
 @Component({
   components: {
@@ -28,24 +27,22 @@ import {Watch} from 'vue-property-decorator'
 export default class ApiIndex extends Vue {
   $router: any
   $route: any
-  proId: string
-  apiId: string
   mode: string = ''
-  moduleName: string
-  beforeCreate() {
-    this.proId = this.$route.params.proId
-    this.apiId = this.$route.query.id
-    this.moduleName = this.$route.query.name
+  moduleName: string = ''
+  get proId() {
+    return this.$route.params.proId
   }
-  @Watch('$route')
-  routeChancged() {
-    this.proId = this.$route.params.proId
-    this.apiId = this.$route.query.id
-    this.moduleName = this.$route.query.name
+  get apiId() {
+    return this.$route.query.id
   }
   addApi(moduleName: any) {
-    this.apiId = ''
     this.moduleName = moduleName
+    this.$router.push({
+      name: 'api',
+      query: {
+        moduleName
+      }
+    })
     this.mode = 'edit'
   }
   viewApi(id: string, name: string, type: string) {
