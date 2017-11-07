@@ -58,7 +58,7 @@
                     el-input(v-model='scope.row.mock', size='small')
             el-tab-pane(label="JSON", name="json")
             el-tab-pane(label="Schema", name="schema")
-              pre {{data.dataSchema}}
+              pre.schema(contenteditable="") {{api.request.dataSchema}}
             
       el-form-item.ta-l(label='高级配置')
         span(@click='showAdvancedConfig=!showAdvancedConfig')
@@ -162,6 +162,7 @@ interface Param extends Object {
   type: string,
   required: boolean,
   isRoot?: boolean,
+  property?: string,
   mock?: string,
   remark?: string,
   className?: string
@@ -271,11 +272,72 @@ export default class apiEdit extends Vue {
       data = this.api.request
     } else if (index === 1) {
       data = this.api.response
+    } else {
+      console.error('点击tab页出错', index, tabName)
     }
-    data.dataSchema = this.list2schema(data.dataList)
+    if (tabName === 'schema') {
+      try {
+        data.dataSchema = this.list2schema(JSON.parse(JSON.stringify(data.dataList)))
+        console.log('schema:', data.dataSchema)
+      } catch (e) {
+        console.error('转换schema失败：' + e)
+      }
+    }
   }
   list2schema(list: Param[]) {
-    // todo...
+    let append2parent = (ancestor: string[], origin: any, node: any, required: boolean): any => {
+      if (ancestor.length === 0) {
+        // 没有祖先，该节点为根节点
+        for (let e in node) {
+          origin[e] = node[e]
+        }
+      } else {
+        const parentId = ancestor[ancestor.length - 1]
+        if (origin.type === 'object') {
+          origin.properties = origin.properties || {}
+          if (origin.id === parentId) {
+            origin.properties[node.name] = node
+            if (required) {
+              origin.required = origin.required || []
+              origin.required.push(node.name)
+            }
+          } else if (ancestor.indexOf(origin.id) > -1) {
+            for (let p in origin.properties) {
+              let current = origin.properties[p]
+              append2parent(ancestor, current, node, required)
+            }
+          }
+        } else if (origin.type === 'array') {
+          origin.items = origin.items || []
+          if (origin.id === parentId) {
+            origin.items.push(node)
+          } else if (ancestor.indexOf(origin.id) > -1) {
+            origin.items.forEach((current: any) => {
+              append2parent(ancestor, current, node, required)
+            })
+          }
+        }
+      }
+    }
+    let result = {}
+    list.forEach((row: Param) => {
+      let node = {
+        name: row.name,
+        type: row.type,
+        id: row.id,
+        description: row.remark
+      }
+      console.log(JSON.stringify(node, null, 2))
+      if (row.property) {
+        try {
+          Object.assign(node, JSON.parse(row.property))
+        } catch (e) {
+          console.error('schema属性转换失败' + e)
+        }
+      }
+      append2parent(row.ancestor, result, node, row.required)
+    })
+    return result
   }
   rules: Object = {
     name: [{required: true}],
@@ -369,9 +431,8 @@ export default class apiEdit extends Vue {
       id: id,
       ancestor: ancestor,
       name: '',
-      type: 'String',
+      type: 'string',
       required: true,
-      mock: '@string',
       remark: '',
       className: 'bg-' + ancestor.length
     })
@@ -533,5 +594,7 @@ export default class apiEdit extends Vue {
   line-height 40px
   width 90px
   margin-left 5px
+pre.schema
+  line-height 20px
 </style>
 
