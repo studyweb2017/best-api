@@ -22,7 +22,7 @@
           el-table-column(label='说明', prop='remark', min-width='200', align='center')
             template(scope='scope')
               el-input(v-model='scope.row.remark', size='small')
-          el-table-column(label='Mock', prop='mock', min-width='100', align='center')
+          el-table-column(label='模拟数据', prop='mock', min-width='100', align='center')
             template(scope='scope')
               el-input(v-model='scope.row.mock', size='small')
           el-table-column(label='', width='50')

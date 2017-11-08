@@ -24,6 +24,13 @@ div.param-editor(:id="id")
           template(scope='scope')
             el-input(v-model='scope.row.property', size='small')
     el-tab-pane(label="JSON", name="json")
+      el-dialog(size="small", title="导入json将覆盖当前参数，谨慎操作！", :visible.sync="dialogVisible", :before-close="handleClose")
+        span.c-red {{jsonError}}
+        el-input(type="textarea", :rows="15", v-model="json")
+        div.ta-r
+          el-button.mt-10(size="small", @click="cancel") 取 消
+          el-button.mt-10.mr-10(type="primary", size="small", @click="importJson") 导 入
+      el-button(@click="dialogVisible=true", type='text') 导入
       pre.json
     el-tab-pane(label="Schema", name="schema")
       pre.schema(contenteditable="", @keyup='schemaChanged($event, index)')
@@ -33,6 +40,7 @@ import Vue from 'vue'
 import Component from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
 import jsf from 'json-schema-faker'
+import * as _ from 'lodash'
 
 let gId = (): string => {
   return 'a' + Math.random().toString().substring(2)
@@ -59,6 +67,9 @@ export default class ParamEditor extends Vue {
   activeTabName: string = 'table'
   $confirm: any
   dataSchema: any
+  json: string = ''
+  jsonError: string = ''
+  dialogVisible: boolean = false
   dataList: Param[] = [{
     id: 'root',
     ancestor: [],
@@ -79,7 +90,22 @@ export default class ParamEditor extends Vue {
       this.dataList = this.schema2list(this.schema)
     }
   }
-
+  cancel() {
+    this.dialogVisible = false
+    this.json = ''
+    this.jsonError = ''
+  }
+  importJson() {
+    try {
+      let data = JSON.parse(this.json)
+      this.dataSchema = this.json2schema(data)
+    } catch (e) {
+      this.jsonError = e.toString()
+    }
+  }
+  handleClose(done: any) {
+    done()
+  }
   async delData(data:any, row:any, index:any) {
     let len:any = 1
     if (row.type.toLowerCase() === 'object' || row.type.toLowerCase() === 'array') {
@@ -142,6 +168,42 @@ export default class ParamEditor extends Vue {
   }
   async getJson(schema: any) {
     return await jsf.resolve(schema)
+  }
+  json2schema(json: any) {
+    let travel = (obj: any, name: string, ancestor: string[], list: any[]) => {
+      let result: any = {
+        id: ancestor.length > 0 ? gId() : 'root',
+        name,
+        ancestor,
+        type: 'object',
+        required: true,
+        className: 'bg-' + ancestor.length
+      }
+      ancestor.length === 0 ? result.isRoot = true : void 0
+      list.push(result)
+      for (let p in obj) {
+        if (_.isObject(obj[p])) {
+          travel(obj[p], p, ancestor.concat(result.id), list)
+        } else if (_.isArray(obj[p])) {
+          obj[p].forEach((item: any) => {
+            if (_.isObject(item)) {
+              travel(obj[p], '', ancestor.concat(result.id), list)
+            } else {
+              //
+            }
+          })
+        } else {
+          list.push({
+            id: gId(),
+            name: p,
+            ancestor: ancestor.concat(result.id),
+            type: typeof obj[p],
+            required: true,
+            className: 'bg-' + ancestor.concat(result.id).length
+          })
+        }
+      }
+    }
   }
   schema2list (schemaObj: any): Param[] {
     let travel = (schema: any, list: Param[], ancestor: string[], required: boolean = false, noName: boolean = false) => {
@@ -273,9 +335,10 @@ export default class ParamEditor extends Vue {
   width 90px
   margin-left 5px
 pre.schema, pre.json
-  line-height 15px
+  line-height 20px
   margin 0
   min-height 100px
+  padding 5px
 .icon-node
   position relative
   width 15px

@@ -19,27 +19,11 @@
             el-table-column(label='类型', prop='required', width='80', align='left')
               template(scope='scope')
                 span {{scope.row.required ? '必传' : '可选'}}
-        template(v-for='(data, index) in [api.request.dataList, api.response.dataList]')
-          el-form-item.ta-l(:label='index===0?"请求体":"响应体"', :key='index', v-if='data&&data.length>0')
-            el-table(:data='data', border)
-              el-table-column(prop='name', label='参数名', width='180')
-                template(scope='scope')
-                  template(v-for='(id, index) in scope.row.ancestor')
-                    span.d-ib.icon-node-space-2.f-l(v-if='index>1')
-                  span.d-ib.icon-node-space-1.f-l(v-if='scope.row.ancestor.length>1')
-                  span.d-ib.icon-node.f-l(v-if='scope.row.ancestor.length>1')
-                  span.param-name.d-ib {{scope.row.name}}
-              el-table-column(prop='type', label='类型', width='100')
-              el-table-column(prop='required', label='必传', width='80')
-                template(scope='scope')
-                  span {{scope.row.required}}
-              el-table-column(prop='mock', label='Mock', width='150')
-              el-table-column(prop='remark', label='说明', min-width='100')
-                template(scope='scope')
-                  span.ov-a.nowrap {{scope.row.remark}}
-          el-form-item.ta-l.mb-10(label='示例', :key='index', v-if='data&&data.length>0')
-            pre {{data.example}}
-        el-form-item.cl-b.ta-l(label='可测试', v-if="api.isTest")
+        el-form-item.ta-l(label='请求体', v-if='api.method!=="GET"')
+          ParamEditor(:schema='api.request.dataSchema', readonly="true")
+        el-form-item.ta-l(label='响应体')
+          ParamEditor(:schema='api.response.dataSchema')
+        el-form-item.cl-b.ta-l(label='可测试', v-if="api.isTest", readonly="true")
           span {{api.isTest}}
         el-form-item.ta-l(label='延迟响应', v-if="api.delay")
           span {{api.delay + '毫秒'}}
@@ -66,30 +50,7 @@ import Component from 'vue-class-component'
 import http from '../../service/http.ts'
 import cache from '../../service/cache.ts'
 import {Prop} from 'vue-property-decorator'
-import {schema2list, Param} from '../../service/schemaTransformer'
-
-interface Api extends Object {
-  id?: string,
-  name?: string,
-  url?: string,
-  method?: string,
-  module?: string,
-  isTest?: boolean,
-  remark?: string,
-  request: {
-    paramList: any[],
-    dataList: Param[],
-    headerList: any[]
-  },
-  response: {
-    dataList: Param[],
-    headerList: any[],
-    errList: any[]
-  },
-  nameClassName?: string,
-  urlClassName?: string,
-  methodClassName?: string,
-}
+import ParamEditor from './ParamEditor'
 
 const tagType:any = {
   GET: 'primary',
@@ -97,13 +58,17 @@ const tagType:any = {
   PUT: 'warning',
   DELETE: 'danger'
 }
-@Component
+@Component({
+  components: {
+    ParamEditor
+  }
+})
 export default class apiView extends Vue {
   @Prop()
   proId: string
   @Prop()
   apiId: string
-  api: Api = {
+  api: any = {
     isTest: true,
     name: '',
     url: '',
@@ -127,8 +92,6 @@ export default class apiView extends Vue {
     if (this.proId && this.apiId) {
       let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
       this.api = resp || this.api
-      this.api.request.dataList = schema2list(resp.request.dataSchema)
-      this.api.response.dataList = schema2list(resp.response.dataSchema)
     }
   }
   get methodType() {
@@ -164,7 +127,8 @@ export default class apiView extends Vue {
   }
 }
 </script>
-<style lang='stylus'>
+
+<style lang="stylus">
 .api-view-wrap
   .el-table
     margin-top 11px
