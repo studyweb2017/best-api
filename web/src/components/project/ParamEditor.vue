@@ -2,7 +2,7 @@
 div.param-editor(:id="id")
   el-tabs(v-model="activeTabName", type="border-card", @tab-click="tabClick(activeTabName)")
     el-tab-pane(label="表格", name="table")  
-      el-table.data-list-table(:data='data', border)
+      el-table.data-list-table(:data='dataList', border)
         el-table-column.d-f(prop='name', label='参数名', header-align='left')
           template(scope='scope')
             span.d-ib.icon-node(v-if='scope.row.ancestor.length>0', :class="scope.row.className")
@@ -12,8 +12,8 @@ div.param-editor(:id="id")
             el-select.data-select(:disabled="scope.row.isRoot", v-model='scope.row.type', 
             :key='scope.row.id', size='small', @change='changeType(data, scope.row, scope.$index)')
               el-option(v-for='(t, index) in types', :value='t', :key='index', :label='t')
-            i.el-icon-plus.plus-btn.c-blue.cu-p(v-if='scope.row.type.toLowerCase()==="object" || scope.row.type.toLowerCase() === "array"', @click='addData(data, scope.row, scope.$index)')
-            i.el-icon-close.c-red.cu-p.plus-btn.ml-10(size='mini', v-if="!scope.row.isRoot", @click='delData(data, scope.row, scope.$index)', icon='close', type='danger')
+            i.el-icon-plus.plus-btn.c-blue.cu-p(v-if='scope.row.type.toLowerCase()==="object" || scope.row.type.toLowerCase() === "array"', @click='addData(dataList, scope.row, scope.$index)')
+            i.el-icon-close.c-red.cu-p.plus-btn.ml-10(size='mini', v-if="!scope.row.isRoot", @click='delData(dataList, scope.row, scope.$index)', icon='close', type='danger')
         el-table-column(prop='remark', label='说明', header-align='center', min-width='100')
           template(scope='scope')
             el-input(v-if="!scope.row.isRoot", v-model='scope.row.remark', size='small')
@@ -31,37 +31,54 @@ div.param-editor(:id="id")
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import {Prop, NoCache} from 'vue-property-decorator'
+import {Prop} from 'vue-property-decorator'
 import jsf from 'json-schema-faker'
 
-let gId = (size?: number): string => {
-  let t = (new Date()).getTime()
-  let p = (Math.random().toString(16) + '00000000').substr(2,8)
-  return   t + '-' + p.substr(0, size ? size : 4)
+let gId = (): string => {
+  return 'a' + Math.random().toString().substring(2)
 }
 
-class Param {
-  id: string
-  ancestor: string[]
-  name: string
-  type: string
-  required: boolean
-  isRoot?: boolean
-  property?: string
-  remark?: string
+interface Param {
+  id: string,
+  ancestor: string[],
+  name: string,
+  type: string,
+  required: boolean,
+  isRoot?: boolean,
+  property?: string,
+  remark?: string,
   className?: string
 }
 
 @Component
 export default class ParamEditor extends Vue {
-  @Prop
-  data: any
-  @NoCache
-  get id() {
-    return Math.random().toString(36).substring(2, 10)
-  }
-  activeTabName: string
+  @Prop()
+  schema: any
+  id: any = gId()
+  types: string[] = ['string', 'object', 'array', 'number', 'boolean', 'file']
+  activeTabName: string = 'table'
   $confirm: any
+  dataSchema: any
+  dataList: Param[] = [{
+    id: 'root',
+    ancestor: [],
+    name: 'root',
+    type: 'object',
+    remark: '',
+    isRoot: true,
+    required: true
+  }]
+
+  beforeMount() {
+    this.dataSchema = this.schema || {
+      id: 'root',
+      name: 'root',
+      type: 'object'
+    }
+    if (this.schema && Object.keys(this.schema).length > 0) {
+      this.dataList = this.schema2list(this.schema)
+    }
+  }
 
   async delData(data:any, row:any, index:any) {
     let len:any = 1
@@ -109,18 +126,18 @@ export default class ParamEditor extends Vue {
   async tabClick(tabName: string) {
     if (tabName === 'schema') {
       try {
-        let preDom: any = document.querySelectorAll('#' + this.id + ' pre.schema')[index]
-        this.data.dataSchema = list2schema(JSON.parse(JSON.stringify(this.data.dataList)))
-        preDom.innerText = JSON.stringify(this.data.dataSchema, null, 2)
+        let preDom: any = document.querySelector(`#${this.id} pre.schema`)
+        this.dataSchema = this.list2schema(JSON.parse(JSON.stringify(this.dataList)))
+        preDom.innerText = JSON.stringify(this.dataSchema, null, 2)
       } catch (e) {
         console.error('转换schema失败：' + e)
       }
     } else if (tabName === 'table') {
-      this.data.dataList = schema2list(this.data.dataSchema)
+      this.dataList = this.schema2list(this.dataSchema)
     } else if (tabName === 'json') {
-      this.data.dataSchema = list2schema(JSON.parse(JSON.stringify(this.data.dataList)))
-      let preJson: any = document.querySelectorAll(t'#' + his.id + 'p re.json')[index]
-      preJson.innerText = JSON.stringify(await this.getJson(this.data.dataSchema), null, 2)
+      this.dataSchema = this.list2schema(JSON.parse(JSON.stringify(this.dataList)))
+      let preJson: any = document.querySelector(`#${this.id} pre.json`)
+      preJson.innerText = JSON.stringify(await this.getJson(this.dataSchema), null, 2)
     }
   }
   async getJson(schema: any) {
@@ -228,6 +245,53 @@ export default class ParamEditor extends Vue {
   }
 }
 </script>
-<style scoped lang="stylus">
-  
+<style lang="stylus">
+.param-editor
+  for num in (1..10)
+    .bg-{num} input
+      // background-color convert('#f'+num+'f'+num+'f'+num)
+    span.bg-{num}
+      margin-left unit(num,em)
+  .plus-btn
+    margin-left 5px
+    line-height 40px
+  .el-table
+    td,
+    th
+      height 40
+      .cell
+        padding 0 5px !important
+  .data-list-table
+    .cell
+      display flex
+</style>
+<style lang="stylus" scoped>
+.root
+  line-height 40px
+.data-select
+  line-height 40px
+  width 90px
+  margin-left 5px
+pre.schema, pre.json
+  line-height 15px
+  margin 0
+  min-height 100px
+.icon-node
+  position relative
+  width 15px
+  height 40px
+  line-height 1
+  border-left 1px solid #ccc
+.icon-node:after
+  z-index 10
+  content ''
+  position absolute
+  width 15px
+  height 1px
+  bottom 50%
+  border-bottom 1px solid #ccc
+.param-name
+  line-height 40px
+.pre
+  line-height 1.5
 </style>

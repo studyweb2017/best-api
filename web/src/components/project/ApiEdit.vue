@@ -30,37 +30,10 @@
                 el-button(size='mini', @click='delItem("param", api.request.paramList, scope.row, scope.$index)', icon='close', type='danger')
         div.append-table-row.ta-c
           el-button(type='primary', size='small', icon='plus', @click='addItem("param", api.request.paramList)')
-      // 请求/响应体
-      template(v-for='(data, index) in [api.request.dataList, api.response.dataList]')
-        el-form-item.ta-l(:label='index===0?"请求体":"响应体"', :key='index', v-show='!(index===0&&api.method==="GET")')
-          el-tabs(v-model="activeTab[index]", type="border-card", @tab-click="tabClick(index, activeTab[index])")
-            el-tab-pane(label="表格", name="table")  
-              el-table.data-list-table(:data='data', border)
-                el-table-column.d-f(prop='name', label='参数名', header-align='left')
-                  template(scope='scope')
-                    span.d-ib.icon-node(v-if='scope.row.ancestor.length>0', :class="scope.row.className")
-                    span.c-silver.root(v-if="scope.row.isRoot") {{scope.row.name}} 
-                    el-input.d-ib.f-1.param-name(:disabled="scope.row.noName", v-if="!scope.row.isRoot", v-model='scope.row.name', 
-                    :class="scope.row.className", size='small')
-                    el-select.data-select(:disabled="scope.row.isRoot", v-model='scope.row.type', 
-                    :key='scope.row.id', size='small', @change='changeType(data, scope.row, scope.$index)')
-                      el-option(v-for='(t, index) in types', :value='t', :key='index', :label='t')
-                    i.el-icon-plus.plus-btn.c-blue.cu-p(v-if='scope.row.type.toLowerCase()==="object" || scope.row.type.toLowerCase() === "array"', @click='addData(data, scope.row, scope.$index)')
-                    i.el-icon-close.c-red.cu-p.plus-btn.ml-10(size='mini', v-if="!scope.row.isRoot", @click='delData(data, scope.row, scope.$index)', icon='close', type='danger')
-                el-table-column(prop='remark', label='说明', header-align='center', min-width='100')
-                  template(scope='scope')
-                    el-input(v-if="!scope.row.isRoot", v-model='scope.row.remark', size='small')
-                el-table-column(prop='required', label='必传', width='50', align='center')
-                  template(scope='scope')
-                    el-checkbox(v-if="!scope.row.isRoot", v-model='scope.row.required', size='normal')
-                el-table-column(prop='property', label='JSONSchema属性', header-align='center', width='250')
-                  template(scope='scope')
-                    el-input(v-model='scope.row.property', size='small')
-            el-tab-pane(label="JSON", name="json")
-              pre.json
-            el-tab-pane(label="Schema", name="schema")
-              pre.schema(contenteditable="", @keyup='schemaChanged($event, index)')
-            
+      el-form-item.ta-l(label='请求体', v-if='api.method!=="GET"')
+        ParamEditor(:data="api.request.dataSchema")
+      el-form-item.ta-l(label='响应体')
+        ParamEditor(:data="api.response.dataSchema") 
       el-form-item.ta-l(label='高级配置')
         span(@click='showAdvancedConfig=!showAdvancedConfig')
           el-button(:icon='showAdvancedConfig?"arrow-down":"arrow-right"', type='text', @click.stop='showAdvancedConfig=!showAdvancedConfig')
@@ -103,16 +76,6 @@
                   el-button(size='mini', @click='delItem("header", header, scope.row, scope.$index)', icon='close', type='danger')
             div.append-table-row.ta-c
               el-button(type='primary', size='small', icon='plus', @click='addItem("header", header)')
-    // el-form.ov-a.pre-mock.p-a.t-0.r-0.b-0#pre-mock
-    //     div.drag-line.t-0.l-0.b-0(@mousedown='mousedown')
-    //     el-form-item.ta-l(label='请求url')
-    //       pre.pre {{requestUrl}}
-    //     el-form-item.ta-l(label='请求体')
-    //       el-button(type='primary', size='small', @click='preJson("request")') 刷新预览
-    //       pre.pre {{requestExample}}
-    //     el-form-item.ta-l(label='响应体')
-    //       el-button(type='primary', size='small', @click='preJson("response")') 刷新预览
-    //       pre.pre {{responseExample}}
     div.ta-c.submit-btns
       el-button.mr-50(@click='cancel()') 取 消
       el-button(type='primary', @click='submit()') 保 存 
@@ -126,8 +89,7 @@ import {gId} from '../../service/util.ts'
 import Mock from 'mockjs'
 import EventDelegate from '../../service/EventDelegate'
 import {Prop, Watch} from 'vue-property-decorator'
-import jsf from 'json-schema-faker'
-import {schema2list, list2schema} from '../../service/schemaTransformer'
+import ParamEditor from './ParamEditor.vue'
 
 interface Err extends Object {
   enabled?: string,
@@ -201,7 +163,11 @@ class Api {
     }
   }
 }
-@Component
+@Component({
+  components: {
+    ParamEditor
+  }
+})
 export default class apiEdit extends Vue {
   @Prop()
   moduleName: string
@@ -219,7 +185,6 @@ export default class apiEdit extends Vue {
   // 下拉列表选项
   showAdvancedConfig: boolean = false
   methods: string[] = ['GET', 'POST', 'PUT', 'DELETE']
-  types: string[] = ['string', 'object', 'array', 'number', 'boolean', 'file']
   modules: string[] = []
   showUrlMsg: boolean = false
   api: Api = new Api()
@@ -250,55 +215,6 @@ export default class apiEdit extends Vue {
     let moveX:any = Number(this.startX - e.pageX)
     this.eleMock.style.width = 250 + moveX + 'px'
   }
-  async tabClick(index: 0|1, tabName: string) {
-    let data: any
-    if (index === 0) {
-      data = this.api.request
-    } else if (index === 1) {
-      data = this.api.response
-    } else {
-      console.error('点击tab页出错', index, tabName)
-    }
-    if (tabName === 'schema') {
-      try {
-        let preDom: any = document.querySelectorAll('.api-add-wrap pre.schema')[index]
-        data.dataSchema = list2schema(JSON.parse(JSON.stringify(data.dataList)))
-        preDom.innerText = JSON.stringify(data.dataSchema, null, 2)
-      } catch (e) {
-        console.error('转换schema失败：' + e)
-      }
-    } else if (tabName === 'table') {
-      data.dataList = schema2list(data.dataSchema)
-    } else if (tabName === 'json') {
-      data.dataSchema = list2schema(JSON.parse(JSON.stringify(data.dataList)))
-      let preJson: any = document.querySelectorAll('.api-add-wrap pre.json')[index]
-      preJson.innerText = JSON.stringify(await this.getJson(data.dataSchema), null, 2)
-    }
-  }
-  schemaChanged(e: any, index: number) {
-    const text = e.target.innerText
-    try {
-      let data: any
-      if (index === 0) {
-        data = this.api.request
-      } else if (index === 1) {
-        data = this.api.response
-      } else {
-        console.error('找不到对应的数据对象:' + index)
-        return
-      }
-      data.dataSchema = JSON.parse(text)
-      data.dataList = schema2list(data.dataSchema)
-    } catch (e) {
-      console.error('转换schema失败' + e)
-    }
-  }
-  async getJson(schema: any) {
-    return await jsf.resolve(schema)
-  }
-  json2schema(json: any) {
-    // todo
-  }
   rules: Object = {
     name: [{required: true}],
     module: [{required: true}],
@@ -314,8 +230,6 @@ export default class apiEdit extends Vue {
     if (this.mode === 'edit') {
       let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
       this.api = resp
-      this.api.request.dataList = schema2list(resp.request.dataSchema)
-      this.api.response.dataList = schema2list(resp.response.dataSchema)
     } else if (this.mode === 'add') {
       this.api = new Api(this.moduleName)
     } else {
@@ -339,8 +253,6 @@ export default class apiEdit extends Vue {
     _this.$refs.api.validate(async (valid:boolean) => {
       if (valid) {
         let op = _this.mode === 'edit' ? '修改' : '添加'
-        _this.api.request.dataSchema = list2schema(_this.api.request.dataList)
-        _this.api.response.dataSchema = list2schema(_this.api.response.dataList)
         let resp:any = _this.mode === 'edit'
         ? await http.put('/api/project/' + _this.proId + '/api/' + _this.apiId, _this.api)
         : await http.post('/api/project/' + _this.proId + '/api', _this.api)
@@ -482,26 +394,7 @@ export default class apiEdit extends Vue {
   }
 }
 </script>
-<style lang="stylus">
-.api-add-wrap
-  for num in (1..10)
-    .bg-{num} input
-      // background-color convert('#f'+num+'f'+num+'f'+num)
-    span.bg-{num}
-      margin-left unit(num,em)
-  .plus-btn
-    margin-left 5px
-    line-height 40px
-  .el-table
-    td,
-    th
-      height 40
-      .cell
-        padding 0 5px !important
-  .data-list-table
-    .cell
-      display flex
-</style>
+
 <style lang="stylus" scoped>
 .drag-line
   position absolute
@@ -522,44 +415,16 @@ export default class apiEdit extends Vue {
 .btn-add-child-param
   top 50%
   transform translateY(-50%)
-.icon-node
-  position relative
-  width 15px
-  height 40px
-  line-height 1
-  border-left 1px solid #ccc
-.icon-node:after
-  z-index 10
-  content ''
-  position absolute
-  width 15px
-  height 1px
-  bottom 50%
-  border-bottom 1px solid #ccc
-.param-name
-  line-height 40px
 .pre-mock
   z-index 99
   padding-left 20px
   padding-bottom 80px
   width 250px
   background-color #fff
-.pre
-  line-height 1.5
 .submit-btns
   z-index 9999
   padding 2px
   border-top 1px solid #ccc
   background-color #F9FAFC
-.root
-  line-height 40px
-.data-select
-  line-height 40px
-  width 90px
-  margin-left 5px
-pre.schema, pre.json
-  line-height 15px
-  margin 0
-  min-height 100px
 </style>
 
