@@ -30,9 +30,9 @@
                 el-button(size='mini', @click='delItem("param", api.request.paramList, scope.row, scope.$index)', icon='close', type='danger')
         div.append-table-row.ta-c
           el-button(type='primary', size='small', icon='plus', @click='addItem("param", api.request.paramList)')
-
+      // 请求/响应体
       template(v-for='(data, index) in [api.request.dataList, api.response.dataList]')
-        el-form-item.ta-l(:label='index===0?"请求体":"响应体"', :key='index', v-if='!(index===0&&api.method==="GET")')
+        el-form-item.ta-l(:label='index===0?"请求体":"响应体"', :key='index', v-show='!(index===0&&api.method==="GET")')
           el-tabs(v-model="activeTab[index]", type="border-card", @tab-click="tabClick(index, activeTab[index])")
             el-tab-pane(label="表格", name="table")  
               el-table.data-list-table(:data='data', border)
@@ -40,7 +40,7 @@
                   template(scope='scope')
                     span.d-ib.icon-node(v-if='scope.row.ancestor.length>0', :class="scope.row.className")
                     span.c-silver.root(v-if="scope.row.isRoot") {{scope.row.name}} 
-                    el-input.d-ib.f-1.param-name(v-if="!scope.row.isRoot", v-model='scope.row.name', 
+                    el-input.d-ib.f-1.param-name(:disabled="scope.row.noName", v-if="!scope.row.isRoot", v-model='scope.row.name', 
                     :class="scope.row.className", size='small')
                     el-select.data-select(:disabled="scope.row.isRoot", v-model='scope.row.type', 
                     :key='scope.row.id', size='small', @change='changeType(data, scope.row, scope.$index)')
@@ -53,12 +53,13 @@
                 el-table-column(prop='required', label='必传', width='50', align='center')
                   template(scope='scope')
                     el-checkbox(v-if="!scope.row.isRoot", v-model='scope.row.required', size='normal')
-                el-table-column(prop='mock', label='JSONSchema属性', header-align='center', width='250')
+                el-table-column(prop='property', label='JSONSchema属性', header-align='center', width='250')
                   template(scope='scope')
-                    el-input(v-model='scope.row.mock', size='small')
+                    el-input(v-model='scope.row.property', size='small')
             el-tab-pane(label="JSON", name="json")
+              pre.json
             el-tab-pane(label="Schema", name="schema")
-              pre.schema(contenteditable="", @keyup='schemaChanged($event, index)') {{index==0?api.request.dataSchema:api.response.dataSchema}}
+              pre.schema(contenteditable="", @keyup='schemaChanged($event, index)')
             
       el-form-item.ta-l(label='高级配置')
         span(@click='showAdvancedConfig=!showAdvancedConfig')
@@ -125,30 +126,9 @@ import {gId} from '../../service/util.ts'
 import Mock from 'mockjs'
 import EventDelegate from '../../service/EventDelegate'
 import {Prop, Watch} from 'vue-property-decorator'
-// import * as jsf from 'json-schema-faker'
+import jsf from 'json-schema-faker'
+import {schema2list, list2schema} from '../../service/schemaTransformer'
 
-// interface Api extends Object {
-//   version?: string,
-//   id?: string,
-//   name: string,
-//   url: string,
-//   method: string,
-//   module?: string,
-//   remark?: string,
-//   isTest?: boolean,
-//   request: {
-//     paramList: Param[],
-//     dataList: Param[],
-//     headerList: any[]
-//   },
-//   response: {
-//     dataList: Param[],
-//     headerList: any[],
-//     errList: Err[]
-//   },
-//   delay?: number,
-//   [key:string]:any
-// }
 interface Err extends Object {
   enabled?: string,
   data?: string,
@@ -270,7 +250,7 @@ export default class apiEdit extends Vue {
     let moveX:any = Number(this.startX - e.pageX)
     this.eleMock.style.width = 250 + moveX + 'px'
   }
-  tabClick(index: 0|1, tabName: string) {
+  async tabClick(index: 0|1, tabName: string) {
     let data: any
     if (index === 0) {
       data = this.api.request
@@ -281,10 +261,18 @@ export default class apiEdit extends Vue {
     }
     if (tabName === 'schema') {
       try {
-        data.dataSchema = this.list2schema(JSON.parse(JSON.stringify(data.dataList)))
+        let preDom: any = document.querySelectorAll('.api-add-wrap pre.schema')[index]
+        data.dataSchema = list2schema(JSON.parse(JSON.stringify(data.dataList)))
+        preDom.innerText = JSON.stringify(data.dataSchema, null, 2)
       } catch (e) {
         console.error('转换schema失败：' + e)
       }
+    } else if (tabName === 'table') {
+      data.dataList = schema2list(data.dataSchema)
+    } else if (tabName === 'json') {
+      data.dataSchema = list2schema(JSON.parse(JSON.stringify(data.dataList)))
+      let preJson: any = document.querySelectorAll('.api-add-wrap pre.json')[index]
+      preJson.innerText = JSON.stringify(await this.getJson(data.dataSchema), null, 2)
     }
   }
   schemaChanged(e: any, index: number) {
@@ -300,77 +288,16 @@ export default class apiEdit extends Vue {
         return
       }
       data.dataSchema = JSON.parse(text)
-      data.dataList = this.schema2list(data.dataSchema)
+      data.dataList = schema2list(data.dataSchema)
     } catch (e) {
       console.error('转换schema失败' + e)
     }
   }
-  schema2list(schemaObj: any) {
-    let travel = (schema: any, list: Param[]) => {
-      switch (schema.type) {
-        case 'object':
-          break
-        case 'array':
-          break
-        default:
-        // todo
-      }
-    }
-    return travel(schemaObj, [])
+  async getJson(schema: any) {
+    return await jsf.resolve(schema)
   }
-  list2schema(list: Param[]) {
-    let append2parent = (ancestor: string[], origin: any, node: any, required: boolean): any => {
-      if (ancestor.length === 0) {
-        // 没有祖先，该节点为根节点
-        for (let e in node) {
-          origin[e] = node[e]
-        }
-      } else {
-        const parentId = ancestor[ancestor.length - 1]
-        if (origin.type === 'object') {
-          origin.properties = origin.properties || {}
-          if (origin.id === parentId) {
-            origin.properties[node.name] = node
-            if (required) {
-              origin.required = origin.required || []
-              origin.required.push(node.name)
-            }
-          } else if (ancestor.indexOf(origin.id) > -1) {
-            for (let p in origin.properties) {
-              let current = origin.properties[p]
-              append2parent(ancestor, current, node, required)
-            }
-          }
-        } else if (origin.type === 'array') {
-          origin.items = origin.items || []
-          if (origin.id === parentId) {
-            origin.items.push(node)
-          } else if (ancestor.indexOf(origin.id) > -1) {
-            origin.items.forEach((current: any) => {
-              append2parent(ancestor, current, node, required)
-            })
-          }
-        }
-      }
-    }
-    let result = {}
-    list.forEach((row: Param) => {
-      let node = {
-        name: row.name,
-        type: row.type,
-        id: row.id,
-        description: row.remark
-      }
-      if (row.property) {
-        try {
-          Object.assign(node, JSON.parse(row.property))
-        } catch (e) {
-          console.error('schema属性转换失败' + e)
-        }
-      }
-      append2parent(row.ancestor, result, node, row.required)
-    })
-    return result
+  json2schema(json: any) {
+    // todo
   }
   rules: Object = {
     name: [{required: true}],
@@ -387,8 +314,12 @@ export default class apiEdit extends Vue {
     if (this.mode === 'edit') {
       let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
       this.api = resp
+      this.api.request.dataList = schema2list(resp.request.dataSchema)
+      this.api.response.dataList = schema2list(resp.response.dataSchema)
     } else if (this.mode === 'add') {
       this.api = new Api(this.moduleName)
+    } else {
+      console.error('模式错误:' + this.mode)
     }
   }
   async beforeMount() {
@@ -404,18 +335,20 @@ export default class apiEdit extends Vue {
     return this.apiId ? 'edit' : 'add'
   }
   async submit() {
-    let that = this
-    that.$refs.api.validate(async (valid:boolean) => {
+    let _this = this
+    _this.$refs.api.validate(async (valid:boolean) => {
       if (valid) {
-        let op = that.mode === 'edit' ? '修改' : '添加'
-        let resp:any = that.mode === 'edit'
-        ? await http.put('/api/project/' + that.proId + '/api/' + that.apiId, that.api)
-        : await http.post('/api/project/' + that.proId + '/api', that.api)
+        let op = _this.mode === 'edit' ? '修改' : '添加'
+        _this.api.request.dataSchema = list2schema(_this.api.request.dataList)
+        _this.api.response.dataSchema = list2schema(_this.api.response.dataList)
+        let resp:any = _this.mode === 'edit'
+        ? await http.put('/api/project/' + _this.proId + '/api/' + _this.apiId, _this.api)
+        : await http.post('/api/project/' + _this.proId + '/api', _this.api)
         if (resp.errCode) {
-          that.$message({ type: 'error', message: resp.errMsg || op + '失败' })
+          _this.$message({ type: 'error', message: resp.errMsg || op + '失败' })
         } else {
-          that.$message({ type: 'success', message: op + '成功' })
-          that.$emit('updated')
+          _this.$message({ type: 'success', message: op + '成功' })
+          _this.$emit('updated')
         }
       }
       return false
@@ -455,18 +388,15 @@ export default class apiEdit extends Vue {
     }
   }
   addData(data:any, row?:any, index?:any) {
-    let id: string = gId()
-    let ancestor:string[] = ['root']
-    if (row) {
-      ancestor = row.ancestor.concat([row.id])
-    }
+    let ancestor: string[] = row.ancestor.concat([row.id])
     data.splice(row ? index + 1 : data.length, 0, {
-      id: id,
-      ancestor: ancestor,
+      id: gId(),
+      ancestor,
       name: '',
       type: 'string',
-      required: true,
+      required: row.type !== 'array',
       remark: '',
+      noName: row.type === 'array', // 数组元素无属性名
       className: 'bg-' + ancestor.length
     })
   }
@@ -556,7 +486,7 @@ export default class apiEdit extends Vue {
 .api-add-wrap
   for num in (1..10)
     .bg-{num} input
-      background-color convert('#f'+num+'f'+num+'f'+num)
+      // background-color convert('#f'+num+'f'+num+'f'+num)
     span.bg-{num}
       margin-left unit(num,em)
   .plus-btn
@@ -627,8 +557,9 @@ export default class apiEdit extends Vue {
   line-height 40px
   width 90px
   margin-left 5px
-pre.schema
-  line-height 20px
+pre.schema, pre.json
+  line-height 15px
   margin 0
+  min-height 100px
 </style>
 

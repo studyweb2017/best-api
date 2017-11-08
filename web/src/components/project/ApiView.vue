@@ -66,6 +66,7 @@ import Component from 'vue-class-component'
 import http from '../../service/http.ts'
 import cache from '../../service/cache.ts'
 import {Prop} from 'vue-property-decorator'
+import {schema2list, Param} from '../../service/schemaTransformer'
 
 interface Api extends Object {
   id?: string,
@@ -89,18 +90,7 @@ interface Api extends Object {
   urlClassName?: string,
   methodClassName?: string,
 }
-interface Param extends Object {
-  id: string,
-  pid: string,
-  cid: string[],
-  name: string,
-  type: string,
-  required: boolean,
-  mock: string,
-  rule?: string,
-  remark?: string,
-  className?: string
-}
+
 const tagType:any = {
   GET: 'primary',
   POST: 'success',
@@ -137,6 +127,8 @@ export default class apiView extends Vue {
     if (this.proId && this.apiId) {
       let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
       this.api = resp || this.api
+      this.api.request.dataList = schema2list(resp.request.dataSchema)
+      this.api.response.dataList = schema2list(resp.response.dataSchema)
     }
   }
   get methodType() {

@@ -10,25 +10,26 @@ let paramSchemaObj = {
     }],
     default: []
   },
-  paramList: {
-    type: [{
-      _id: false,
-      id: String,
-      name: String,
-      required: Boolean,
-      ancestor: [String],
-      type: {
-        type: String,
-        enum: ['String', 'Number', 'Boolean', 'Object', 'Array'],
-        set(v: string) {
-          return `${v[0].toUpperCase()}${v.slice(1)}`
-        }
-      },
-      mock: String,
-      remark: String
-    }],
-    default: []
-  }
+  dataSchema: Schema.Types.Mixed
+  // paramList: {
+  //   type: [{
+  //     _id: false,
+  //     id: String,
+  //     name: String,
+  //     required: Boolean,
+  //     ancestor: [String],
+  //     type: {
+  //       type: String,
+  //       enum: ['String', 'Number', 'Boolean', 'Object', 'Array'],
+  //       set(v: string) {
+  //         return `${v[0].toUpperCase()}${v.slice(1)}`
+  //       }
+  //     },
+  //     mock: String,
+  //     remark: String
+  //   }],
+  //   default: []
+  // }
 }
 
 let requestSchema = new Schema(Object.assign({
@@ -81,7 +82,6 @@ let InterfaceSchemaObj = {
   },
   version: {
     type: String,
-    required: true,
     default: () => new Date().getTime().toString(36)
   },
   module: String,

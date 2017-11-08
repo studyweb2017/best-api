@@ -16,6 +16,7 @@ import Component from 'vue-class-component'
 import ApiList from './ApiList.vue'
 import ApiView from './ApiView.vue'
 import ApiEdit from './ApiEdit.vue'
+import http from '../../service/http'
 
 @Component({
   components: {
@@ -27,6 +28,8 @@ import ApiEdit from './ApiEdit.vue'
 export default class ApiIndex extends Vue {
   $router: any
   $route: any
+  $message: any
+  $confirm: any
   mode: string = ''
   moduleName: string = ''
   get proId() {
@@ -75,8 +78,22 @@ export default class ApiIndex extends Vue {
   cancelEdit() {
     this.mode = this.apiId ? 'view' : ''
   }
-  deleteApi(id: string) {
-    //
+  async deleteApi(id: string) {
+    try {
+      await this.$confirm(`确认删除接口?`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+      let resp: any = await http.delete(`/api/project/${this.proId}/api/${this.apiId}`)
+      if (resp.errCode) {
+        this.$message({type: 'error', message: resp.errMsg || '删除失败'})
+      } else {
+        this.$message({type: 'success', message: '删除成功'})
+      }
+    } catch (e) {
+      console.error(e)
+    }
   }
   apiModified() {
     this.mode = 'view'

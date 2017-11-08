@@ -35,7 +35,6 @@ export default class apiList extends Vue {
   $message: any
   $confirm: any
   $prompt: any
-  proName: string
   apiList: any[] = []
   showTree: boolean = true
   visibleWidth: number = 200
@@ -134,13 +133,11 @@ export default class apiList extends Vue {
   async refreshApiList() {
     this.refreshing = true
     let resp: any = await http.get('/api/project/' + this.proId + '/api')
-    let resp2: any = await http.get('/api/project/' + this.proId)
-    if (resp2.name && resp.apiList) {
-      this.proName = resp2.name
+    if (resp.apiList) {
       let list: any = formatApiToTree(resp.apiList)
       this.apiList = list || []
     } else {
-      this.$message({type: 'error', message: resp2.errMsg || '刷新失败'})
+      this.$message({type: 'error', message: resp.errMsg || '刷新失败'})
     }
     this.refreshing = false
   }
@@ -259,7 +256,7 @@ export default class apiList extends Vue {
       })
       this.apiList.splice(idx, 1)
     } catch (e) {
-      this.$message.error(e)
+      console.error(e)
     }
   }
 }
