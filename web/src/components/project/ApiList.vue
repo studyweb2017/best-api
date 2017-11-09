@@ -10,7 +10,7 @@
         el-tree.ta-l.ov-y-a.ov-x-h(v-show='showTree', ref='apiTree', @node-click='selectApi',
         class='filter-tree', :data="apiList", :props='defaultProps', :expand-on-click-node='false',
           :default-expanded-keys='expandedKeys', node-key='id', :highlight-current="true",
-          :filter-node-method='filterNode', :render-content='renderBtn', empty-text="请先添加模块")
+          :filter-node-method='filterNode', :render-content='renderBtn', :empty-text="emptyText")
     div.drag-line(@mousedown='mousedown')
 </template>
 
@@ -25,7 +25,6 @@ import EventDelegate from '../../service/EventDelegate'
 
 @Component
 export default class apiList extends Vue {
-  refreshing: boolean = false
   @Prop()
   proId: string
   @Prop()
@@ -44,6 +43,7 @@ export default class apiList extends Vue {
   visibleWidth: number = 200
   startX: number = 0
   startWidth: number
+  emptyText: string = 'API加载中...'
   treeStyle: any = {
     width: '200px'
   }
@@ -77,7 +77,7 @@ export default class apiList extends Vue {
   }
   fold(isFold: boolean) {
     let node: any = document.querySelectorAll('.api-tree .el-tree-node__expand-icon')
-    node.forEach((n: any) => {
+    Array.prototype.forEach.call(node, (n: any) => {
       let unfold = n.className.indexOf('expanded') < 0
       if (unfold && !isFold) n.click()
       if (!unfold && isFold) n.click()
@@ -119,7 +119,7 @@ export default class apiList extends Vue {
       apiNum = '(' + data.children.length + ')'
     }
     return h('div', {
-      class: ['f-1', 'cu-d', 'p-r', 'tree-node', 'ov-h', 'to-e'],
+      class: ['f-1', 'cu-d', 'p-r', 'tree-node', 'to-e'],
       attrs: {
         title: data.name
       }
@@ -170,15 +170,14 @@ export default class apiList extends Vue {
     }, 0)
   }
   async refreshApiList() {
-    this.refreshing = true
     let resp: any = await http.get('/api/project/' + this.proId + '/api')
     if (resp.apiList) {
       let list: any = formatApiToTree(resp.apiList)
       this.apiList = list || []
+      resp.list.length === 0 ? this.emptyText = '请先添加模块' : void 0
     } else {
       this.$message({type: 'error', message: resp.errMsg || '刷新失败'})
     }
-    this.refreshing = false
   }
   mounted() {
     this.refreshApiList()
@@ -313,7 +312,7 @@ export default class apiList extends Vue {
     display flex
     height 30px
     line-height 30px
-    overflow-y hidden
+    overflow hidden
     .el-tree-node__expand-icon
       margin-top 8px
     .tree-node:hover
