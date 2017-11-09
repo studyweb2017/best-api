@@ -111,6 +111,7 @@ export default class ApiIndex extends Vue {
 </script>
 <style scoped lang="stylus">
 .api-detail-wrap
+  box-sizing content-box
   padding 7px 0 10px 30px
 .operation-btns
   z-index 100

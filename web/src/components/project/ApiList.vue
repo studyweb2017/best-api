@@ -119,7 +119,7 @@ export default class apiList extends Vue {
       apiNum = '(' + data.children.length + ')'
     }
     return h('div', {
-      class: ['f-1', 'cu-d', 'p-r', 'tree-node', 'o-h', 'to-e'],
+      class: ['f-1', 'cu-d', 'p-r', 'tree-node', 'ov-h', 'to-e'],
       attrs: {
         title: data.name
       }
@@ -341,6 +341,7 @@ export default class apiList extends Vue {
   border-right-width 0
   height 100%
   min-width 10px
+  overflow-y auto
 .api-operation
   padding 5px
 .drag-line

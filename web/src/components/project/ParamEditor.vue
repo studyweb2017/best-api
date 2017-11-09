@@ -349,7 +349,7 @@ export default class ParamEditor extends Vue {
     .bg-{num} input
       // background-color convert('#f'+num+'f'+num+'f'+num)
     span.bg-{num}
-      margin-left unit((num - 1) * 2,em)
+      margin-left unit((num - 1) * 3,ch)
   .plus-btn
     margin-left 5px
     line-height 40px
@@ -378,14 +378,12 @@ pre.schema, pre.json
 .icon-node
   position relative
   width 15px
-  height 40px
-  line-height 1
   border-left 1px solid #ccc
 .icon-node:after
   z-index 10
   content ''
   position absolute
-  width 15px
+  width 10px
   height 1px
   bottom 50%
   border-bottom 1px solid #ccc
@@ -394,10 +392,12 @@ pre.schema, pre.json
 .pre
   line-height 1.5
 .row-type
-  margin 8px 6px 8px 0
-  min-width 9ch
+  margin 5px 6px 3px 0
+  min-width 8ch
   text-align center
+  line-height 18px
+  height 20px
 .row-name
-  line-height 40px
-  margin-left 5px
+  line-height 30px
+  margin-left 1px
 </style>
