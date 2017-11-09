@@ -6,6 +6,7 @@ import * as _ from 'underscore'
 
 export default class BaseCtrl {
   protected model: any
+  protected throw = Observable.throw
   protected from = Observable.from
   protected of = Observable.of
   protected module: string

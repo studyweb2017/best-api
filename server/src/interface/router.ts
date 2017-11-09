@@ -6,6 +6,7 @@ let interfaceCtrl = new Ctrl()
 
 export default interfaceRouter.router
   .get('/project/:pid/api', (ctx: any) => interfaceRouter.handle(ctx, interfaceCtrl.get(ctx.params.pid,ctx.user._id, ctx.user.isAdmin)))
+  .get('/project/:pid/api/exist', (ctx: any) => interfaceRouter.handle(ctx, interfaceCtrl.isExist(ctx.params.pid, ctx.query.url, ctx.query.method, ctx.user._id, ctx.user.isAdmin)))
   .get('/project/:pid/api/module', (ctx: any) => interfaceRouter.handle(ctx, interfaceCtrl.getModule(ctx.params.pid,ctx.user._id, ctx.user.isAdmin)))
   .get('/project/:pid/api/:id', (ctx: any) => interfaceRouter.handle(ctx, 
     ctx.query.version ? interfaceCtrl.getHistoryById(ctx.params.pid, ctx.params.id, ctx.query.version, ctx.user._id, ctx.user.isAdmin)

@@ -1,6 +1,6 @@
 <template lang="pug">
   div.p-a.l-0.r-0.b-0.t-40.d-f.bg-white
-    ApiList(:proId="proId", :clickedId="apiId", @add="addApi", @view="viewApi", @edit="editApi", @delete="deleteApi")
+    ApiList(:refresh="refreshApiList", :proId="proId", :clickedId="apiId", @add="addApi", @view="viewApi", @edit="editApi", @delete="deleteApi")
     ApiEdit.f-1.ov-y-a(v-if="mode==='edit'", :proId="proId", :apiId="mode==='edit'?apiId:''", :moduleName="moduleName", @updated="apiModified",  @cancel="cancelEdit")
     div.d-f.fd-c.f-1.ov-y-a(v-if="mode==='view'")
       div.api-detail-wrap.p-r#detail-wrap.ta-l
@@ -32,6 +32,7 @@ export default class ApiIndex extends Vue {
   $confirm: any
   mode: string = ''
   moduleName: string = ''
+  refreshApiList: any = Math.random()
   get proId() {
     return this.$route.params.proId
   }
@@ -95,8 +96,16 @@ export default class ApiIndex extends Vue {
       console.error(e)
     }
   }
-  apiModified() {
+  apiModified(id: string) {
     this.mode = 'view'
+    this.$router.push({
+      name: 'api',
+      query: {
+        id,
+        _: Math.random()
+      }
+    })
+    this.refreshApiList = Math.random()
   }
 }
 </script>

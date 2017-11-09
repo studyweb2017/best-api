@@ -3,6 +3,8 @@
     div(v-show="parseInt(treeStyle.width)>=visibleWidth")
       el-input.api-search(size='small', v-show='showTree', @keydown.esc.native="esc", icon='search', v-model='filterText', placeholder="查询接口[alt+f]")
       div.api-operation.ta-r
+        i.mr-10.el-icon-caret-right.cu-p.c-gray(title="折叠", @click="fold(true)")
+        i.mr-10.el-icon-caret-bottom.cu-p.c-gray(title="展开", @click="fold(false)")
         i.el-icon-plus.cu-p.c-blue(title="添加模块[alt+m]", @click="addModule")
       div.api-tree
         el-tree.ta-l.ov-y-a.ov-x-h(v-show='showTree', ref='apiTree', @node-click='selectApi',
@@ -30,6 +32,8 @@ export default class apiList extends Vue {
   apiId: string
   @Prop()
   clickedId: string
+  @Prop()
+  refresh: number
   Mock: any
   $refs: any
   $message: any
@@ -67,6 +71,18 @@ export default class apiList extends Vue {
       width
     }
   }
+  @Watch('refresh')
+  repain() {
+    this.refreshApiList()
+  }
+  fold(isFold: boolean) {
+    let node: any = document.querySelectorAll('.api-tree .el-tree-node__expand-icon')
+    node.forEach((n: any) => {
+      let unfold = n.className.indexOf('expanded') < 0
+      if (unfold && !isFold) n.click()
+      if (!unfold && isFold) n.click()
+    })
+  }
   renderBtn(h:any, { node, data, store }:any) {
     let __this = this
     let createBtn = (icon: string, title: string) => {
@@ -84,13 +100,34 @@ export default class apiList extends Vue {
         }
       })
     }
+    let tagClass : string[] = []
+    let tagName: string = ''
+    let apiNum: string = ''
+    if (!data.children) {
+      tagClass = ['el-tag', 'p-a', 'method-tag']
+      const className: any = {
+        GET: 'el-tag--primary',
+        POST: 'el-tag--success',
+        PUT: 'el-tag--warning',
+        DELETE: 'el-tag--danger',
+        'undefined': ''
+      }
+      tagName = data.method || ''
+      tagName = tagName.substring(0, 3)
+      tagClass.push(className[data.method])
+    } else {
+      apiNum = '(' + data.children.length + ')'
+    }
     return h('div', {
       class: ['f-1', 'cu-d', 'p-r', 'tree-node', 'o-h', 'to-e'],
       attrs: {
         title: data.name
       }
     }, [
-      h('span', data.name),
+      h('span', {
+        class: tagClass
+      }, tagName),
+      h('span', data.name + apiNum),
       h('div', {
         class: {
           'node-btns': true
@@ -128,7 +165,9 @@ export default class apiList extends Vue {
   }
   setNodeClicked(name: string, isModule: boolean=true) {
     let firstLeaf:any = document.querySelector(`.api-list-wrap ${isModule ? '.tree-node' : ''}[title="${name}"]`)
-    firstLeaf.click()
+    setTimeout(() => {
+      firstLeaf.click()
+    }, 0)
   }
   async refreshApiList() {
     this.refreshing = true
@@ -150,7 +189,14 @@ export default class apiList extends Vue {
     })
     // 创建API
     hotkeys('alt+n', (e:any) => {
-      let btn: any = document.querySelector('.api-tree .is-current .el-icon-document')
+      let btn: any
+      btn = document.querySelector('.api-tree .is-current .el-icon-document')
+      if (!btn) {
+        const current: any = document.querySelector('.api-tree .is-current')
+        const parent: any = current.parentNode
+        const ancestor: any = parent.parentNode
+        btn = ancestor.querySelector('.el-icon-document')
+      }
       btn.click()
     })
     // 聚焦到搜索框
@@ -269,7 +315,7 @@ export default class apiList extends Vue {
     line-height 30px
     overflow-y hidden
     .el-tree-node__expand-icon
-      margin-top 10px
+      margin-top 8px
     .tree-node:hover
       .node-btns
         visibility visible
@@ -281,6 +327,12 @@ export default class apiList extends Vue {
         visibility hidden
         .el-icon-delete
           color #FF4949
+    .method-tag
+      margin-left -38px
+      margin-top 6px
+      height 16px
+      line-height 16px
+      padding 0 2px
 </style>
 <style lang="stylus" scoped>
 .api-list-wrap

@@ -12,6 +12,25 @@ let projectCtrl = new ProjectCtrl()
 export default class InterfaceCtrl extends BaseCtrl {
   module = '接口'
   /**
+   * 查询接口是否已存在
+   * @param pid 项目id
+   * @param url 请求路径
+   * @param method 请求方法
+   * @param uid 用户id
+   * @param isAdmin 是否管理员
+   */
+  isExist(pid: string, url: string, method: string, uid: string, isAdmin: boolean) {
+    return this.from(this.get(pid, uid, isAdmin))
+      .map((result: any) => {
+        let map :any = {}
+        result.apiList.forEach((api: any) => {
+          map[api.method.toLowerCase() + '-' + api.url.replace(/(\:)\w*/ig, '$1')] = api
+        })
+        let common: any = map[method.toLowerCase() + '-' + url.replace(/(\:)\w*/ig, '$1')] || {id: ''}
+        return common
+      })
+  }
+  /**
    * 查询项目下的接口列表
    * @param pid 项目id
    * @param uid 用户id
@@ -150,20 +169,27 @@ export default class InterfaceCtrl extends BaseCtrl {
   post(pid: string, ifc: any, uid: string, isAdmin: boolean, uname: string) {
     return this.verifyAuth(isAdmin, pid, uid, [role.developer, role.master])
       .switchMap(() => {
-        ifc.pid = pid
-        ifc.request.urlParams = ifc.request.paramList
-        ifc.request.paramList = ifc.request.dataList
-        ifc.response.paramList = ifc.response.dataList
-        return Observable.fromPromise(InterfaceModel.create(ifc))
-          .do((ifc: any) => {
-            projectCtrl.getMemberList(pid)
-            .subscribe((memberList:any) => {
-              engine.notify(engine.c, ifc)
-              this.newCreateMessage(ifc.id, ifc.name, uname, memberList, ifc.url + ' ' + ifc.method) 
-            })
-          })
-          .map((doc: any) => ({ id: doc.id }))
+        return this.isExist(pid, ifc.url, ifc.method, uid, isAdmin)
       })
+      .switchMap((common: any) => {
+        if(common.id) {
+          return this.throw({errCode: 222, errMsg: '该API已经被创建', id: common.id, name: common.name})
+        } else {
+          ifc.pid = pid
+          ifc.request.urlParams = ifc.request.paramList
+          ifc.request.paramList = ifc.request.dataList
+          ifc.response.paramList = ifc.response.dataList
+          return Observable.fromPromise(InterfaceModel.create(ifc))
+        }
+      })
+      .do((ifc: any) => {
+        projectCtrl.getMemberList(pid)
+        .subscribe((memberList:any) => {
+          engine.notify(engine.c, ifc)
+          this.newCreateMessage(ifc.id, ifc.name, uname, memberList, ifc.url + ' ' + ifc.method) 
+        })
+      })
+      .map((doc: any) => ({ id: doc.id })) 
   }
   /**
    * 修改接口
@@ -179,23 +205,27 @@ export default class InterfaceCtrl extends BaseCtrl {
     ifc.response.paramList = ifc.response.dataList
     return this.verifyAuth(isAdmin, pid, uid, [role.developer, role.master])
       .switchMap(() => {
-        return Observable.fromPromise(InterfaceModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(iid) }, { $set: ifc }).exec())
-          .switchMap((doc: any) => {
-            if (doc) {
-              let log = doc.toObject()
-              log.iid = this.objectId(iid)
-              delete log._id
-              delete log.version
-              projectCtrl.getMemberList(pid)
-              .subscribe((memberList:any) => {
-                engine.notify(engine.u, ifc)
-                this.newUpdateMessage(iid, ifc.name, uname, memberList, ifc.url + ' ' + ifc.method)
-              })
-              return Observable.fromPromise(InterfaceHistoryModel.create(log))
-            } else {
-              return Observable.throw('更新接口失败')
-            }
+        return this.isExist(pid, ifc.url, ifc.method, uid, isAdmin)
+      })
+      .switchMap((common: any) => {
+        if(common.id) return this.throw({errCode: 222, errMsg: '该API已经存在', id: common.id, name: common.name})
+        else return Observable.fromPromise(InterfaceModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(iid) }, { $set: ifc }).exec())
+      })
+      .switchMap((doc: any) => {
+        if (doc) {
+          let log = doc.toObject()
+          log.iid = this.objectId(iid)
+          delete log._id
+          delete log.version
+          projectCtrl.getMemberList(pid)
+          .subscribe((memberList:any) => {
+            engine.notify(engine.u, ifc)
+            this.newUpdateMessage(iid, ifc.name, uname, memberList, ifc.url + ' ' + ifc.method)
           })
+          return Observable.fromPromise(InterfaceHistoryModel.create(log))
+        } else {
+          return Observable.throw('更新接口失败')
+        }
       })
   }
   /**

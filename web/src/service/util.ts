@@ -29,6 +29,7 @@ function formatApiToTree (apiList:any[]): Tree[] {
           children: [{
             label:'url',
             api: api,
+            method: api.method,
             name: api.name,
             id: api.id
           }]
@@ -38,6 +39,7 @@ function formatApiToTree (apiList:any[]): Tree[] {
         urls.unshift({
           label: 'url',
           name: api.name,
+          method: api.method,
           id: api.id,
           api: api
         })

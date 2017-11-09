@@ -15,15 +15,12 @@
             el-table-column(label='说明', prop='remark', min-width='100', align='left')
               template(scope='scope')
                 .nowrap(:title="scope.row.remark") {{scope.row.remark}}
-            el-table-column(label='Mock', prop='mock', width='150', align='left')
-            el-table-column(label='类型', prop='required', width='80', align='left')
-              template(scope='scope')
-                span {{scope.row.required ? '必传' : '可选'}}
+            el-table-column(label='模拟数据', prop='mock', width='150', align='left')
         el-form-item.ta-l(label='请求体', v-if='api.method!=="GET"')
-          ParamEditor(:schema='api.request.dataSchema', readonly="true")
+          ParamEditor(:schema='api.request.dataSchema', :readonly="true")
         el-form-item.ta-l(label='响应体')
-          ParamEditor(:schema='api.response.dataSchema')
-        el-form-item.cl-b.ta-l(label='可测试', v-if="api.isTest", readonly="true")
+          ParamEditor(:schema='api.response.dataSchema', :readonly="true")
+        el-form-item.cl-b.ta-l(label='可测试', v-if="api.isTest", :readonly="true")
           span {{api.isTest}}
         el-form-item.ta-l(label='延迟响应', v-if="api.delay")
           span {{api.delay + '毫秒'}}
@@ -49,7 +46,7 @@ import Vue from 'vue'
 import Component from 'vue-class-component'
 import http from '../../service/http.ts'
 import cache from '../../service/cache.ts'
-import {Prop} from 'vue-property-decorator'
+import {Prop, Watch} from 'vue-property-decorator'
 import ParamEditor from './ParamEditor'
 
 const tagType:any = {
@@ -76,11 +73,9 @@ export default class apiView extends Vue {
     remark: '',
     request: {
       paramList: [],
-      dataList: [],
       headerList: []
     },
     response: {
-      dataList: [],
       headerList: [],
       errList: []
     }
@@ -89,10 +84,17 @@ export default class apiView extends Vue {
   $confirm: any
   showAdvancedConfig: boolean = false
   async created() {
+    await this.reload()
+  }
+  async reload() {
     if (this.proId && this.apiId) {
       let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
-      this.api = resp || this.api
+      this.api = resp
     }
+  }
+  @Watch('apiId')
+  async apiChanged() {
+    await this.reload()
   }
   get methodType() {
     return this.api.method ? tagType[this.api.method] : ''

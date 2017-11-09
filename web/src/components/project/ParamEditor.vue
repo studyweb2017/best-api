@@ -5,42 +5,49 @@ div.param-editor(:id="id")
       el-table.data-list-table(:data='dataList', border)
         el-table-column.d-f(prop='name', label='参数名', header-align='left')
           template(scope='scope')
+            el-tag.row-type(v-if="readonly", v-show="'string'===scope.row.type", :key="scope.row.type", type="gray") {{scope.row.type}}
+            el-tag.row-type(v-if="readonly", v-show="'object'===scope.row.type", :key="scope.row.type", type="primary") {{scope.row.type}}
+            el-tag.row-type(v-if="readonly", v-show="'array'===scope.row.type", :key="scope.row.type", type="success") {{scope.row.type}}
+            el-tag.row-type(v-if="readonly", v-show="'number'===scope.row.type", :key="scope.row.type", type="warning") {{scope.row.type}}
+            el-tag.row-type(v-if="readonly", v-show="'boolean'===scope.row.type", :key="scope.row.type", type="danger") {{scope.row.type}}
             span.d-ib.icon-node(v-if='scope.row.ancestor.length>0', :class="scope.row.className")
-            span.c-silver.root(v-if="scope.row.isRoot") {{scope.row.name}} 
-            el-input.d-ib.f-1.param-name(:disabled="scope.row.noName", v-if="!scope.row.isRoot", v-model='scope.row.name', 
+            el-input.d-ib.f-1.param-name(v-if="!readonly", :disabled="scope.row.noName||scope.row.isRoot", v-model='scope.row.name', 
             :class="scope.row.className", size='small')
-            el-select.data-select(:disabled="scope.row.isRoot", v-model='scope.row.type', 
-            :key='scope.row.id', size='small', @change='changeType(data, scope.row, scope.$index)')
+            span.row-name(v-else) {{scope.row.isRoot ? ' ' : scope.row.name}}
+            el-select.data-select(v-if="!readonly", :disabled="scope.row.isRoot", v-model='scope.row.type', 
+            :key='scope.row.id', size='small', @change='changeType(dataList, scope.row, scope.$index)')
               el-option(v-for='(t, index) in types', :value='t', :key='index', :label='t')
-            i.el-icon-plus.plus-btn.c-blue.cu-p(v-if='scope.row.type.toLowerCase()==="object" || scope.row.type.toLowerCase() === "array"', @click='addData(dataList, scope.row, scope.$index)')
-            i.el-icon-close.c-red.cu-p.plus-btn.ml-10(size='mini', v-if="!scope.row.isRoot", @click='delData(dataList, scope.row, scope.$index)', icon='close', type='danger')
-        el-table-column(prop='remark', label='说明', header-align='center', min-width='100')
+            i.el-icon-plus.plus-btn.c-blue.cu-p(v-if="!readonly", v-show='scope.row.type.toLowerCase()==="object" || scope.row.type.toLowerCase() === "array"', @click='addData(dataList, scope.row, scope.$index)')
+            i.el-icon-close.c-red.cu-p.plus-btn.ml-10(v-if="!readonly", size='mini', v-show="!scope.row.isRoot", @click='delData(dataList, scope.row, scope.$index)', icon='close', type='danger')
+        el-table-column(prop='description', label='说明', header-align='center', min-width='80')
           template(scope='scope')
-            el-input(v-if="!scope.row.isRoot", v-model='scope.row.remark', size='small')
+            el-input(v-if="!readonly", v-show="!scope.row.isRoot", v-model='scope.row.description', size='small')
+            span(v-else, :title="scope.row.description") {{scope.row.description}}
         el-table-column(prop='required', label='必须', width='50', align='center')
           template(scope='scope')
-            el-checkbox(v-if="!scope.row.isRoot", v-model='scope.row.required', size='normal')
-        el-table-column(prop='property', label='JSONSchema属性', header-align='center', width='250')
+            el-checkbox(v-if="!readonly", v-show="!scope.row.isRoot", v-model='scope.row.required', size='normal')
+            i.el-icon-check.c-blue(v-else, v-show="scope.row.required")
+        el-table-column(prop='property', label='Schema属性', header-align='center', width='250')
           template(scope='scope')
-            el-input(v-model='scope.row.property', size='small')
+            el-input(v-if="!readonly", v-model='scope.row.property', size='small')
+            span(v-else, :title="scope.row.property") {{scope.row.property}}
     el-tab-pane(label="JSON", name="json")
       el-dialog(size="small", title="导入json将覆盖当前参数，谨慎操作！", :visible.sync="dialogVisible", :before-close="handleClose")
         span.c-red {{jsonError}}
         el-input(type="textarea", :rows="15", v-model="json")
         div.ta-r
-          el-button.mt-10(size="small", @click="cancel") 取 消
-          el-button.mt-10.mr-10(type="primary", size="small", @click="importJson") 导 入
-      el-button(@click="dialogVisible=true", type='text') 导入
+          el-button.mt-10(@click="cancel") 取 消
+          el-button.mt-10.mr-10(type="primary", @click="importJson") 导 入
+      el-button(v-if="!readonly", @click="dialogVisible=true", type='text') 导入
       pre.json
     el-tab-pane(label="Schema", name="schema")
-      pre.schema(contenteditable="", @keyup='schemaChanged($event, index)')
+      pre.schema(:contenteditable="!readonly", @keyup='schemaChanged')
 </template>
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
+import {Prop, Watch} from 'vue-property-decorator'
 import jsf from 'json-schema-faker'
-import * as _ from 'lodash'
 
 let gId = (): string => {
   return 'a' + Math.random().toString().substring(2)
@@ -54,7 +61,7 @@ interface Param {
   required: boolean,
   isRoot?: boolean,
   property?: string,
-  remark?: string,
+  description?: string,
   className?: string
 }
 
@@ -62,6 +69,8 @@ interface Param {
 export default class ParamEditor extends Vue {
   @Prop()
   schema: any
+  @Prop()
+  readonly: boolean
   id: any = gId()
   types: string[] = ['string', 'object', 'array', 'number', 'boolean', 'file']
   activeTabName: string = 'table'
@@ -73,17 +82,38 @@ export default class ParamEditor extends Vue {
   dataList: Param[] = [{
     id: 'root',
     ancestor: [],
-    name: 'root',
+    name: '',
     type: 'object',
-    remark: '',
+    description: '',
     isRoot: true,
     required: true
   }]
 
   beforeMount() {
+    this.reload()
+  }
+  @Watch('schema')
+  onSchemaChanged() {
+    this.reload()
+  }
+  schemaChanged() {
+    let preDom: any = document.querySelector(`#${this.id} pre.schema`)
+    try {
+      this.dataSchema = JSON.parse(preDom.innerText)
+    } catch (e) {
+      if (preDom.innerText.trim() === '') {
+        this.dataSchema = {
+          id: 'root',
+          type: 'object'
+        }
+      }
+    }
+    this.dataList = this.schema2list(this.dataSchema)
+  }
+  reload() {
     this.dataSchema = this.schema || {
       id: 'root',
-      name: 'root',
+      name: '',
       type: 'object'
     }
     if (this.schema && Object.keys(this.schema).length > 0) {
@@ -92,13 +122,16 @@ export default class ParamEditor extends Vue {
   }
   cancel() {
     this.dialogVisible = false
-    this.json = ''
     this.jsonError = ''
   }
   importJson() {
     try {
       let data = JSON.parse(this.json)
-      this.dataSchema = this.json2schema(data)
+      this.dataList = this.json2list(data)
+      this.dataSchema = this.list2schema(this.dataList)
+      let dom: any = document.querySelector(`#${this.id} pre.json`)
+      dom.innerText = this.json
+      this.dialogVisible = false
     } catch (e) {
       this.jsonError = e.toString()
     }
@@ -128,7 +161,7 @@ export default class ParamEditor extends Vue {
       name: '',
       type: 'string',
       required: row.type !== 'array',
-      remark: '',
+      description: '',
       noName: row.type === 'array', // 数组元素无属性名
       className: 'bg-' + ancestor.length
     })
@@ -139,15 +172,6 @@ export default class ParamEditor extends Vue {
       if (p.ancestor.indexOf(row.id) > -1) { len++ }
     })
     data.splice(index + 1, len)
-    if (row.type === 'String') {
-      row.mock = '@string'
-    } else if (row.type === 'Boolean') {
-      row.mock = '@boolean'
-    } else if (row.type === 'Number') {
-      row.mock = '@integer(0,0)'
-    } else if (row.type === 'Array') {
-      row.mock = '1-5'
-    }
   }
   async tabClick(tabName: string) {
     if (tabName === 'schema') {
@@ -169,41 +193,53 @@ export default class ParamEditor extends Vue {
   async getJson(schema: any) {
     return await jsf.resolve(schema)
   }
-  json2schema(json: any) {
-    let travel = (obj: any, name: string, ancestor: string[], list: any[]) => {
+  json2list(json: any) {
+    const isArray = (x: any): boolean => {
+      return Object.prototype.toString.call(x).indexOf('Array') > -1
+    }
+    const isObject = (x: any): boolean => {
+      return Object.prototype.toString.call(x).indexOf('Object') > -1
+    }
+    const travel = (obj: any, name: string, ancestor: string[], list: any[]) => {
       let result: any = {
         id: ancestor.length > 0 ? gId() : 'root',
         name,
         ancestor,
-        type: 'object',
         required: true,
         className: 'bg-' + ancestor.length
       }
+      let noName: boolean = false
       ancestor.length === 0 ? result.isRoot = true : void 0
+      if (isObject(obj)) {
+        result.type = 'object'
+      } else if (isArray(obj)) {
+        result.type = 'array'
+        noName = true
+        result.property = JSON.stringify({minItems: obj.length})
+      }
       list.push(result)
       for (let p in obj) {
-        if (_.isObject(obj[p])) {
-          travel(obj[p], p, ancestor.concat(result.id), list)
-        } else if (_.isArray(obj[p])) {
-          obj[p].forEach((item: any) => {
-            if (_.isObject(item)) {
-              travel(obj[p], '', ancestor.concat(result.id), list)
-            } else {
-              //
-            }
-          })
+        if (isObject(obj[p])) {
+          travel(obj[p], noName ? '' : p, ancestor.concat(result.id), list)
+        } else if (isArray(obj[p])) {
+          travel(obj[p], noName ? '' : p, ancestor.concat(result.id), list)
         } else {
-          list.push({
+          let row: any = {
             id: gId(),
-            name: p,
+            name: noName ? '' : p,
             ancestor: ancestor.concat(result.id),
             type: typeof obj[p],
             required: true,
             className: 'bg-' + ancestor.concat(result.id).length
-          })
+          }
+          if (noName) row.noName = true
+          list.push(row)
         }
       }
     }
+    let paramList: any = []
+    travel(json, 'root', [], paramList)
+    return paramList
   }
   schema2list (schemaObj: any): Param[] {
     let travel = (schema: any, list: Param[], ancestor: string[], required: boolean = false, noName: boolean = false) => {
@@ -211,7 +247,7 @@ export default class ParamEditor extends Vue {
       let row: any = {
         id: schema.id || gId(),
         name: schema.name,
-        remark: schema.description,
+        description: schema.description,
         type: schema.type,
         required,
         ancestor,
@@ -274,10 +310,7 @@ export default class ParamEditor extends Vue {
           origin.items = origin.items || []
           if (origin.id === parentId) {
             origin.items.push(node)
-            if (required) {
-              origin.minItems = origin.minItems || 0
-              origin.minItems++
-            }
+            origin.minItems = origin.items.length
           } else if (ancestor.indexOf(origin.id) > -1) {
             origin.items.forEach((current: any) => {
               append2parent(ancestor, current, node, required)
@@ -292,7 +325,7 @@ export default class ParamEditor extends Vue {
         name: row.name,
         type: row.type,
         id: row.id,
-        description: row.remark
+        description: row.description
       }
       if (row.property) {
         try {
@@ -305,6 +338,9 @@ export default class ParamEditor extends Vue {
     })
     return result
   }
+  getSchema() {
+    return this.list2schema(this.dataList)
+  }
 }
 </script>
 <style lang="stylus">
@@ -313,7 +349,7 @@ export default class ParamEditor extends Vue {
     .bg-{num} input
       // background-color convert('#f'+num+'f'+num+'f'+num)
     span.bg-{num}
-      margin-left unit(num,em)
+      margin-left unit((num - 1) * 2,em)
   .plus-btn
     margin-left 5px
     line-height 40px
@@ -357,4 +393,11 @@ pre.schema, pre.json
   line-height 40px
 .pre
   line-height 1.5
+.row-type
+  margin 8px 6px 8px 0
+  min-width 9ch
+  text-align center
+.row-name
+  line-height 40px
+  margin-left 5px
 </style>
