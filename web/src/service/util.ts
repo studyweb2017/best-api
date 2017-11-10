@@ -3,7 +3,7 @@ import {Tree} from '../service/interface'
 let gId:Function = (size?: number) => {
   let t = (new Date()).getTime()
   let p = (Math.random().toString(16) + '00000000').substr(2,8)
-  return   t + '-' + p.substr(0, size ? size : 4)
+  return  t + '-' + p.substr(0, size ? size : 4)
 }
 let gVersion:Function = () => {
   let t = new Date()

@@ -1,5 +1,5 @@
 <template lang="pug">
-  .api-view-wrap.ov-a.p-r
+  .api-view-wrap.ov-a.p-r(v-loading="loading", element-loading-text="拼命加载中...")
     .api-latest
       el-form(ref='api', :data='api', label-position='right', label-width='100px')
         el-form-item.ta-l.mb-10(label='接口名称')
@@ -8,7 +8,7 @@
           span.mr-10 {{api.url}}
           el-tag(:type="methodType") {{api.method}}
         el-form-item.ta-l.mb-10(label='接口描述')
-          span {{api.remark}}
+          div.form-remark {{api.remark}}
         el-form-item.ta-l(label='请求参数', v-if='api.request.paramList&&api.request.paramList.length>0')
           el-table(:data='api.request.paramList', border, )
             el-table-column(label='参数名', prop='name', width='180', align='left')
@@ -80,6 +80,7 @@ export default class apiView extends Vue {
       errList: []
     }
   }
+  loading: boolean = true
   $message: any
   $confirm: any
   showAdvancedConfig: boolean = false
@@ -87,10 +88,12 @@ export default class apiView extends Vue {
     await this.reload()
   }
   async reload() {
+    this.loading = true
     if (this.proId && this.apiId) {
       let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
       this.api = resp
     }
+    this.loading = false
   }
   @Watch('apiId')
   async apiChanged() {
@@ -179,5 +182,8 @@ export default class apiView extends Vue {
   line-height 1
 .param-name
   line-height 30px
+.form-remark
+  line-height 24px
+  margin-top 8px
 </style>
 

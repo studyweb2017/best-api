@@ -1,5 +1,5 @@
 <template lang="pug">
-  .api-add-wrap.p-r.ov-a
+  .api-add-wrap.p-r.ov-a(v-loading="loading", element-loading-text="API加载中...")
     el-form.ov-a.api-add#edit-form(ref='api', :model='api', :rules='rules', label-position='right', label-width='100px')
       el-form-item.ta-l.mb-20(label='所属模块', prop='module')
         el-select.w-200(v-model='api.module', size='small', filterable, allow-create, placeholder="选择或新建模块")
@@ -13,7 +13,7 @@
         el-select.w-200(v-model='api.method', size='small')
           el-option(v-for='(m, index) in methods', :value='m', :key='index')
       el-form-item.ta-l.mb-20(label='接口描述', prop='remark')
-        el-input(v-model.trim='api.remark', size='small')
+        el-input(:rows=1, type="textarea", v-model.trim='api.remark', size='small')
       el-form-item.ta-l.mb-20(label='请求参数')
         el-table(:data='api.request.paramList', border)
           el-table-column(label='参数名', prop='name', width='200')
@@ -87,7 +87,7 @@ import Component from 'vue-class-component'
 import http from '../../service/http.ts'
 import {gId} from '../../service/util.ts'
 import EventDelegate from '../../service/EventDelegate'
-import {Prop, Watch} from 'vue-property-decorator'
+import {Prop} from 'vue-property-decorator'
 import ParamEditor from './ParamEditor.vue'
 
 // interface Err extends Object {
@@ -147,6 +147,10 @@ export default class apiEdit extends Vue {
   apiId: string
   @Prop()
   proId: string
+  get mode() {
+    return this.apiId ? 'edit' : 'add'
+  }
+  loading: boolean = false
   Mock: any
   $refs: any
   $route: any
@@ -204,22 +208,25 @@ export default class apiEdit extends Vue {
     this.eleMock.style.width = 250 + moveX + 'px'
   }
   rules: Object = {
-    name: [{required: true}],
-    module: [{required: true}],
-    remark: [{required: true}],
+    name: [{required: true, message: '名称必填'}],
+    module: [{required: true, message: 'API必须归属一个模块'}],
+    remark: [{required: true, message: '请添加接口描述'}],
     url: [
       {type: 'string', required: true, message: '请输入请求路径'},
       {message: '请求路径不合法,"/"开头', pattern: /^\//}],
-    method: [{type: 'string', required: true, message: '请选择一个请求方法'}],
-    requestParams: [{type: 'array', required: false, message: '请至少选择一个项目成员'}],
-    responseParams: [{type: 'array'}]
+    method: [{type: 'string', required: true, message: '请选择一个请求方法'}]
   }
-  $children: any
   async refreshApi() {
+    this.loading = true
     if (this.mode === 'edit') {
-      let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
-      this.api = resp
-    } else if (this.mode === 'add') {
+      try {
+        let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
+        this.api = resp
+      } catch (e) {
+        console.error(e)
+      }
+      this.loading = false
+    } else {
       this.api = {
         module: this.moduleName,
         name: '',
@@ -234,52 +241,55 @@ export default class apiEdit extends Vue {
           errList: []
         }
       }
-    } else {
-      console.error('模式错误:' + this.mode)
+      this.$refs.api.resetFields()
+      this.loading = false
     }
   }
   async created() {
     let resp:any = await http.get('/api/project/' + this.proId + '/api/module')
     this.modules = resp.moduleList || []
-    this.refreshApi()
-  }
-  @Watch('mode')
-  async modeChanged() {
-    this.refreshApi()
-  }
-  get mode() {
-    return this.apiId ? 'edit' : 'add'
+    this.$emit('getHandler', {
+      reload: () => {
+        this.refreshApi()
+      }
+    })
   }
   async submit() {
     let _this = this
     this.$refs.requestEditor ? _this.api.request.dataSchema = this.$refs.requestEditor.getSchema() : void 0
     _this.api.response.dataSchema = this.$refs.responseEditor.getSchema()
-    await new Promise((resolve: any, reject: any) => {
-      _this.$refs.api.validate((valid:boolean) => {
-        valid ? resolve() : reject()
+    try {
+      await new Promise((resolve: any, reject: any) => {
+        _this.$refs.api.validate((valid:boolean) => {
+          valid ? resolve(valid) : reject(valid)
+        })
       })
-    })
-    let existApi: any = await http.get('/api/project/' + _this.proId + '/api/exist?url=' + _this.api.url + '&method=' + _this.api.method)
-    if (existApi.id) {
-      _this.$message({ type: 'error', message: 'API已经存在' })
-    } else {
-      let op = _this.mode === 'edit' ? '修改' : '添加'
-      const cfg: any = {
-        add: {
-          url: '/api/project/' + _this.proId + '/api'
-        },
-        edit: {
-          url: '/api/project/' + _this.proId + '/api/' + _this.apiId
-        }
-      }
-      let {url} = cfg[_this.mode]
-      let resp: any = _this.mode === 'edit' ? await http.put(url, _this.api) : await http.post(url, _this.api)
-      if (resp.errCode) {
-        _this.$message({ type: 'error', message: resp.errMsg || op + '失败' })
+      _this.loading = true
+      let existApi: any = await http.get('/api/project/' + _this.proId + '/api/exist?url=' + _this.api.url + '&method=' + _this.api.method)
+      if (existApi.id !== _this.apiId) {
+        _this.$message({ type: 'error', message: 'API已经存在' })
       } else {
-        _this.$emit('updated', resp.id || _this.apiId)
-        _this.$message({ type: 'success', message: op + '成功' })
+        let op = _this.mode === 'edit' ? '修改' : '添加'
+        const cfg: any = {
+          add: {
+            url: '/api/project/' + _this.proId + '/api'
+          },
+          edit: {
+            url: '/api/project/' + _this.proId + '/api/' + _this.apiId
+          }
+        }
+        let {url} = cfg[_this.mode]
+        try {
+          let resp: any = _this.mode === 'edit' ? await http.put(url, _this.api) : await http.post(url, _this.api)
+          _this.$emit('updated', resp.id || _this.apiId)
+          _this.$message({ type: 'success', message: op + '成功' })
+        } catch (e) {
+          _this.$message({ type: 'error', message: e || op + '失败' })
+        }
+        _this.loading = false
       }
+    } catch (e) {
+      _this.$message({ type: 'error', message: '填写信息有误，无法提交' })
     }
   }
   cancel() {

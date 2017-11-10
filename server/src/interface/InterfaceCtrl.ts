@@ -208,7 +208,7 @@ export default class InterfaceCtrl extends BaseCtrl {
         return this.isExist(pid, ifc.url, ifc.method, uid, isAdmin)
       })
       .switchMap((common: any) => {
-        if(common.id) return this.throw({errCode: 222, errMsg: '该API已经存在', id: common.id, name: common.name})
+        if(common.id && common.id.toString() !== iid) return this.throw({errCode: 222, errMsg: '该API已经存在', id: common.id, name: common.name})
         else return Observable.fromPromise(InterfaceModel.findOneAndUpdate({ _id: mongoose.Types.ObjectId(iid) }, { $set: ifc }).exec())
       })
       .switchMap((doc: any) => {

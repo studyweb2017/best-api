@@ -44,8 +44,8 @@ export default class Router {
         ctx.throw(e.status, e.message || '操作失败')
       } else {
         ctx.body = {
-          errCode: 110,
-          errMsg: e.message || '操作失败'
+          errCode: e.errCode || 110,
+          errMsg: e.errMsg || e.errors || '操作失败'
         }
       }
       return Observable.of()

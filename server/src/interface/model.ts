@@ -87,7 +87,7 @@ let InterfaceSchemaObj = {
   module: String,
   remark: {
     type: String,
-    maxlength: 200,
+    maxlength: 2000,
     default: ''
   },
   createdTime: {

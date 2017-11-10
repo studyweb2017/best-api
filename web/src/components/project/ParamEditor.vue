@@ -12,8 +12,8 @@ div.param-editor(:id="id")
             el-tag.row-type(v-if="readonly", v-show="'boolean'===scope.row.type", :key="scope.row.type", type="danger") {{scope.row.type}}
             span.d-ib.icon-node(v-if='scope.row.ancestor.length>0', :class="scope.row.className")
             el-input.d-ib.f-1.param-name(v-if="!readonly", :disabled="scope.row.noName||scope.row.isRoot", v-model='scope.row.name', 
-            :class="scope.row.className", size='small')
-            span.row-name(v-else) {{scope.row.isRoot ? ' ' : scope.row.name}}
+            :class="scope.row.className", size='small', :maxlength=50)
+            div.ws-n.ov-h.to-e.row-name(v-else, :title="scope.row.name") {{scope.row.isRoot ? ' ' : scope.row.name}}
             el-select.data-select(v-if="!readonly", :disabled="scope.row.isRoot", v-model='scope.row.type', 
             :key='scope.row.id', size='small', @change='changeType(dataList, scope.row, scope.$index)')
               el-option(v-for='(t, index) in types', :value='t', :key='index', :label='t')
@@ -21,15 +21,15 @@ div.param-editor(:id="id")
             i.el-icon-close.c-red.cu-p.plus-btn.ml-10(v-if="!readonly", size='mini', v-show="!scope.row.isRoot", @click='delData(dataList, scope.row, scope.$index)', icon='close', type='danger')
         el-table-column(prop='description', label='说明', header-align='center', min-width='80')
           template(scope='scope')
-            el-input(v-if="!readonly", v-show="!scope.row.isRoot", v-model='scope.row.description', size='small')
-            span(v-else, :title="scope.row.description") {{scope.row.description}}
+            el-input(v-if="!readonly", :maxlength=500, v-show="!scope.row.isRoot", v-model='scope.row.description', size='small')
+            div.ws-n.to-e.ov-h(v-else, :title="scope.row.description") {{scope.row.description}}
         el-table-column(prop='required', label='必须', width='50', align='center')
           template(scope='scope')
             el-checkbox(v-if="!readonly", v-show="!scope.row.isRoot", v-model='scope.row.required', size='normal')
             i.el-icon-check.c-blue(v-else, v-show="scope.row.required")
         el-table-column(prop='property', label='Schema属性', header-align='center', width='250')
           template(scope='scope')
-            el-input(v-if="!readonly", v-model='scope.row.property', size='small')
+            el-input(v-if="!readonly", type="textarea", :rows="1", :maxlength=1000, v-model='scope.row.property', size='small')
             span(v-else, :title="scope.row.property") {{scope.row.property}}
     el-tab-pane(label="JSON", name="json")
       el-dialog(size="small", title="导入json将覆盖当前参数，谨慎操作！", :visible.sync="dialogVisible", :before-close="handleClose")
@@ -111,14 +111,16 @@ export default class ParamEditor extends Vue {
     this.dataList = this.schema2list(this.dataSchema)
   }
   reload() {
-    this.dataSchema = this.schema || {
-      id: 'root',
-      name: '',
-      type: 'object'
-    }
     if (this.schema && Object.keys(this.schema).length > 0) {
-      this.dataList = this.schema2list(this.schema)
+      this.dataSchema = this.schema
+    } else {
+      this.dataSchema = {
+        id: 'root',
+        name: '',
+        type: 'object'
+      }
     }
+    this.dataList = this.schema2list(this.dataSchema)
   }
   cancel() {
     this.dialogVisible = false
@@ -321,6 +323,8 @@ export default class ParamEditor extends Vue {
     }
     let result = {}
     list.forEach((row: any) => {
+      // 过滤空白项
+      if (row.name.trim() === '' && !row.noName && !row.isRoot) return
       let node = {
         name: row.name,
         type: row.type,

@@ -6,10 +6,10 @@
         i.mr-10.el-icon-caret-right.cu-p.c-gray(title="折叠", @click="fold(true)")
         i.mr-10.el-icon-caret-bottom.cu-p.c-gray(title="展开", @click="fold(false)")
         i.el-icon-plus.cu-p.c-blue(title="添加模块[alt+m]", @click="addModule")
-      div.api-tree
+      div.api-tree(v-loading="loading")
         el-tree.ta-l.ov-y-a.ov-x-h(v-show='showTree', ref='apiTree', @node-click='selectApi',
         class='filter-tree', :data="apiList", :props='defaultProps', :expand-on-click-node='false',
-          :default-expanded-keys='expandedKeys', node-key='id', :highlight-current="true",
+          node-key='id', :highlight-current="true",
           :filter-node-method='filterNode', :render-content='renderBtn', :empty-text="emptyText")
     div.drag-line(@mousedown='mousedown')
 </template>
@@ -31,8 +31,6 @@ export default class apiList extends Vue {
   apiId: string
   @Prop()
   clickedId: string
-  @Prop()
-  refresh: number
   Mock: any
   $refs: any
   $message: any
@@ -47,6 +45,7 @@ export default class apiList extends Vue {
   treeStyle: any = {
     width: '200px'
   }
+  loading: boolean = true
   mousedown(e:any) {
     this.startX = e.clientX
     this.startWidth = parseInt(this.treeStyle.width)
@@ -70,10 +69,6 @@ export default class apiList extends Vue {
     this.treeStyle = {
       width
     }
-  }
-  @Watch('refresh')
-  repain() {
-    this.refreshApiList()
   }
   fold(isFold: boolean) {
     let node: any = document.querySelectorAll('.api-tree .el-tree-node__expand-icon')
@@ -119,9 +114,10 @@ export default class apiList extends Vue {
       apiNum = '(' + data.children.length + ')'
     }
     return h('div', {
-      class: ['f-1', 'cu-d', 'p-r', 'tree-node', 'to-e'],
+      class: ['cu-d', 'tree-node'],
       attrs: {
-        title: data.name
+        title: data.name,
+        key: data.id
       }
     }, [
       h('span', {
@@ -163,24 +159,45 @@ export default class apiList extends Vue {
         break
     }
   }
-  setNodeClicked(name: string, isModule: boolean=true) {
-    let firstLeaf:any = document.querySelector(`.api-list-wrap ${isModule ? '.tree-node' : ''}[title="${name}"]`)
-    setTimeout(() => {
-      firstLeaf.click()
-    }, 0)
-  }
-  async refreshApiList() {
-    let resp: any = await http.get('/api/project/' + this.proId + '/api')
-    if (resp.apiList) {
-      let list: any = formatApiToTree(resp.apiList)
-      this.apiList = list || []
-      resp.list.length === 0 ? this.emptyText = '请先添加模块' : void 0
-    } else {
-      this.$message({type: 'error', message: resp.errMsg || '刷新失败'})
+  setNodeClicked(id?: string) {
+    if (id) {
+      setTimeout(() => {
+        let parentNodeList = document.querySelectorAll('.api-list-wrap .el-tree-node')
+        Array.prototype.forEach.call(parentNodeList, (parent: any) => {
+          let leaf = parent.querySelector(`[key="${id}"]`)
+          if (leaf) {
+            if (parent.className.indexOf('is-expanded') < 0) {
+              parent.querySelector('.el-tree-node__expand-icon').click()
+            }
+            leaf.click()
+          }
+        })
+      }, 0)
     }
   }
-  mounted() {
-    this.refreshApiList()
+  async refreshApiList(id?: string) {
+    this.loading = true
+    if (this.proId) {
+      let resp: any = await http.get('/api/project/' + this.proId + '/api')
+      if (resp.apiList) {
+        let list: any = formatApiToTree(resp.apiList)
+        this.apiList = list || []
+        resp.apiList.length === 0 ? this.emptyText = '请先添加模块' : void 0
+        if (id) {
+          this.setNodeClicked(id)
+        }
+      } else {
+        this.$message({type: 'error', message: resp.errMsg || '刷新失败'})
+      }
+    } else {
+      console.error('无id，不查询')
+    }
+    this.loading = false
+  }
+  created() {
+    this.$emit('getHandler', {
+      refresh: (clickedId?: string) => this.refreshApiList(clickedId)
+    })
     // 创建模块
     hotkeys('alt+m', (e:any) => {
       e.preventDefault()
@@ -223,22 +240,6 @@ export default class apiList extends Vue {
     children: 'children',
     label: 'name'
   }
-  get expandedKeys() {
-    let keys: string[] = []
-    this.apiList.forEach((api:any) => {
-      api.children = api.children || []
-      api.children.forEach((ifc:any) => {
-        if (ifc.id === this.clickedId) {
-          keys = [api.id, this.clickedId]
-          setTimeout(() => {
-            let dom: any = document.querySelector('.api-tree [title="' + ifc.name + '"]')
-            dom ? dom.click() : void 0
-          }, 0)
-        }
-      })
-    })
-    return keys
-  }
   filterText: string = ''
   @Watch('filterText')
   onFilterTextChanged(val: string, oldVal: string) {
@@ -258,13 +259,14 @@ export default class apiList extends Vue {
   async addModule() {
     let {value} = await this.$prompt('请输入模块名', '提示', {confirmButtonText: '确定', cancelButtonText: '取消'})
     if (value) {
+      let id = gId()
       this.apiList.unshift({
-        id: gId(),
+        id,
         label: 'module',
         name: value,
         children: []
       })
-      setTimeout(() => this.setNodeClicked(value), 0)
+      setTimeout(() => this.setNodeClicked(id), 0)
     }
   }
   async editModule(name: string) {
@@ -313,12 +315,14 @@ export default class apiList extends Vue {
     height 30px
     line-height 30px
     overflow hidden
+    position relative
     .el-tree-node__expand-icon
       margin-top 8px
     .tree-node:hover
       .node-btns
         visibility visible
     .tree-node
+      width 100%
       .node-btns
         position absolute
         right 10px

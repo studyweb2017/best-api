@@ -1,13 +1,13 @@
 <template lang="pug">
   div.p-a.l-0.r-0.b-0.t-40.d-f.bg-white
-    ApiList(:refresh="refreshApiList", :proId="proId", :clickedId="apiId", @add="addApi", @view="viewApi", @edit="editApi", @delete="deleteApi")
-    ApiEdit.f-1.ov-y-a(v-if="mode==='edit'", :proId="proId", :apiId="mode==='edit'?apiId:''", :moduleName="moduleName", @updated="apiModified",  @cancel="cancelEdit")
-    div.d-f.fd-c.f-1.ov-y-a(v-if="mode==='view'")
+    ApiList(@getHandler="getTreeHandler", :proId="proId", :clickedId="apiId", @add="addApi", @view="viewApi", @edit="editApi", @delete="deleteApi")
+    ApiEdit.f-1.ov-y-a(@getHandler="getEditorHandler", v-show="mode==='edit'", :mode="mode" :proId="proId", :apiId="apiId", :moduleName="moduleName", @updated="apiModified",  @cancel="cancelEdit")
+    div.d-f.fd-c.f-1.ov-y-a(v-show="mode==='view'")
       div.api-detail-wrap.p-r#detail-wrap.ta-l
         el-button(size='small', icon='edit', type='default', @click='editApi(apiId)') 编辑
-        el-button(size='small', icon='document', type='default') 复制
-        el-button(size='small', icon='view', type='default', @click='viewHistory(apiId)') 历史
-        el-button(size='small', icon='menu', type='default') 调试
+        el-button(size='small', icon='document', type='default', :disabled="true") 复制
+        el-button(size='small', icon='view', type='default', @click='viewHistory(apiId)', :disabled="true") 历史
+        el-button(size='small', icon='menu', type='default', :disabled="true") 调试
       ApiView.f-1(:proId="proId", :apiId="apiId")
 </template>
 <script lang="ts">
@@ -32,49 +32,56 @@ export default class ApiIndex extends Vue {
   $confirm: any
   mode: string = ''
   moduleName: string = ''
-  refreshApiList: any = Math.random()
-  get proId() {
-    return this.$route.params.proId
+  proId: string = ''
+  apiId: string = ''
+  treeHandler: any
+  editorHandler: any
+  created() {
+    this.proId = this.$route.params.proId
+    this.apiId = this.$route.query.id
   }
-  get apiId() {
-    return this.$route.query.id
+  getTreeHandler(treeHandler: any) {
+    this.treeHandler = treeHandler
+    this.treeHandler.refresh(this.apiId)
+  }
+  getEditorHandler(handler: any) {
+    this.editorHandler = handler
   }
   addApi(moduleName: any) {
     this.moduleName = moduleName
-    this.$router.push({
-      name: 'api',
-      query: {
-        moduleName
-      }
-    })
+    this.apiId = ''
     this.mode = 'edit'
+    // 先渲染apiId
+    setTimeout(() => {
+      this.editorHandler.reload()
+    }, 0)
   }
   viewApi(id: string, name: string, type: string) {
-    let query: any = {
-      id: ''
+    if (type !== 'url') {
+      id = ''
     }
-    if (type === 'url') {
-      query = {
-        id,
-        name
-      }
-      this.mode = 'view'
-    } else {
-      this.mode = ''
-    }
-    this.$router.push({
-      name: 'api',
-      query
-    })
-  }
-  editApi(id: string) {
-    this.mode = 'edit'
+    this.apiId = id
     this.$router.push({
       name: 'api',
       query: {
         id
       }
     })
+    this.mode = id ? 'view' : ''
+  }
+  editApi(id: string) {
+    this.$router.push({
+      name: 'api',
+      query: {
+        id
+      }
+    })
+    this.apiId = id
+    this.mode = 'edit'
+    // 先渲染apiId
+    setTimeout(() => {
+      this.editorHandler.reload()
+    }, 0)
   }
   cancelEdit() {
     this.mode = this.apiId ? 'view' : ''
@@ -97,15 +104,14 @@ export default class ApiIndex extends Vue {
     }
   }
   apiModified(id: string) {
-    this.mode = 'view'
     this.$router.push({
       name: 'api',
       query: {
-        id,
-        _: Math.random()
+        id
       }
     })
-    this.refreshApiList = Math.random()
+    this.mode = 'view'
+    this.treeHandler.refresh(id)
   }
 }
 </script>
