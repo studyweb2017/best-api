@@ -3,7 +3,8 @@ import { InterfaceModel, Interface } from '../interface/model'
 import { Observable } from 'rxjs/Rx'
 import { mongoose } from '../util/db'
 import Probability from './probability'
-import Mock2json from './Mock2json'
+import * as Ajv from 'ajv'
+import * as jsf from 'json-schema-faker'
 
 export default (ctx: any, next: any) => {
   let { method, path, query, headers, body } = ctx.request
@@ -12,13 +13,19 @@ export default (ctx: any, next: any) => {
   path = '/' + _path.join('/')
   if (/\w{24}/.test(pid)) {
     return Observable.fromPromise(InterfaceModel.find({ pid: mongoose.Types.ObjectId(pid), method }))
-      .switchMap((res: Interface[]) => Observable.from(res))
-      .combineLatest(Observable.of({ path, query, body, headers }))
       .throttleTime(500)
-      .map(([ifc, { path, query, body, headers }]) => {
-        var keys: any = []
-        let re = path2reg(ifc.url, keys, { strict: true })
-        let match = re.exec(path)
+      .map((ifcList: any) => {
+        let keys: any = []
+        let match: any
+        let ifc: any = []
+        for(let i=0; i<ifcList.length; i++) {
+          let re = path2reg(ifcList[i].url, keys, { strict: true })
+          match = re.exec(path) 
+          if (match) {
+            ifc = ifcList[i]
+            break
+          }
+        }
         if (match) {
           // 地址栏参数对象
           let query = ctx.query
@@ -30,22 +37,8 @@ export default (ctx: any, next: any) => {
             param[key.name] = match[index + 1]
           })
           let paramValid: any = []
-          // 校验占位符和地址栏参数
-          if(ifc.request.urlParams) {
-            ifc.request.urlParams.forEach((it: any) => {
-              if (it.required) {
-                if (!param[it.name] && !query[it.name]) {
-                  paramValid.push(`缺少URL参数'${it.name}'`)
-                }
-              }
-            }) 
-          }
           // 校验请求体
-          let bodyTemplate = Mock2json.makeMockJson(ifc.request.paramList || [], 'root')
-          let bodyValid = []
-          let errorMsg: any = []
-          bodyValid = Mock2json.valid(bodyTemplate, ctx.request.fields || {})
-          errorMsg = paramValid.concat(bodyValid)
+          let errorMsg = validate(ifc.request.dataSchema, ctx.request.fields || {})
           if (errorMsg.length) {
             ctx.body = {
               errorCode: 400,
@@ -59,29 +52,31 @@ export default (ctx: any, next: any) => {
                     ctx.set(it.key, it.value)
                   }) 
                 }
-                if (ifc.response.errList && ifc.response.errList.length) {
-                  let list:any = []
-                  ifc.response.errList.forEach((item: any) => {
-                    if (item.enabled) {
-                      let response
-                      try {
-                        response = eval(item.data)
-                      } catch (e) {
-                        console.error(e)
-                        response = item.data
-                      }
-                      list.push({
-                        p: item.probability + '%',
-                        fn: () => ctx.body = item.response
-                      })
-                    }
-                  })
-                  let p = new Probability(list)
-                  p.roll()
-                } else {
-                  ctx.body = Mock2json.makeJson(ifc.response.paramList, 'root')
-                }
-                resolve()
+                // if (ifc.response.errList && ifc.response.errList.length) {
+                //   let list:any = []
+                //   ifc.response.errList.forEach((item: any) => {
+                //     if (item.enabled) {
+                //       let response
+                //       try {
+                //         response = eval(item.data)
+                //       } catch (e) {
+                //         console.error(e)
+                //         response = item.data
+                //       }
+                //       list.push({
+                //         p: item.probability + '%',
+                //         fn: () => ctx.body = item.response
+                //       })
+                //     }
+                //   })
+                //   let p = new Probability(list)
+                //   p.roll()
+                // } 
+                Observable.from(jsf.resolve(ifc.response.dataSchema))
+                .subscribe((data: any) => {
+                  ctx.body = data
+                  resolve()
+                })
               }, ifc.delay)
             })
           }
@@ -92,5 +87,16 @@ export default (ctx: any, next: any) => {
       .toPromise()
   } else {
     return next()
+  }
+}
+
+let validate = (schema: any, data: any) => {
+  if (schema) {
+    let ajv = new Ajv()
+    let validate = ajv.compile(schema)
+    let valid = validate(data)
+    return valid ? '' : validate.errors 
+  } else {
+    return ''
   }
 }

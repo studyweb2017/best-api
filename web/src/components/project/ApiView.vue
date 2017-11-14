@@ -1,6 +1,12 @@
 <template lang="pug">
   .api-view-wrap.ov-a.p-r(v-loading="loading", element-loading-text="拼命加载中...")
     .api-latest
+      div.ta-r.c-silver(v-show="!compareVersion&&currentVersion")
+        div 修改者：{{api.editor}} 
+        div 修改时间：{{api.updateTime}}
+      div.ta-r.c-silver(v-show="!currentVersion&&compareVersion")
+        div 创建者：{{api.creator}} 
+        div 创建时间：{{api.createdTime}}
       el-form(ref='api', :data='api', label-position='right', label-width='100px')
         el-form-item.ta-l.mb-10(label='接口名称')
           span {{api.name}}
@@ -44,10 +50,12 @@
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import http from '../../service/http.ts'
+import Api from './Api'
 import cache from '../../service/cache.ts'
 import {Prop, Watch} from 'vue-property-decorator'
 import ParamEditor from './ParamEditor'
+
+let apiService :Api
 
 const tagType:any = {
   GET: 'primary',
@@ -65,6 +73,11 @@ export default class apiView extends Vue {
   proId: string
   @Prop()
   apiId: string
+  @Prop()
+  currentVersion: string
+  @Prop()
+  compareVersion: string
+  compareApi: any = {}
   api: any = {
     isTest: true,
     name: '',
@@ -85,18 +98,34 @@ export default class apiView extends Vue {
   $confirm: any
   showAdvancedConfig: boolean = false
   async created() {
+    apiService = new Api(this.proId)
     await this.reload()
   }
   async reload() {
     this.loading = true
     if (this.proId && this.apiId) {
-      let resp:any = await http.get('/api/project/' + this.proId + '/api/' + this.apiId)
-      this.api = resp
+      this.api = await apiService.get(this.apiId, {
+        version: this.currentVersion
+      })
+      if (this.compareVersion) {
+        this.compareApi = await apiService.get(this.apiId, {
+          version: this.compareVersion
+        })
+        console.log(JSON.stringify(this.compareApi, null, 2))
+      }
     }
     this.loading = false
   }
   @Watch('apiId')
   async apiChanged() {
+    await this.reload()
+  }
+  @Watch('currentVersion')
+  async versionChanged() {
+    await this.reload()
+  }
+  @Watch('compareVersion')
+  async versionChanged2() {
     await this.reload()
   }
   get methodType() {
@@ -108,7 +137,7 @@ export default class apiView extends Vue {
   async delApi(data:any, store:any) {
     if (data.label === 'url') {
       await this.$confirm('确认删除接口' + data.name + '?', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
-      let resp:any = await http.delete('/api/project/' + this.proId + '/api/' + data.id)
+      let resp:any = await apiService.delete(data.id)
       if (resp.errCode === 0) {
         this.$message({ type: 'info', message: '删除成功' })
         store.remove(data)
@@ -120,7 +149,7 @@ export default class apiView extends Vue {
         store.remove(data)
       } else {
         await this.$confirm('确认删除模块' + data.name + '及该模块下全部接口？', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' })
-        let resp:any = await http.delete('/api/project/' + this.proId + '/api/?module=' + data.name)
+        let resp:any = apiService.deleteModule(data.name)
         if (resp.errCode === 0) {
           this.$message({ type: 'info', message: '删除成功' })
           store.remove(data)
@@ -185,5 +214,7 @@ export default class apiView extends Vue {
 .form-remark
   line-height 24px
   margin-top 8px
+.difference
+  background-color #F7BA2A
 </style>
 

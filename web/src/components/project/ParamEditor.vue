@@ -133,6 +133,8 @@ export default class ParamEditor extends Vue {
       this.dataSchema = this.list2schema(this.dataList)
       let dom: any = document.querySelector(`#${this.id} pre.json`)
       dom.innerText = this.json
+      this.json = ''
+      this.jsonError = ''
       this.dialogVisible = false
     } catch (e) {
       this.jsonError = e.toString()
@@ -157,8 +159,9 @@ export default class ParamEditor extends Vue {
   }
   addData(data:any, row?:any, index?:any) {
     let ancestor: string[] = row.ancestor.concat([row.id])
+    let id = gId()
     data.splice(row ? index + 1 : data.length, 0, {
-      id: gId(),
+      id,
       ancestor,
       name: '',
       type: 'string',
@@ -174,6 +177,18 @@ export default class ParamEditor extends Vue {
       if (p.ancestor.indexOf(row.id) > -1) { len++ }
     })
     data.splice(index + 1, len)
+    if (row.type === 'object' || row.type === 'array') {
+      data.splice(index + 1, 0, {
+        id: gId(),
+        ancestor: row.ancestor.concat(row.id),
+        name: '',
+        type: row.type === 'object' ? 'string' : 'object',
+        required: true,
+        noName: row.type === 'array',
+        description: '',
+        className: 'bg-' + (row.ancestor.length + 1)
+      })
+    }
   }
   async tabClick(tabName: string) {
     if (tabName === 'schema') {
@@ -203,39 +218,40 @@ export default class ParamEditor extends Vue {
       return Object.prototype.toString.call(x).indexOf('Object') > -1
     }
     const travel = (obj: any, name: string, ancestor: string[], list: any[]) => {
-      let result: any = {
+      let current: any = {
         id: ancestor.length > 0 ? gId() : 'root',
         name,
         ancestor,
         required: true,
         className: 'bg-' + ancestor.length
       }
+      if (!name) current.noName = true
       let noName: boolean = false
-      ancestor.length === 0 ? result.isRoot = true : void 0
+      ancestor.length === 0 ? current.isRoot = true : void 0
       if (isObject(obj)) {
-        result.type = 'object'
+        current.type = 'object'
       } else if (isArray(obj)) {
-        result.type = 'array'
+        current.type = 'array'
         noName = true
-        result.property = JSON.stringify({minItems: obj.length})
+        current.property = JSON.stringify({minItems: obj.length})
       }
-      list.push(result)
+      list.push(current)
       for (let p in obj) {
         if (isObject(obj[p])) {
-          travel(obj[p], noName ? '' : p, ancestor.concat(result.id), list)
+          travel(obj[p], noName ? '' : p, ancestor.concat(current.id), list)
         } else if (isArray(obj[p])) {
-          travel(obj[p], noName ? '' : p, ancestor.concat(result.id), list)
+          travel(obj[p], noName ? '' : p, ancestor.concat(current.id), list)
         } else {
-          let row: any = {
+          let child: any = {
             id: gId(),
             name: noName ? '' : p,
-            ancestor: ancestor.concat(result.id),
+            ancestor: ancestor.concat(current.id),
             type: typeof obj[p],
             required: true,
-            className: 'bg-' + ancestor.concat(result.id).length
+            className: 'bg-' + ancestor.concat(current.id).length
           }
-          if (noName) row.noName = true
-          list.push(row)
+          if (noName) child.noName = true
+          list.push(child)
         }
       }
     }

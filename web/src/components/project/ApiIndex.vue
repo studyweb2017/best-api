@@ -6,9 +6,14 @@
       div.api-detail-wrap.p-r#detail-wrap.ta-l
         el-button(size='small', icon='edit', type='default', @click='editApi(apiId)') 编辑
         el-button(size='small', icon='document', type='default', :disabled="true") 复制
-        el-button(size='small', icon='view', type='default', @click='viewHistory(apiId)', :disabled="true") 历史
         el-button(size='small', icon='menu', type='default', :disabled="true") 调试
-      ApiView.f-1(:proId="proId", :apiId="apiId")
+        el-button(v-if="versionList.length>0", v-show="!comparing", size='small', icon='view', type='default', @click="compare") 对比
+        el-select.f-r.mr-10(v-if="comparing", v-model="version", size="small")
+          el-option(v-for="version in versionList", :key="version", :label="version", :value="version")
+      div.d-f.f-1.p-r
+        ApiView.f-1(:proId="proId", :apiId="apiId", :compareVersion="version")
+        ApiView.f-1(v-if="comparing", :proId="proId", :apiId="apiId", :currentVersion="version")
+        i.p-a.cu-p.c-red.close-history.el-icon-close(v-if="comparing", @click="comparing=false", title="关闭")
 </template>
 <script lang="ts">
 import Vue from 'vue'
@@ -16,8 +21,9 @@ import Component from 'vue-class-component'
 import ApiList from './ApiList.vue'
 import ApiView from './ApiView.vue'
 import ApiEdit from './ApiEdit.vue'
-import http from '../../service/http'
+import Api from './Api'
 
+let apiService:any = {}
 @Component({
   components: {
     ApiList,
@@ -36,9 +42,16 @@ export default class ApiIndex extends Vue {
   apiId: string = ''
   treeHandler: any
   editorHandler: any
-  created() {
+  comparing: boolean = false
+  version: string = ''
+  versionList: string[] = []
+  async created() {
     this.proId = this.$route.params.proId
     this.apiId = this.$route.query.id
+    apiService = new Api(this.proId)
+  }
+  compare() {
+    this.comparing = true
   }
   getTreeHandler(treeHandler: any) {
     this.treeHandler = treeHandler
@@ -51,13 +64,23 @@ export default class ApiIndex extends Vue {
     this.moduleName = moduleName
     this.apiId = ''
     this.mode = 'edit'
-    // 先渲染apiId
-    setTimeout(() => {
-      this.editorHandler.reload()
-    }, 0)
+    setTimeout(() => this.editorHandler.reload(moduleName), 0)
   }
-  viewApi(id: string, name: string, type: string) {
-    if (type !== 'url') {
+  async viewApi(id: string, name: string, type: string) {
+    this.comparing = false
+    if (type === 'url') {
+      try {
+        this.version = ''
+        this.versionList = []
+        let resp: any = await apiService.getVersion(id)
+        resp.versionList.forEach((item: any) => {
+          this.versionList.push(item.version)
+        })
+        if (this.versionList.length) this.version = this.versionList[0]
+      } catch (e) {
+        console.error(e)
+      }
+    } else {
       id = ''
     }
     this.apiId = id
@@ -78,10 +101,7 @@ export default class ApiIndex extends Vue {
     })
     this.apiId = id
     this.mode = 'edit'
-    // 先渲染apiId
-    setTimeout(() => {
-      this.editorHandler.reload()
-    }, 0)
+    setTimeout(() => this.editorHandler.reload(), 0)
   }
   cancelEdit() {
     this.mode = this.apiId ? 'view' : ''
@@ -93,7 +113,7 @@ export default class ApiIndex extends Vue {
         cancelButtonText: '取消',
         type: 'warning'
       })
-      let resp: any = await http.delete(`/api/project/${this.proId}/api/${this.apiId}`)
+      let resp: any = apiService.delete(id)
       if (resp.errCode) {
         this.$message({type: 'error', message: resp.errMsg || '删除失败'})
       } else {
@@ -127,4 +147,9 @@ export default class ApiIndex extends Vue {
   padding-left 40px
   line-height 40px
   background-color #eee
+.close-history
+  right 30px
+  transition transform .2s
+  &:hover
+    transform rotate(90deg)
 </style>

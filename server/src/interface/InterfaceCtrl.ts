@@ -121,7 +121,9 @@ export default class InterfaceCtrl extends BaseCtrl {
           })
           .project({ _id: 0 })
           .exec())
-          .map((res: any) => res.pop())
+          .map((res: any) => {
+            return res.pop()
+          })
       })
   }
   /**
@@ -176,9 +178,11 @@ export default class InterfaceCtrl extends BaseCtrl {
           return this.throw({errCode: 222, errMsg: '该API已经被创建', id: common.id, name: common.name})
         } else {
           ifc.pid = pid
+          ifc.creator = uname
           ifc.request.urlParams = ifc.request.paramList
           ifc.request.paramList = ifc.request.dataList
           ifc.response.paramList = ifc.response.dataList
+          ifc.createdTime = new Date().toISOString().replace('T', ' ').replace(/\..*/, '')
           return Observable.fromPromise(InterfaceModel.create(ifc))
         }
       })
@@ -215,6 +219,7 @@ export default class InterfaceCtrl extends BaseCtrl {
         if (doc) {
           let log = doc.toObject()
           log.iid = this.objectId(iid)
+          log.editor = uname
           delete log._id
           delete log.version
           projectCtrl.getMemberList(pid)

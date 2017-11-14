@@ -5,6 +5,7 @@ import * as path from 'path'
 import BaseCtrl from '../util/BaseCtrl'
 import { SystemModel } from './model'
 import MemberCtrl from '../member/MemberCtrl'
+import { encrypt } from '../util/crypto'
 
 export default class SystemCtrl extends BaseCtrl {
   initSystem() {
@@ -22,13 +23,13 @@ export default class SystemCtrl extends BaseCtrl {
   }
   initMember() {
     let memberCtrl = new MemberCtrl()
-    memberCtrl.get(true)
+    memberCtrl.get()
       .debounceTime(1000)
       .subscribe((doc: any) => {
         if (!doc.memberList || !doc.memberList.length) {
           const password = Math.random().toString(32).substring(2, 8)
           memberCtrl.post({
-            password,
+            password: encrypt(password),
             account: 'admin',
             name: '系统管理员',
             isAdmin: true

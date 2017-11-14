@@ -8,18 +8,18 @@
         el-input.w-200(v-model.trim='api.name', size='small', autofocus='')
       el-form-item.ta-l.mb-20(label='请求路径', prop='url')
         el-input.w-200(v-model.trim='api.url', size='small', @keydown.shift.native='noParam')
-        span.ml-20.c-silver(v-show="showUrlMsg") 请将参数填入“请求参数”表格中
+        span.ml-20.c-silver(v-show="showUrlMsg") 请将URL参数填入“请求参数”表格中
       el-form-item.ta-l.mb-20(label='请求方法', prop='method')
-        el-select.w-200(v-model='api.method', size='small')
-          el-option(v-for='(m, index) in methods', :value='m', :key='index')
+        el-radio-group(v-model="api.method", size="small")
+          el-radio-button(v-for='m in methods', :key="m", :label="m")
       el-form-item.ta-l.mb-20(label='接口描述', prop='remark')
         el-input(:rows=1, type="textarea", v-model.trim='api.remark', size='small')
       el-form-item.ta-l.mb-20(label='请求参数')
         el-table(:data='api.request.paramList', border)
-          el-table-column(label='参数名', prop='name', width='200')
+          el-table-column(label='参数名', width='200')
             template(scope='scope')
               el-input(v-model.trim='scope.row.name', size='small')
-          el-table-column(label='说明', prop='remark', min-width='200', align='center')
+          el-table-column(label='说明', min-width='200', align='center')
             template(scope='scope')
               el-input(v-model.trim='scope.row.remark', size='small')
           el-table-column(label='模拟数据', prop='mock', min-width='100', align='center')
@@ -213,10 +213,11 @@ export default class apiEdit extends Vue {
     remark: [{required: true, message: '请添加接口描述'}],
     url: [
       {type: 'string', required: true, message: '请输入请求路径'},
-      {message: '请求路径不合法,"/"开头', pattern: /^\//}],
+      {message: '请求路径不合法,"/"开头', pattern: /^\//},
+      {message: '请将URL请求参数填入“请求参数”表格中', validator: (rule: any, val: string, cb: Function) => /\?|&/.test(val) ? cb(new Error(rule.message)) : cb()}],
     method: [{type: 'string', required: true, message: '请选择一个请求方法'}]
   }
-  async refreshApi() {
+  async refreshApi(moduleName?: string) {
     this.loading = true
     if (this.mode === 'edit') {
       try {
@@ -228,7 +229,7 @@ export default class apiEdit extends Vue {
       this.loading = false
     } else {
       this.api = {
-        module: this.moduleName,
+        module: moduleName || this.moduleName,
         name: '',
         method: '',
         url: '',
@@ -280,6 +281,8 @@ export default class apiEdit extends Vue {
         }
         let {url} = cfg[_this.mode]
         try {
+          // 过滤空数据
+          _this.api.request.paramList = _this.api.request.paramList.filter((item: any) => item.name)
           let resp: any = _this.mode === 'edit' ? await http.put(url, _this.api) : await http.post(url, _this.api)
           _this.$emit('updated', resp.id || _this.apiId)
           _this.$message({ type: 'success', message: op + '成功' })
@@ -378,4 +381,6 @@ export default class apiEdit extends Vue {
 .api-add-wrap
   .el-table__empty-block
     display none
+  .el-radio-button__inner
+    min-width 6em
 </style>
