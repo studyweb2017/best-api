@@ -1,5 +1,5 @@
 # api-server
-FROM node:8-alpine
+FROM node:7-alpine
 RUN mkdir /app
 RUN chmod 777 /app
 WORKDIR /app

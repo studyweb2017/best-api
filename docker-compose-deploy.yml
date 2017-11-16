@@ -9,7 +9,7 @@ services:
     tty: true
     stdin_open: true
     ports:
-      - 20170:2017
+      - 2017:2017
     depends_on: 
       - server
   server:
@@ -21,7 +21,7 @@ services:
     tty: true
     stdin_open: true
     ports:
-      - 20180:2018
+      - 2018:2018
     depends_on: 
       - db
   db:
@@ -32,4 +32,4 @@ services:
     volumes:
       - ./data:/data
     ports:
-      - 27018:27017
+      - 27001:27017

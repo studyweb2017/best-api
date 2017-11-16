@@ -11,7 +11,7 @@ services:
       - api_web_modules:/app/node_modules
       - ./web:/app
     ports:
-      - 2017:2017
+      - 20170:20170
     command: npm run compose
   server:
     build:
@@ -24,7 +24,7 @@ services:
       - api_server_modules:/app/node_modules
       - ./server:/app
     ports:
-      - 2018:2018
+      - 20180:20180
       - 8102:5858
     command: npm run compose
     depends_on: 
@@ -35,7 +35,7 @@ services:
     volumes:
       - ./data:/data
     ports:
-      - 27018:27017
+      - 27000:27017
 volumes:
   api_web_modules:
   api_server_modules:

@@ -24,7 +24,6 @@
     "koa-better-body": "^3.0.4",
     "koa-better-router": "^2.1.1",
     "koa-router": "^7.2.1",
-    "mockjs": "^1.0.1-beta3",
     "mongoose": "^4.11.0",
     "path-to-regexp": "^2.0.0",
     "request": "^2.81.0",
