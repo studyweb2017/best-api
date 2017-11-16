@@ -5,7 +5,8 @@ import * as crypto from 'crypto'
 
 export const dbAddr = env.DB_HOST || 'api-db'
 export const dbPort = env.DB_PORT || 27017
-export const dbName = 'api'
+export const dbName = env.DB_DATABASE || 'api'
+export const adminPassword = env.DEFAULT_ADMIN_PASSWORD || new Date().toISOString().substring(0, 10).replace(/-/g, '')
 export const uploadPath = 'upload'
 export const staticPath = 'static'
 export const avatar = `<svg xmlns="http://www.w3.org/2000/svg" height="100px" width="100px">
@@ -32,7 +33,7 @@ export let key = ''
 
 try {
   if (!fs.existsSync('key')) {
-    key = Math.random().toString(32).substring(2)
+    key = Math.random().toString(32).substring(2, 10)
     fs.writeFileSync('key', key)
   } else {
     key = fs.readFileSync('key').toString()

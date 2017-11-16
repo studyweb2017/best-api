@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Rx'
 import * as fs from 'fs'
-import { staticPath } from '../util/config'
+import { staticPath, adminPassword } from '../util/config'
 import * as path from 'path'
 import BaseCtrl from '../util/BaseCtrl'
 import { SystemModel } from './model'
@@ -24,17 +24,15 @@ export default class SystemCtrl extends BaseCtrl {
   initMember() {
     let memberCtrl = new MemberCtrl()
     memberCtrl.get()
-      .debounceTime(1000)
-      .subscribe((doc: any) => {
+    .subscribe((doc: any) => {
         if (!doc.memberList || !doc.memberList.length) {
-          const password = Math.random().toString(32).substring(2, 8)
           memberCtrl.post({
-            password: encrypt(password),
+            password: adminPassword,
             account: 'admin',
             name: '系统管理员',
             isAdmin: true
           })
-            .subscribe(() => console.log('创建管理员账户成功！账号：admin 密码：' + password), () => console.error('创建管理失败'))
+            .subscribe(() => console.log('创建管理员账户成功！账号：admin 密码：' + adminPassword), (e:any) => console.error('创建管理员失败', JSON.stringify(e, null, 2)))
         }
       })
   }

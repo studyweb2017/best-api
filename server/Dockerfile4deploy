@@ -3,9 +3,13 @@ FROM node:8-alpine
 RUN mkdir /app
 RUN chmod 777 /app
 WORKDIR /app
-VOLUME ["/app"]
 EXPOSE 2018
 
 COPY ./Hongkong /etc/localtime
 RUN npm set registry https://registry.npm.taobao.org
-RUN npm i -g pm2 nodemon typescript
+RUN npm i -g pm2
+COPY ./package.json /app
+RUN npm i
+ENV DB_HOST=best-api-db
+COPY ./dist /app
+ENTRYPOINT pm2 start --name api-server ./app.js && bash

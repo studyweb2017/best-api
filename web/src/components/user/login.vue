@@ -1,5 +1,6 @@
 <template lang="pug">
   div.pt
+    h1.title API管理系统
     LoginForm(@success="go")
 </template>
 <script lang="ts">
@@ -20,8 +21,12 @@ export default class Login extends Vue {
 </script>
 
 <style lang="stylus" scoped>
+.title
+  color #fff
+  font-weight normal
 .pt
-  padding-top 20%
+  background-size cover
   background-image url(../../assets/bg.jpg)
   height 100%
+  padding-top 25%
 </style>

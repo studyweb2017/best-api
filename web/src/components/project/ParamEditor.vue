@@ -21,7 +21,7 @@ div.param-editor(:id="id")
             i.el-icon-close.c-red.cu-p.plus-btn.ml-10(v-if="!readonly", size='mini', v-show="!scope.row.isRoot", @click='delData(dataList, scope.row, scope.$index)', icon='close', type='danger')
         el-table-column(prop='description', label='说明', header-align='center', min-width='80')
           template(scope='scope')
-            el-input(v-if="!readonly", :maxlength=500, v-show="!scope.row.isRoot", v-model='scope.row.description', size='small')
+            el-input(v-if="!readonly", :disabled="scope.row.noName", :maxlength=500, v-show="!scope.row.isRoot", v-model='scope.row.description', size='small')
             div.ws-n.to-e.ov-h(v-else, :title="scope.row.description") {{scope.row.description}}
         el-table-column(prop='required', label='必须', width='50', align='center')
           template(scope='scope')

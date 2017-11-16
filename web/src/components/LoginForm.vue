@@ -39,12 +39,11 @@ export default class LoginForm extends Vue {
             _this.$emit('success')
           } else {
             _this.$emit('fail')
-            _this.$message({type: 'warning', message: resp.errMsg})
+            _this.$message({type: 'error', message: resp.errMsg})
           }
         } catch (e) {
           _this.$emit('fail')
-          _this.$message({type: 'warning', message: '系统错误，登录失败'})
-          console.error(e)
+          _this.$message({type: 'error', message: '用户名或密码错误'})
         }
       }
     })

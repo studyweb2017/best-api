@@ -46,15 +46,15 @@ export default class NavBar extends Vue {
     name: '项目',
     routeName: 'projectIndex'
   }, {
-    name: '测试',
-    routeName: 'testIndex'
-  }, {
+  //   name: '测试',
+  //   routeName: 'testIndex'
+  // }, {
     name: '成员',
     routeName: 'memberIndex',
     needAdmin: true
-  }, {
-    name: '文档',
-    routeName: 'docIndex'
+  // }, {
+  //   name: '文档',
+  //   routeName: 'docIndex'
   }, {
     name: '设置',
     routeName: 'setIndex',
