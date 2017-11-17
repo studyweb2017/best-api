@@ -72,8 +72,9 @@ div
           el-checkbox.mr-20(v-model='pro.towerInform.updateEnabled') API修改时通知
           el-checkbox.mr-20(v-model='pro.towerInform.deleteEnabled') API删除时通知
           el-checkbox.mr-20(v-model='pro.towerInform.testEnabled') API测试时通知
-      el-button.mr-50(@click='$router.go(-1)') 返回
-      el-button(type='primary', @click='submit()', :loading="submitting") {{submitting?'提交中':'提交'}}
+      div.ta-c
+        el-button.mr-50(@click='$router.go(-1)') 返回
+        el-button(type='primary', @click='submit()', :loading="submitting") {{submitting?'提交中':'提交'}}
   
 </template>
 <script lang='ts'>
