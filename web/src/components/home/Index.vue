@@ -1,7 +1,6 @@
 <template lang="pug">
-  div.hello
-    h1 Welcome to Best API
-    router-link(:to="{name: 'login'}") 去登录
+  div.pt.ta-c
+    h1.cu-p(@click="go") Welcome to Best API
 </template>
 
 <script lang="ts">
@@ -19,5 +18,19 @@ export default class Index extends Vue {
       })
     }
   }
+  go() {
+    this.$router.replace({
+      name: 'projectIndex'
+    })
+  }
 }
 </script>
+
+<style lang="stylus" scoped>
+.pt
+  background-size cover
+  background-image url(../../assets/bg.jpg)
+  color #fff
+  height 100%
+  padding-top 25%
+</style>

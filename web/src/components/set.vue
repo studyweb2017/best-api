@@ -4,7 +4,7 @@
       el-row
         el-col(:span='12')
           el-form-item.ta-l.mb-10(label='')
-            //- img.company-logo.d-ib(:src='setting.companyLogo', alt='公司logo')
+            img.company-logo.d-ib(:src='setting.companyLogo', alt='公司logo')
             el-upload.d-ib(action='/api/upload/img', :headers='headers', :show-file-list='false', :on-success='uploadSuccess', :on-err='uploadFail') 上传图片
           el-form-item.ta-l.mb-10(label='公司名称')
             el-input.w-200(v-model='setting.companyName', size='small')
@@ -37,18 +37,19 @@
               el-radio(label='daily', size='small') 每天
               el-radio(label='weekly', size='small') 每周
               el-radio(label='monthly', size='small') 每月
-        el-col.template(:span='12')
-            span 接口导出模板
-            el-input(type='textarea', :rows='7', v-model='setting.reportTemplate')
-            span 自定义样式
-            el-input(type='textarea', :rows='7', v-model='setting.reportStyle', @change='previewApiTemplate')
-            span 预览
-            el-row
-              span(:style='style.name') {{'接口名称:' + api.name}}
-              span(:style='style.url') {{'url:' + api.url}}
-              span(:style='style.method') {{'method' + api.method}}
-      el-button.mr-10(@click='$router.go(-1)') 返回
-      el-button(@click='save()') 保存
+        // el-col.template(:span='12')
+        //     span 接口导出模板
+        //     el-input(type='textarea', :rows='7', v-model='setting.reportTemplate')
+        //     span 自定义样式
+        //     el-input(type='textarea', :rows='7', v-model='setting.reportStyle', @change='previewApiTemplate')
+        //     span 预览
+        //     el-row
+        //       span(:style='style.name') {{'接口名称:' + api.name}}
+        //       span(:style='style.url') {{'url:' + api.url}}
+        //       span(:style='style.method') {{'method' + api.method}}
+      div.ta-c
+        el-button.mr-10(@click='$router.go(-1)') 返 回
+        el-button(type="primary", @click='save()') 保 存
 </template>
 
 <script lang="ts">
@@ -85,7 +86,7 @@ export default class Set extends Vue {
     reportTemplate: ''
   }
   style:any = {}
-  previewApiTemplate() { this.style = JSON.parse(this.setting.reportStyle) }
+  // previewApiTemplate() { this.style = JSON.parse(this.setting.reportStyle) }
   async beforeMount() {
     let resp:any = await http.get('/api/setting')
     this.setting = resp || this.setting
@@ -107,7 +108,7 @@ export default class Set extends Vue {
         color: 'blue'
       }
     }, null, 4)
-    this.previewApiTemplate()
+    // this.previewApiTemplate()
   }
   async save() {
     let resp:any = await http.put('/api/setting', this.setting)

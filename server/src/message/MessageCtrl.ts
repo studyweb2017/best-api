@@ -23,7 +23,7 @@ export default class MessageCtrl extends BaseCtrl {
       $count: 'total'
     }])
       .switchMap((t: any) => {
-        total = t[0].total
+        total = t[0] ? t[0].total : 0
         return this.aggregate([match, {
         $addFields: {
           id: '$_id',

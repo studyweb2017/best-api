@@ -36,7 +36,9 @@ export default class MemberCtrl extends BaseCtrl {
       account: 1,
       name: 1
     }))
-    .map((memberList: MemberInterface[]) => ({ memberList }))
+    .map((memberList: any) => { 
+      return { memberList }
+    })
   }
   getInfo(id: string) {
     return Observable.from(MemberModel.findOne({_id: mongoose.Types.ObjectId(id)}).exec())
@@ -55,14 +57,10 @@ export default class MemberCtrl extends BaseCtrl {
     })
   }
   post(member: any) {
-    try {
-      member.password = encrypt(member.password)
-      member.avatarUrl = this.createAvatar(member.account)
-      return Observable.fromPromise(new MemberModel(member).save())
-        .map((x: any) => ({ id: x._id }))
-    } catch (e) {
-      return Observable.throw(e)
-    }
+    member.password = encrypt(member.password)
+    member.avatarUrl = this.createAvatar(member.account)
+    return Observable.fromPromise(new MemberModel(member).save())
+      .map((x: any) => ({ id: x._id }))
   }
   put(id: string, member: any) {
     try {

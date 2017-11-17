@@ -1,7 +1,8 @@
 <template lang="pug">
 div.wrap
   div.pro-list.ta-l
-    el-button.mb-10.d-b.ml-20(type='text', icon='plus', @click='go("add")') 新建项目
+    div
+      el-button.mb-10.d-b.ml-20(type='text', icon='plus', @click='go("add")') 新建项目
     div.pro-item.d-ib.p-r.cu-d.ta-c(v-for='(pro, index) in projects', :key='pro.id')
       el-card(:body-style='{ padding: "0px" }')
         span.f-l.api-num(:title="'接口总数：'+pro.api.total") {{pro.api.total}}

@@ -1,6 +1,6 @@
 <template lang="pug">
   div.pt
-    h1.title API管理系统
+    h1.title.ta-c
     LoginForm(@success="go")
 </template>
 <script lang="ts">
@@ -28,5 +28,5 @@ export default class Login extends Vue {
   background-size cover
   background-image url(../../assets/bg.jpg)
   height 100%
-  padding-top 25%
+  padding-top 20%
 </style>

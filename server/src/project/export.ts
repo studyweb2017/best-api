@@ -4,7 +4,6 @@ import { Observable } from 'rxjs/Rx'
 import * as _ from 'lodash'
 import * as fs from 'fs'
 import * as path from 'path'
-import Mock2json from '../mock/Mock2json'
 
 const prefix = 'api'
 const dist = 'report'
@@ -66,10 +65,10 @@ const getIfc = (ifc: any) => {
   })
   try {
     if(ifc.request.paramList.length>0) {
-      obj.requestExample = JSON.stringify(Mock2json.makeJson(ifc.request.paramList, 'root'), null, 2)
+      // obj.requestExample = JSON.stringify(Mock2json.makeJson(ifc.request.paramList, 'root'), null, 2)
     }
     if(ifc.response.paramList.length>0) {
-      obj.responseExample = JSON.stringify(Mock2json.makeJson(ifc.response.paramList, 'root'), null, 2)
+      // obj.responseExample = JSON.stringify(Mock2json.makeJson(ifc.response.paramList, 'root'), null, 2)
     } 
   } catch(e) {
     console.error(e)

@@ -32,7 +32,14 @@ export default class SystemCtrl extends BaseCtrl {
             name: '系统管理员',
             isAdmin: true
           })
-            .subscribe(() => console.log('创建管理员账户成功！账号：admin 密码：' + adminPassword), (e:any) => console.error('创建管理员失败', JSON.stringify(e, null, 2)))
+          .subscribe({
+              next() {
+                console.log('创建管理员账户成功！账号：admin 密码：' + adminPassword)
+              } ,
+              error(e: any) {
+                console.error('创建管理员失败', JSON.stringify(e, null, 2))
+              }
+            })
         }
       })
   }

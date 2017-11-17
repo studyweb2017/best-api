@@ -126,7 +126,9 @@ export default class BaseCtrl {
    */
   protected verifyProjectRole(pid: string, uid: string, roleList?: role[]) {
     return this.getProjectRole(pid, uid)
-      .map((r: role) => r ? (roleList || [r]).includes(r) : false)
+      .map((r: string) => {
+        return r ? (roleList || [r]).includes(r) : false
+      })
   }
   /**
    * 查询用户是否具有权限
