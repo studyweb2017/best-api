@@ -32,7 +32,12 @@ li
   margin 0
   list-style none
 .wrap 
-  padding 30px
+  padding 20px 30px
+.v-wrap
+  padding-bottom 20px
+  padding-top 20px
 .el-form
   background-color #fff
+.border
+  border 1px solid #ddd
 </style>

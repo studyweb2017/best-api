@@ -19,7 +19,23 @@ export default class MessageCtrl extends BaseCtrl {
         }
       }
     }
-    return this.aggregate([match, {
+    return this.aggregate([{
+      $match: {
+        $and:[
+          {
+            readableUserList: {
+              $in: [uid]
+            } 
+          }, {
+            readUserList: {
+              $not: {
+                $in: [uid]
+              }
+            }
+          }
+        ]
+      }
+    }, {
       $count: 'total'
     }])
       .switchMap((t: any) => {

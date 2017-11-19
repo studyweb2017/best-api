@@ -66,18 +66,18 @@ export default class NavBar extends Vue {
       _this.showLoginDialog = true
     })
     this.routeChanged()
-    let systemInfo: any = await http.get('/api/setting')
-    this.company = systemInfo.companyName
-    this.logo = systemInfo.companyLogo
-    let messageInfo: any = await http.get('/api/message')
-    this.messageNum = messageInfo.total
   }
   refresh(event:any) {
     this.$router.go(0)
   }
   @Watch('$route')
-  routeChanged() {
+  async routeChanged() {
     this.user = JSON.parse(Cache.get('user'))
+    let systemInfo: any = await http.get('/api/setting')
+    this.company = systemInfo.companyName
+    this.logo = systemInfo.companyLogo
+    let messageInfo: any = await http.get('/api/message')
+    this.messageNum = messageInfo.total
   }
   hideDialog() {
     this.showLoginDialog = false

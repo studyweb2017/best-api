@@ -1,35 +1,34 @@
 <template lang="pug">
-  div
-    div.member
-      el-button.mb-10(type='text', icon='plus', @click="addMember()") 添加成员
-      el-dialog(:title='operation', :visible.sync="showOperationForm")
-        el-form.dialog-form(ref='member', :model='member', :rules='rules', label-position='right', label-width='100px')
-          el-form-item.ta-l(label='账户', prop='account')
-            el-input(:disabled="operation!=='添加成员'", size='small', v-model='member.account', placeholder="2-15位字母")
-          el-form-item.ta-l(v-if="operation==='添加成员'||operation==='编辑成员'", label='昵称', prop='name')
-            el-input(size='small', v-model='member.name', maxlength="20", placeholder="例如：王小明")
-          el-form-item.ta-l(v-if="operation==='添加成员'||operation==='编辑成员'",label='管理员')
-            el-checkbox(v-model='member.isAdmin', prop='isAdmin')
-          el-form-item.ta-l(v-if="operation==='添加成员'", label='密码', maxlength="20",  prop='password')
-            el-input(size='small', v-model='member.password', prop='password', type='password')
-          el-form-item.ta-l(v-if="operation==='重置密码'", label='新密码', maxlength="20", prop='newPassword')
-            el-input(size='small', v-model='member.newPassword', prop='password', type='password')
-          el-form-item.ta-l(v-if="operation==='重置密码'", label='确认新密码', maxlength="20", prop='passwordSure')
-            el-input(size='small', v-model='member.newPasswordSure', type='password')
-          .ta-c
-            el-button.mr-50(@click='cancel()') 取 消
-            el-button(type='primary', @click='submit()', :disabled='submiting') {{ submitting ? '提交中' : '提 交' }}
+div.member.wrap 
+  el-button.mb-10(type='text', icon='plus', @click="addMember()") 添加成员
+  el-dialog(:title='operation', :visible.sync="showOperationForm")
+    el-form.dialog-form(ref='member', :model='member', :rules='rules', label-position='right', label-width='100px')
+      el-form-item.ta-l(label='账户', prop='account')
+        el-input(:disabled="operation!=='添加成员'", size='small', v-model='member.account', placeholder="2-15位字母")
+      el-form-item.ta-l(v-if="operation==='添加成员'||operation==='编辑成员'", label='昵称', prop='name')
+        el-input(size='small', v-model='member.name', maxlength="20", placeholder="例如：王小明")
+      el-form-item.ta-l(v-if="operation==='添加成员'||operation==='编辑成员'",label='管理员')
+        el-checkbox(v-model='member.isAdmin', prop='isAdmin')
+      el-form-item.ta-l(v-if="operation==='添加成员'", label='密码', maxlength="20",  prop='password')
+        el-input(size='small', v-model='member.password', prop='password', type='password')
+      el-form-item.ta-l(v-if="operation==='重置密码'", label='新密码', maxlength="20", prop='newPassword')
+        el-input(size='small', v-model='member.newPassword', prop='password', type='password')
+      el-form-item.ta-l(v-if="operation==='重置密码'", label='确认新密码', maxlength="20", prop='passwordSure')
+        el-input(size='small', v-model='member.newPasswordSure', type='password')
+      .ta-c
+        el-button.mr-50(@click='cancel()') 取 消
+        el-button(type='primary', @click='submit()', :disabled='submiting') {{ submitting ? '提交中' : '提 交' }}
 
-      el-table.member-list(:data='memberList', border, fit)
-        el-table-column(prop='account', label='账号', align='center')
-        el-table-column(prop='name', label='姓名', align='center')
-        el-table-column(prop='isAdmin', label='是否管理员', align='center')
-          template(scope='scope') {{scope.row.isAdmin}}
-        el-table-column(label='操作', align='center')
-          template(scope='scope')
-            el-button(@click.native.prevent='delMember(scope.$index)', type='text', size='small') 删除
-            el-button(@click.native.prevent='editMember(scope.$index)', type='text', size='small') 编辑
-            el-button(@click.native.prevent='resetPassword(scope.$index)', type='text', size='small') 重置密码
+  el-table.member-list(:data='memberList', border, fit)
+    el-table-column(prop='account', label='账号', align='center')
+    el-table-column(prop='name', label='姓名', align='center')
+    el-table-column(prop='isAdmin', label='是否管理员', align='center')
+      template(slot-scope='scope') {{scope.row.isAdmin}}
+    el-table-column(label='操作', align='center')
+      template(slot-scope='scope')
+        el-button(@click.native.prevent='delMember(scope.$index)', type='text', size='small') 删除
+        el-button(@click.native.prevent='editMember(scope.$index)', type='text', size='small') 编辑
+        el-button(@click.native.prevent='resetPassword(scope.$index)', type='text', size='small') 重置密码
 </template>
 
 <script lang="ts">
@@ -179,8 +178,6 @@ export default class member extends Vue {
 <style lang="stylus" scoped>
 .member
   margin 0 auto
-  padding-top 50px
-  width 960px
 .dialog-form
   padding 0 20px 20px
 </style>

@@ -1,8 +1,8 @@
 <template lang="pug">
 div.wrap
+  div
+    el-button.mb-10(type='text', icon='plus', @click='go("add")') 新建项目
   div.pro-list.ta-l
-    div
-      el-button.mb-10.d-b.ml-20(type='text', icon='plus', @click='go("add")') 新建项目
     div.pro-item.d-ib.p-r.cu-d.ta-c(v-for='(pro, index) in projects', :key='pro.id')
       el-card(:body-style='{ padding: "0px" }')
         span.f-l.api-num(:title="'接口总数：'+pro.api.total") {{pro.api.total}}
@@ -63,13 +63,13 @@ export default class proList extends Vue {
       }
     } else if (to === 'export') {
       this.loading = true
-      let resp:any = await http.get('/api/project/' + proId + '/doc')
-      if (resp.url) {
+      try {
+        let resp:any = await http.get('/api/project/' + proId + '/doc')
+        if (resp.url) window.open(resp.url)
         this.loading = false
-        window.open(resp.url)
-      } else {
+      } catch (e) {
+        this.$message({type: 'failed', message: e.errMsg || '文档生成失败'})
         this.loading = false
-        this.$message({type: 'failed', message: resp.errMsg || '文档生成失败'})
       }
     }
   }
@@ -91,7 +91,7 @@ export default class proList extends Vue {
   color #8492A6
   padding 5px 10px
 .pro-list
-  margin 0 auto
+  margin 0 -20px
 .pro-item
   margin 0 20px 40px
   height 200px

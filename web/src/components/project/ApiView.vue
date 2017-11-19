@@ -19,7 +19,7 @@
           el-table(:data='api.request.paramList', border, )
             el-table-column(label='参数名', prop='name', width='180', align='left')
             el-table-column(label='说明', prop='remark', min-width='100', align='left')
-              template(scope='scope')
+              template(slot-scope='scope')
                 .nowrap(:title="scope.row.remark") {{scope.row.remark}}
             el-table-column(label='模拟数据', prop='mock', width='150', align='left')
         el-form-item.ta-l(label='请求体', v-if='api.method!=="GET"')
@@ -33,11 +33,11 @@
         el-form-item.ta-l(label='异常处理', v-if='api.response.errList&&api.response.errList.length>0')
           el-table(:data='api.response.errList', border)
             el-table-column(label='是否启用', prop='enabled', width='100')
-              template(scope='scope')
+              template(slot-scope='scope')
                 span {{scope.row.enabled}}
             el-table-column(label='异常概率（用于调试）', prop='probability', width='100')
             el-table-column(label='异常返回（json格式）', prop='data')
-              template(scope='scope')
+              template(slot-scope='scope')
                 pre {{scope.row.response}}
             el-table-column(label='异常描述', prop='remark')
         template(v-for='(header, index) in [api.request.headerList, api.response.headerList]')

@@ -4,7 +4,7 @@ div.param-editor(:id="id")
     el-tab-pane(label="表格", name="table")  
       el-table.data-list-table(:data='dataList', border)
         el-table-column.d-f(prop='name', label='参数名', header-align='left')
-          template(scope='scope')
+          template(slot-scope='scope')
             el-tag.row-type(v-if="readonly", v-show="'string'===scope.row.type", :key="scope.row.type", type="gray") {{scope.row.type}}
             el-tag.row-type(v-if="readonly", v-show="'object'===scope.row.type", :key="scope.row.type", type="primary") {{scope.row.type}}
             el-tag.row-type(v-if="readonly", v-show="'array'===scope.row.type", :key="scope.row.type", type="success") {{scope.row.type}}
@@ -20,15 +20,15 @@ div.param-editor(:id="id")
             i.el-icon-plus.plus-btn.c-blue.cu-p(v-if="!readonly", v-show='scope.row.type.toLowerCase()==="object" || scope.row.type.toLowerCase() === "array"', @click='addData(dataList, scope.row, scope.$index)')
             i.el-icon-close.c-red.cu-p.plus-btn.ml-10(v-if="!readonly", size='mini', v-show="!scope.row.isRoot", @click='delData(dataList, scope.row, scope.$index)', icon='close', type='danger')
         el-table-column(prop='description', label='说明', header-align='center', min-width='80')
-          template(scope='scope')
+          template(slot-scope='scope')
             el-input(v-if="!readonly", :disabled="scope.row.noName", :maxlength=500, v-show="!scope.row.isRoot", v-model='scope.row.description', size='small')
             div.ws-n.to-e.ov-h(v-else, :title="scope.row.description") {{scope.row.description}}
         el-table-column(prop='required', label='必须', width='50', align='center')
-          template(scope='scope')
+          template(slot-scope='scope')
             el-checkbox(v-if="!readonly", v-show="!scope.row.isRoot", v-model='scope.row.required', size='normal')
             i.el-icon-check.c-blue(v-else, v-show="scope.row.required")
         el-table-column(prop='property', label='Schema属性', header-align='center', width='250')
-          template(scope='scope')
+          template(slot-scope='scope')
             el-input(v-if="!readonly", type="textarea", :rows="1", :maxlength=1000, v-model='scope.row.property', size='small')
             span(v-else, :title="scope.row.property") {{scope.row.property}}
     el-tab-pane(label="JSON", name="json")

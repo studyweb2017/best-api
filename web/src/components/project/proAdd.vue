@@ -1,17 +1,16 @@
 <template lang='pug'>
-div
-  div.pro-add
-    el-form(ref='pro', :rules='rules', :model='pro', label-position='right', label-width='100px')
+div.wrap
+  el-form.border.v-wrap(ref='pro', :rules='rules', :model='pro', label-position='right', label-width='100px')
       el-form-item(label='项目封面', prop='logo')
         el-upload.avatar-uploader.ta-l(:headers="headers", action="/api/upload/img", :show-file-list="false", :on-success="handleAvatarSuccess", :before-upload="beforeAvatarUpload")
           img.avatar(v-if="pro.logo", :src="pro.logo")
           i.el-icon-plus.avatar-uploader-icon(v-else="")
       el-form-item(label='项目名称', prop='name')
-        el-input(v-model='pro.name', :minlength=2, :maxlength=20, placeholder="2~20个字符", required)
+        el-input.w-380(v-model='pro.name', :minlength=2, :maxlength=20, placeholder="2~20个字符", required)
       el-form-item(label='项目描述', prop='description')
-        el-input(v-model='pro.description', :maxlength=200, placeholder="0~200个字符")
+        el-input.w-380(v-model='pro.description', :maxlength=200, placeholder="0~200个字符")
       el-form-item(label='测试地址', prop='testUrl')
-        el-input(v-model='pro.testUrl', placeholder="测试服务器域名或IP，用于自动化测试")
+        el-input.w-380(v-model='pro.testUrl', placeholder="测试服务器域名或IP，用于自动化测试")
       el-form-item(label='新增成员')
         el-row(:gutter='12')
           el-col.ml-5(:span='5')
@@ -28,31 +27,31 @@ div
               el-table(:data='roles', border, fit, style='width: 100%', align='center')
                 el-table-column(prop='name', label='身份', align='center')
                 el-table-column(prop='readApi', label='查看项目API', align='center')
-                  template(scope='scope')
+                  template(slot-scope='scope')
                     span.el-icon-close(v-if='!scope.row.readApi')
                     span.el-icon-check(v-if='scope.row.readApi')
                 el-table-column(prop='editApi', label='编辑项目API', align='center')
-                  template(scope='scope')
+                  template(slot-scope='scope')
                     span.el-icon-close(v-if='!scope.row.editApi')
                     span.el-icon-check(v-if='scope.row.editApi')
                 el-table-column(prop='editProject', label='编辑项目API', align='center')
-                  template(scope='scope')
+                  template(slot-scope='scope')
                     span.el-icon-close(v-if='!scope.row.editProject')
                     span.el-icon-check(v-if='scope.row.editProject')
             i.ml-10.cu-d.el-icon-information(v-popover:popover1="")
       el-form-item(label='成员列表', prop='members')
-        div.member-list.border-4
+        div.member-list.w-380.border
           el-row(v-for='(m, index) in pro.members', :key='m.id')
-            el-col.ta-l(:span='18')
+            el-col.ta-l(:span='14')
               span.ml-10 {{ m.name }}
-            el-col(:span='4')
+            el-col(:span='8')
               el-select(v-model='m.role', size='small')
                 el-option(v-for='(r, index) in roles', :value='r.name', :key='r.index', :label='r.name')
-            el-col(:span='2')
+            el-col.ta-c(:span='2')
               i.el-icon-delete.cu-p.c-red(title="删除", @click='delMember(index)')
       el-form-item.ta-l(label='钉钉消息')
         el-form-item(prop='token')
-          el-input(v-model='pro.dingInform.token', :maxlength=100, placeholder="钉钉token", title="钉钉token")
+          el-input.w-380(v-model='pro.dingInform.token', :maxlength=100, placeholder="钉钉token", title="钉钉token")
         el-form-item(prop='createEnabled')
           el-checkbox.mr-20(v-model='pro.dingInform.createEnabled') API创建时通知
           el-checkbox.mr-20(v-model='pro.dingInform.updateEnabled') API修改时通知
@@ -228,17 +227,7 @@ export default class proAdd extends Vue {
   margin-bottom 20px
 .ml-15
   margin-left 15px
-.pro-add
-  margin 0 auto
-  padding 50px 0
-  width 960px
-.el-form
-  padding 40px 50px 10px
-  border 1px solid #ddd
-.el-row
-  margin-bottom 10px
 .member-list
-  padding-top 10px
   min-height 36px
   .el-row
     background-color #e4f0fb
@@ -264,4 +253,6 @@ export default class proAdd extends Vue {
     display block 
 .ml-5
   margin-left -5px
+.w-380
+  width 835px
 </style>
