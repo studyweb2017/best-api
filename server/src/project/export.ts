@@ -145,6 +145,11 @@ const schema2list = (schemaObj: any): Param[] => {
     }
     noName ? row.noName = true : void 0
     let property: any = {}
+    // 整数特殊处理
+    if (schema.type === 'integer') {
+      row.type = 'number'
+      property.type = 'integer'
+    }
     for (let p in schema) {
       if (exclude.indexOf(p) < 0) {
         property[p] = schema[p]

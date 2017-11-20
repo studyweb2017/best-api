@@ -24,10 +24,10 @@
         el-row
           el-col.preview-col(:span="8")
             span html
-            el-input(:disabled="disabled", type='textarea', :rows='20', v-model='setting.reportTemplate')
+            el-input(:disabled="disabled", type='textarea', :rows='20', v-model='setting.reportTemplate', @keyup='previewApiTemplate')
           el-col.preview-col(:span="8")
             span css
-            el-input(:disabled="disabled", type='textarea', :rows='20', v-model='setting.reportStyle', @change='previewApiTemplate')
+            el-input(:disabled="disabled", type='textarea', :rows='20', v-model='setting.reportStyle', @keyup='previewApiTemplate')
           el-col.preview-col(:span="8")
             el-button.f-r.mr-20(type="text", @click="setDefault") 恢复默认模板
             span 预览
@@ -67,7 +67,13 @@ export default class Set extends Vue {
   }
   disabled: boolean = true
   style:any = {}
-  // previewApiTemplate() { this.style = JSON.parse(this.setting.reportStyle) }
+  previewApiTemplate() {
+    // todo..
+  }
+  setDefault() {
+    this.setting.reportStyle = this.setting.defaultStyle
+    this.setting.reportTemplate = this.setting.defaultTemplate
+  }
   async beforeMount() {
     let resp:any = await http.get('/api/setting')
     this.setting = resp || this.setting

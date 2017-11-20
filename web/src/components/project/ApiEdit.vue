@@ -1,5 +1,5 @@
 <template lang="pug">
-  .api-add-wrap.p-r.ov-a(v-loading="loading", element-loading-text="API加载中...")
+  .api-add-wrap.p-r.ov-a(v-loading="loading", :lock="true", element-loading-text="API加载中...")
     el-form.ov-a.api-add#edit-form(ref='api', :model='api', :rules='rules', label-position='right', label-width='100px')
       el-form-item.ta-l.mb-20(label='所属模块', prop='module')
         el-select.w-200(v-model='api.module', size='small', filterable, allow-create, placeholder="选择或新建模块")

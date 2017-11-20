@@ -17,7 +17,7 @@ div.member.wrap
         el-input(size='small', v-model='member.newPasswordSure', type='password')
       .ta-c
         el-button.mr-50(@click='cancel()') 取 消
-        el-button(type='primary', @click='submit()', :disabled='submiting') {{ submitting ? '提交中' : '提 交' }}
+        el-button(type='primary', @click='submit()', :disabled='submitting') {{ submitting ? '提交中' : '提 交' }}
 
   el-table.member-list(:data='memberList', border, fit)
     el-table-column(prop='account', label='账号', align='center')

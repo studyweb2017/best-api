@@ -274,8 +274,13 @@ export default class ParamEditor extends Vue {
         isRoot: ancestor.length === 0,
         className: 'bg-' + ancestor.length
       }
-      noName ? row.noName = true : void 0
       let property: any = {}
+      // 整数特殊处理
+      if (schema.type === 'integer') {
+        row.type = 'number'
+        property.type = 'integer'
+      }
+      noName ? row.noName = true : void 0
       for (let p in schema) {
         if (exclude.indexOf(p) < 0) {
           property[p] = schema[p]
