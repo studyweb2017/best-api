@@ -2,6 +2,7 @@
 div.param-editor(:id="id")
   el-tabs(v-model="activeTabName", type="border-card", @tab-click="tabClick(activeTabName)")
     el-tab-pane(label="表格", name="table")  
+      a.f-r.demo(href="http://json-schema-faker.js.org/", target="_blank") JSON Schema Faker示例
       el-table.data-list-table(:data='dataList', border)
         el-table-column.d-f(prop='name', label='参数名', header-align='left')
           template(slot-scope='scope')
@@ -29,7 +30,7 @@ div.param-editor(:id="id")
             i.el-icon-check.c-blue(v-else, v-show="scope.row.required")
         el-table-column(prop='property', label='Schema属性', header-align='center', width='250')
           template(slot-scope='scope')
-            el-input(v-if="!readonly", type="textarea", :rows="1", :maxlength=1000, v-model='scope.row.property', size='small')
+            el-input(v-if="!readonly", :title="scope.row.property", type="textarea", :rows="1", :maxlength=1000, v-model='scope.row.property', size='small')
             span(v-else, :title="scope.row.property") {{scope.row.property}}
     el-tab-pane(label="JSON", name="json")
       el-dialog(size="small", title="导入json将覆盖当前参数，谨慎操作！", :visible.sync="dialogVisible", :before-close="handleClose")
@@ -42,6 +43,7 @@ div.param-editor(:id="id")
       pre.json
     el-tab-pane(label="Schema", name="schema")
       pre.schema(:contenteditable="!readonly", @keyup='schemaChanged')
+      a.f-r.demo(href="http://json-schema.org/latest/json-schema-core.html", target="_blank") JSON Schema说明
 </template>
 <script lang="ts">
 import Vue from 'vue'
@@ -420,4 +422,7 @@ pre.schema, pre.json
 .row-name
   line-height 30px
   margin-left 1px
+.demo
+  margin-top -20px
+  color: #666
 </style>

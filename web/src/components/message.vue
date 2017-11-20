@@ -1,6 +1,6 @@
 <template lang="pug">
 div.wrap.bg-white
-  div.message(v-for='m in messageInfo.list', :key='m.id')
+  div.message(v-for='(m, index) in messageInfo.list', :key='m.id')
     div
       span {{m.operator}} {{m.operation}} {{m.module}} {{m.objectName}}
       span.f-r(v-if='m.isRead', type='text', disabled) 已读

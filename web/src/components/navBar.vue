@@ -76,7 +76,7 @@ export default class NavBar extends Vue {
     let systemInfo: any = await http.get('/api/setting')
     this.company = systemInfo.companyName
     this.logo = systemInfo.companyLogo
-    let messageInfo: any = await http.get('/api/message')
+    let messageInfo: any = await http.get('/api/message?unread=1')
     this.messageNum = messageInfo.total
   }
   hideDialog() {

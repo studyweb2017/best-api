@@ -9,7 +9,7 @@ export default class MessageCtrl extends BaseCtrl {
    * @param page 当前页
    * @param size 分页大小，最大50
    */
-  get(uid: string, page: number = 1, size: number = 10) {
+  get(uid: string, page: number = 1, size: number = 10, unread: boolean = false) {
     const $limit = Math.min(size, 50)
     let total = 0
     let match = {
@@ -19,7 +19,7 @@ export default class MessageCtrl extends BaseCtrl {
         }
       }
     }
-    return this.aggregate([{
+    let excludeMath = {
       $match: {
         $and:[
           {
@@ -35,12 +35,13 @@ export default class MessageCtrl extends BaseCtrl {
           }
         ]
       }
-    }, {
+    }
+    return this.aggregate([unread ? excludeMath : match, {
       $count: 'total'
     }])
       .switchMap((t: any) => {
         total = t[0] ? t[0].total : 0
-        return this.aggregate([match, {
+        return this.aggregate([unread ? excludeMath : match, {
         $addFields: {
           id: '$_id',
           isRead: {
@@ -57,7 +58,7 @@ export default class MessageCtrl extends BaseCtrl {
           $sort: { createdTime: -1 }
         },
         { $limit },
-        { $skip: page }
+        { $skip: page - 1 }
       ])
     })
     .map((list: any) => {
