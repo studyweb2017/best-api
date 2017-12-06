@@ -12,7 +12,7 @@ import doc from '../components/doc.vue'
 import set from '../components/set.vue'
 import Profile from '../components/user/Profile.vue'
 import Login from '../components/user/Login.vue'
-import ApiIndex from '../components/project/ApiIndex.vue'
+const ApiIndex = () => System.import('../components/project/ApiIndex.vue')
 
 const projectRouter = [
   {

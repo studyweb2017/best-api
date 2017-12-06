@@ -317,7 +317,10 @@ export default class apiList extends Vue {
     overflow hidden
     position relative
     .el-tree-node__expand-icon
-      margin-top 8px
+      border-top-width 8px
+      border-bottom-width 8px
+      border-left-width 10px
+      margin-top 6px
     .tree-node:hover
       .node-btns
         visibility visible

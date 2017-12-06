@@ -21,11 +21,11 @@ export default class MessageCtrl extends BaseCtrl {
     }
     let excludeMath = {
       $match: {
-        $and:[
+        $and: [
           {
             readableUserList: {
               $in: [uid]
-            } 
+            }
           }, {
             readUserList: {
               $not: {
@@ -42,28 +42,28 @@ export default class MessageCtrl extends BaseCtrl {
       .switchMap((t: any) => {
         total = t[0] ? t[0].total : 0
         return this.aggregate([unread ? excludeMath : match, {
-        $addFields: {
-          id: '$_id',
-          isRead: {
-            $in: [uid, '$readUserList']
-          },
-          datetime: {
-            $dateToString: {
-              format: '%Y-%m-%d %H:%M:%S',
-              date: '$createdTime'
+          $addFields: {
+            id: '$_id',
+            isRead: {
+              $in: [uid, '$readUserList']
+            },
+            datetime: {
+              $dateToString: {
+                format: '%Y-%m-%d %H:%M:%S',
+                date: '$createdTime'
+              }
             }
           }
-        }
-      }, {
+        }, {
           $sort: { createdTime: -1 }
         },
-        { $limit },
-        { $skip: page - 1 }
-      ])
-    })
-    .map((list: any) => {
-      return { list, total, page }
-    })
+        { $skip: (page - 1) * size },
+        { $limit }
+        ])
+      })
+      .map((list: any) => {
+        return { list, total, page }
+      })
   }
   put(uid: string, msgId: string[]) {
     return this.update({
@@ -73,5 +73,26 @@ export default class MessageCtrl extends BaseCtrl {
           readUserList: uid
         }
       })
+  }
+  putAll(uid: string) {
+    return this.update({
+      $and: [
+        {
+          readableUserList: {
+            $in: [this.objectId(uid)]
+          }
+        }, {
+          readUserList: {
+            $not: {
+              $in: [this.objectId(uid)]
+            }
+          }
+        }
+      ]
+    }, {
+      $push: { readUserList: this.objectId(uid) }
+    }, {
+      multi: true
+    })
   }
 }

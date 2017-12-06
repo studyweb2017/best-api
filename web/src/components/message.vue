@@ -1,5 +1,7 @@
 <template lang="pug">
 div.wrap.bg-white
+  el-button.mr-20.f-r(@click='mark()', type='text') 全部标为已读
+  .cl-b.mb-10
   div.message(v-for='(m, index) in messageInfo.list', :key='m.id')
     div
       span {{m.operator}} {{m.operation}} {{m.module}} {{m.objectName}}
@@ -35,7 +37,7 @@ export default class message extends Vue {
     total: 0,
     list: []
   }
-  async getMessageList(url:string, page:number, size:number) {
+  async getMessageList(url:string, page:number=1, size:number=10) {
     let resp:any = await http.get(url + '?page=' + page + '&size=' + size)
     this.messageInfo = resp
   }
@@ -43,9 +45,12 @@ export default class message extends Vue {
     this.getMessageList(this.url, 1, this.messageInfo.size)
   }
   async mark(message: any, index:any) {
-    let resp:any = await http.put('/api/message/' + message.id, { read: true })
+    const url = void 0 !== message ? '/api/message/' + message.id : '/api/message'
+    let resp:any = await http.put(url, { read: true })
     if (resp.errCode === 0) {
-      this.messageInfo.list[index].isRead = true
+      this.messageInfo.list.forEach((m: any, i: number) => {
+        if (i === index || index === void 0) m.isRead = true
+      })
     } else {
       this.$message({type: 'error', message: resp.errMsg || '操作失败'})
     }
