@@ -3,7 +3,7 @@ div.param-editor(:id="id")
   el-tabs(v-model="activeTabName", type="border-card", @tab-click="tabClick(activeTabName)")
     el-tab-pane(label="表格", name="table")  
       a.f-r.demo(href="http://json-schema-faker.js.org/", target="_blank") JSON Schema Faker示例
-      el-table.data-list-table(:data='dataList', border)
+      el-table.tab-pane.data-list-table(:data='dataList', border)
         el-table-column.d-f(prop='name', label='参数名', header-align='left')
           template(slot-scope='scope')
             el-tag.row-type(v-if="readonly", v-show="'string'===scope.row.type", :key="scope.row.type", type="gray") {{scope.row.type}}
@@ -28,11 +28,27 @@ div.param-editor(:id="id")
           template(slot-scope='scope')
             el-checkbox(v-if="!readonly", v-show="!scope.row.isRoot", v-model='scope.row.required', size='normal')
             i.el-icon-check.c-blue(v-else, v-show="scope.row.required")
-        el-table-column(prop='property', label='Schema属性', header-align='center', width='250')
+        el-table-column.p-r(prop='property', label='Schema属性', header-align='center', width='250')
           template(slot-scope='scope')
-            el-input(v-if="!readonly", :title="scope.row.property", type="textarea", :rows="1", :maxlength=1000, v-model='scope.row.property', size='small')
+            el-input.property(v-if="!readonly", :title="scope.row.property", type="textarea", :rows="1", :maxlength=1000, v-model='scope.row.property', size='small')
             span(v-else, :title="scope.row.property") {{scope.row.property}}
-    el-tab-pane(label="JSON", name="json")
+            .schema-hint.p-a
+              div(v-if="scope.row.type==='array'")
+                el-button(type="text", @click="addProp(scope.row, 'minItems', 1)") minItems
+                el-button(type="text", @click="addProp(scope.row, 'maxItems', 10)") maxItems
+                el-button(type="text", @click="addProp(scope.row, 'enum', [])") enum
+              div(v-if="scope.row.type==='number'")
+                el-button(type="text", @click="addProp(scope.row, 'type', 'integer')") integer
+                el-button(type="text", @click="addProp(scope.row, 'minimum', 0)") minimum 
+                el-button(type="text", @click="addProp(scope.row, 'maximum', 1024)") maximum
+                el-button(type="text", @click="addProp(scope.row, 'enum', [])") enum
+              div(v-if="scope.row.type==='string'")
+                el-button(type="text", @click="addProp(scope.row, 'pattern', '')") pattern
+                el-button(type="text", @click="addProp(scope.row, 'format', '')") format
+                el-button(type="text", @click="addProp(scope.row, 'minlength', 2)") minlength
+                el-button(type="text", @click="addProp(scope.row, 'maxlength', 10)") maxlength
+                el-button(type="text", @click="addProp(scope.row, 'enum', [])") enum
+    el-tab-pane.tab-pane(label="JSON", name="json")
       el-dialog(size="small", title="导入json将覆盖当前参数，谨慎操作！", :visible.sync="dialogVisible", :before-close="handleClose")
         span.c-red {{jsonError}}
         el-input(type="textarea", :rows="15", v-model="json")
@@ -40,10 +56,11 @@ div.param-editor(:id="id")
           el-button.mt-10(@click="cancel") 取 消
           el-button.mt-10.mr-10(type="primary", @click="importJson") 导 入
       el-button(v-if="!readonly", @click="dialogVisible=true", type='text') 导入
-      pre.json
+      pre.json.tab-pane
     el-tab-pane(label="Schema", name="schema")
-      pre.schema(:contenteditable="!readonly", @keyup='schemaChanged')
       a.f-r.demo(href="http://json-schema.org/latest/json-schema-core.html", target="_blank") JSON Schema说明
+      .cl-b
+      pre.schema.tab-pane(:contenteditable="!readonly", @keyup='schemaChanged')
 </template>
 <script lang="ts">
 import Vue from 'vue'
@@ -170,7 +187,8 @@ export default class ParamEditor extends Vue {
       required: row.type !== 'array',
       description: '',
       noName: row.type === 'array', // 数组元素无属性名
-      className: 'bg-' + ancestor.length
+      className: 'bg-' + ancestor.length,
+      property: ''
     })
   }
   changeType(data:any, row:any, index:any) {
@@ -211,6 +229,32 @@ export default class ParamEditor extends Vue {
   }
   async getJson(schema: any) {
     return await jsf.resolve(schema)
+  }
+  addProp(row: any, key: string, value: any) {
+    try {
+      if (key === 'format') {
+        if (/ip/.test(row.name)) {
+          value = 'ipv4'
+        }
+        if (/date|time/.test(row.name)) {
+          value = 'date-time'
+        }
+        if (/mail/.test(row.name)) {
+          value = 'email'
+        }
+        if (/host|domain/.test(row.name)) {
+          value = 'hostname'
+        }
+        if (/url|uri/.test(row.name)) {
+          value = 'uri'
+        }
+      }
+      let json = JSON.parse(row.property || '{}')
+      json[key] = json[key] || value
+      row.property = JSON.stringify(json)
+    } catch (e) {
+      console.error(e)
+    }
   }
   json2list(json: any) {
     const isArray = (x: any): boolean => {
@@ -272,7 +316,8 @@ export default class ParamEditor extends Vue {
         required,
         ancestor,
         isRoot: ancestor.length === 0,
-        className: 'bg-' + ancestor.length
+        className: 'bg-' + ancestor.length,
+        property: ''
       }
       let property: any = {}
       // 整数特殊处理
@@ -430,4 +475,18 @@ pre.schema, pre.json
 .demo
   margin-top -20px
   color: #666
+.tab-pane 
+  max-height 500px
+  overflow auto
+.property:hover
+  &+.schema-hint
+    display block
+.schema-hint
+  background-color #fff
+  display none
+  top 90%
+  padding 0 5px
+  z-index 2
+  &:hover
+    display block
 </style>

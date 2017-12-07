@@ -1,10 +1,10 @@
 <template lang="pug">
   .api-view-wrap.ov-a.p-r(v-loading="loading", element-loading-text="拼命加载中...")
     .api-latest
-      div.ta-r.c-silver(v-show="!compareVersion&&currentVersion")
+      div.f-r.ta-r.c-silver(v-show="!compareVersion&&currentVersion")
         div 修改者：{{api.editor}} 
         div 修改时间：{{api.updateTime}}
-      div.ta-r.c-silver(v-show="!currentVersion&&compareVersion")
+      div.f-r.ta-r.c-silver(v-show="!currentVersion&&compareVersion")
         div 创建者：{{api.creator}} 
         div 创建时间：{{api.createdTime}}
       el-form(ref='api', :data='api', label-position='right', label-width='100px')
@@ -103,6 +103,21 @@ export default class apiView extends Vue {
   }
   async reload() {
     this.loading = true
+    this.api = {
+      isTest: true,
+      name: '',
+      url: '',
+      method: '',
+      remark: '',
+      request: {
+        paramList: [],
+        headerList: []
+      },
+      response: {
+        headerList: [],
+        errList: []
+      }
+    }
     if (this.proId && this.apiId) {
       this.api = await apiService.get(this.apiId, {
         version: this.currentVersion
