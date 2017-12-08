@@ -28,9 +28,9 @@ body
 ul
   margin 0
   padding 0
-li
-  margin 0
-  list-style none
+  li
+    margin 0
+    list-style none
 .wrap 
   padding 20px 30px
 .v-wrap

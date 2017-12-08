@@ -30,37 +30,67 @@ div.param-editor(:id="id")
             i.el-icon-check.c-blue(v-else, v-show="scope.row.required")
         el-table-column.p-r(prop='property', label='Schema属性', header-align='center', width='250')
           template(slot-scope='scope')
-            el-input.property(v-if="!readonly", :title="scope.row.property", type="textarea", :rows="1", :maxlength=1000, v-model='scope.row.property', size='small')
+            el-input.property(v-if="!readonly", :title="scope.row.property", type="textarea", :rows="1", :maxlength=1000, v-model='scope.row.property', size='small', @blur="validateProperty")
             span(v-else, :title="scope.row.property") {{scope.row.property}}
-            .schema-hint.p-a
+            .schema-hint.p-a.ta-l
               div(v-if="scope.row.type==='array'")
-                el-button(type="text", @click="addProp(scope.row, 'minItems', 1)") minItems
+                el-button(type="text", @click="addProp(scope.row, 'minItems', 1)") minItems 
+                span 数组最小长度
+                br
                 el-button(type="text", @click="addProp(scope.row, 'maxItems', 10)") maxItems
+                span 数组最大长度
+                br
                 el-button(type="text", @click="addProp(scope.row, 'enum', [])") enum
+                span 枚举值
+                br
               div(v-if="scope.row.type==='number'")
                 el-button(type="text", @click="addProp(scope.row, 'type', 'integer')") integer
+                span 整数
+                br
                 el-button(type="text", @click="addProp(scope.row, 'minimum', 0)") minimum 
+                span 最小值
+                br
                 el-button(type="text", @click="addProp(scope.row, 'maximum', 1024)") maximum
+                span 最大值
+                br
                 el-button(type="text", @click="addProp(scope.row, 'enum', [])") enum
+                span 枚举值
+                br
               div(v-if="scope.row.type==='string'")
                 el-button(type="text", @click="addProp(scope.row, 'pattern', '')") pattern
+                span 正则表达式,如 "/abc?/"
+                br
                 el-button(type="text", @click="addProp(scope.row, 'format', '')") format
+                span 固定格式字符串,支持"ipv4","date-time","email","hostname","uri"
+                br
                 el-button(type="text", @click="addProp(scope.row, 'minlength', 2)") minlength
+                span 最小长度
+                br
                 el-button(type="text", @click="addProp(scope.row, 'maxlength', 10)") maxlength
+                span 最大长度
+                br
                 el-button(type="text", @click="addProp(scope.row, 'enum', [])") enum
-    el-tab-pane.tab-pane(label="JSON", name="json")
+                span 枚举值
+                br
+    el-tab-pane(label="JSON", name="json")
+      a.f-r.cu-p.demo(v-if="!readonly", @click="dialogVisible=true") 导入
+      .cl-b
+      pre.json.tab-pane
       el-dialog(size="small", title="导入json将覆盖当前参数，谨慎操作！", :visible.sync="dialogVisible", :before-close="handleClose")
         span.c-red {{jsonError}}
         el-input(type="textarea", :rows="15", v-model="json")
         div.ta-r
           el-button.mt-10(@click="cancel") 取 消
           el-button.mt-10.mr-10(type="primary", @click="importJson") 导 入
-      el-button(v-if="!readonly", @click="dialogVisible=true", type='text') 导入
-      pre.json.tab-pane
     el-tab-pane(label="Schema", name="schema")
-      a.f-r.demo(href="http://json-schema.org/latest/json-schema-core.html", target="_blank") JSON Schema说明
-      .cl-b
-      pre.schema.tab-pane(:contenteditable="!readonly", @keyup='schemaChanged')
+      div.ta-l
+        .c-red.f-l.demo {{errMsg}}
+        a.f-r.demo(href="http://json-schema.org/latest/json-schema-core.html", target="_blank") JSON Schema 说明
+        .cl-b
+      .tab-pane.pl.p-r
+        ol.p-a.line
+          li(v-for="line in schemaLine", :class="line?'error':''")
+        pre.schema(:contenteditable="!readonly", @keyup='schemaChanged')
 </template>
 <script lang="ts">
 import Vue from 'vue'
@@ -107,7 +137,8 @@ export default class ParamEditor extends Vue {
     isRoot: true,
     required: true
   }]
-
+  schemaLine: any[] = []
+  errMsg: string = ''
   beforeMount() {
     this.reload()
   }
@@ -115,19 +146,39 @@ export default class ParamEditor extends Vue {
   onSchemaChanged() {
     this.reload()
   }
+  showSchemaError(text: string, err: any) {
+    let _this = this
+    let errors = err.toString().split(' ')
+    const position = parseInt(errors.pop()) || 0
+    let cursor: string = ''
+    // 定位错误行数
+    text.split('\n').forEach((content: string, index: number) => {
+      if (cursor.length <= position && (cursor + content).length >= position) {
+        _this.schemaLine[index] = true
+        errors.splice(errors.length - 1, 1, ' line ' + index)
+        _this.errMsg = errors.join(' ')
+      }
+      cursor += content + '\n'
+    })
+  }
   schemaChanged() {
     let preDom: any = document.querySelector(`#${this.id} pre.schema`)
-    try {
-      this.dataSchema = JSON.parse(preDom.innerText)
-    } catch (e) {
-      if (preDom.innerText.trim() === '') {
-        this.dataSchema = {
-          id: 'root',
-          type: 'object'
+    if (preDom) {
+      try {
+        this.dataSchema = JSON.parse(preDom.innerText)
+        this.schemaLine = new Array(preDom.innerText.split('\n').fill(false).length)
+        this.errMsg = ''
+      } catch (e) {
+        this.showSchemaError(preDom.innerText, e)
+        if (preDom.innerText.trim() === '') {
+          this.dataSchema = {
+            id: 'root',
+            type: 'object'
+          }
         }
       }
+      this.dataList = this.schema2list(this.dataSchema)
     }
-    this.dataList = this.schema2list(this.dataSchema)
   }
   reload() {
     if (this.schema && Object.keys(this.schema).length > 0) {
@@ -144,6 +195,17 @@ export default class ParamEditor extends Vue {
   cancel() {
     this.dialogVisible = false
     this.jsonError = ''
+  }
+  validateProperty(event: any) {
+    try {
+      let value = event.target.value || '{}'
+      /* eslint-disable */
+      let tmp = JSON.parse(value)
+      if (!/{.*}/.test(value)) throw Error('不是对象')
+      event.target.style.borderColor = ''
+    } catch (e) {
+      event.target.style.borderColor = 'red'
+    }
   }
   importJson() {
     try {
@@ -212,11 +274,13 @@ export default class ParamEditor extends Vue {
   }
   async tabClick(tabName: string) {
     if (tabName === 'schema') {
+      let preDom: any = document.querySelector(`#${this.id} pre.schema`)
       try {
-        let preDom: any = document.querySelector(`#${this.id} pre.schema`)
         this.dataSchema = this.list2schema(JSON.parse(JSON.stringify(this.dataList)))
         preDom.innerText = JSON.stringify(this.dataSchema, null, 2)
+        this.schemaLine = new Array(preDom.innerText.split('\n').fill(false).length)
       } catch (e) {
+        this.showSchemaError(preDom.innerText, e)
         console.error('转换schema失败：' + e)
       }
     } else if (tabName === 'table') {
@@ -477,7 +541,10 @@ pre.schema, pre.json
   color: #666
 .tab-pane 
   max-height 500px
-  overflow auto
+  overflow-x hidden
+  overflow-y auto
+  &.pl
+    padding-left 30px
 .property:hover
   &+.schema-hint
     display block
@@ -487,6 +554,20 @@ pre.schema, pre.json
   top 90%
   padding 0 5px
   z-index 2
+  button
+    margin-right 2ch
+    padding 0
+    text-align left
   &:hover
     display block
+.line
+  margin 0
+  left 30px
+  line-height 20px
+  padding 5px 
+  li.error
+    background-color #FF4949
+    width 10px
+.c-red
+  color #FF4949
 </style>
