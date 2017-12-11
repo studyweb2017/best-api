@@ -267,7 +267,7 @@ export default class apiEdit extends Vue {
       })
       _this.loading = true
       let existApi: any = await http.get('/api/project/' + _this.proId + '/api/exist?url=' + _this.api.url + '&method=' + _this.api.method)
-      if (existApi.id !== _this.apiId) {
+      if (existApi.id && existApi.id !== _this.apiId) {
         _this.$message({ type: 'error', message: 'API已经存在' })
       } else {
         let op = _this.mode === 'edit' ? '修改' : '添加'
@@ -289,11 +289,11 @@ export default class apiEdit extends Vue {
         } catch (e) {
           _this.$message({ type: 'error', message: e || op + '失败' })
         }
-        _this.loading = false
       }
     } catch (e) {
       _this.$message({ type: 'error', message: '填写信息有误，无法提交' })
     }
+    _this.loading = false
   }
   cancel() {
     this.$emit('cancel')

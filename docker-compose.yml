@@ -8,6 +8,7 @@ services:
     working_dir: /etc/nginx/
     tty: true
     stdin_open: true
+    restart: always
     ports:
       - 2017:2017
     depends_on: 
@@ -20,6 +21,7 @@ services:
     working_dir: /app
     tty: true
     stdin_open: true
+    restart: always
     ports:
       - 2018:2018
     depends_on: 
@@ -29,6 +31,7 @@ services:
     container_name: api-db
     tty: true
     stdin_open: true
+    restart: always
     volumes:
       - ./data:/data
     ports:

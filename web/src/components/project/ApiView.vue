@@ -126,6 +126,8 @@ export default class apiView extends Vue {
         this.compareApi = await apiService.get(this.apiId, {
           version: this.compareVersion
         })
+      } else {
+        this.compareApi = {}
       }
     }
     this.loading = false

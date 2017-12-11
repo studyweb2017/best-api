@@ -7,20 +7,12 @@ export default class Api {
     this.proId = proId
   }
   async get(id: string, params: any) {
-    if (id) {
-      return await http.get(`/api/project/${this.proId}/api/${id}`, {
-        params
-      })
-    } else {
-      return new Promise((resolve) => resolve({}))
-    }
+    return await http.get(`/api/project/${this.proId}/api/${id}`, {
+      params
+    })
   }
   async getVersion(id: string) {
-    if (id) {
-      return await http.get(`/api/project/${this.proId}/api/${id}/version`)
-    } else {
-      return new Promise((resolve) => resolve({}))
-    }
+    return await http.get(`/api/project/${this.proId}/api/${id}/version`)
   }
   async delete(id: string) {
     return await http.delete(`/api/project/${this.proId}/api/${id}`)

@@ -22,6 +22,7 @@ import ApiList from './ApiList.vue'
 import ApiView from './ApiView.vue'
 import ApiEdit from './ApiEdit.vue'
 import Api from './Api'
+import _ from 'lodash'
 
 let apiService:any = {}
 @Component({
@@ -76,6 +77,7 @@ export default class ApiIndex extends Vue {
         resp.versionList.forEach((item: any) => {
           this.versionList.push(item.version)
         })
+        this.versionList = _.uniq(this.versionList)
         if (this.versionList.length) this.version = this.versionList[0]
       } catch (e) {
         console.error(e)
