@@ -1,8 +1,8 @@
 <template lang="pug">
   div.p-a.l-0.r-0.b-0.t-40.d-f.bg-white
     ApiList(@getHandler="getTreeHandler", :proId="proId", :clickedId="apiId", @add="addApi", @view="viewApi", @edit="editApi", @delete="deleteApi")
-    ApiEdit.f-1.ov-y-a(@getHandler="getEditorHandler", v-show="mode==='edit'", :mode="mode" :proId="proId", :apiId="apiId", :moduleName="moduleName", @updated="apiModified",  @cancel="cancelEdit")
-    div.d-f.fd-c.f-1.ov-y-a(v-show="mode==='view'")
+    ApiEdit.f-1.ov-y-a(v-if="mode==='edit'||mode==='add'", :mode="mode" :proId="proId", :apiId="apiId", :moduleName="moduleName", @updated="apiModified",  @cancel="cancelEdit")
+    div.d-f.fd-c.f-1.ov-y-a(v-if="mode==='view'")
       div.api-detail-wrap.p-r#detail-wrap.ta-l
         el-button(size='small', icon='edit', type='default', @click='editApi(apiId)') 编辑
         el-button(size='small', icon='document', type='default', :disabled="true") 复制
@@ -37,7 +37,7 @@ export default class ApiIndex extends Vue {
   $route: any
   $message: any
   $confirm: any
-  mode: string = ''
+  mode: string = 'view'
   moduleName: string = ''
   proId: string = ''
   apiId: string = ''
@@ -64,8 +64,7 @@ export default class ApiIndex extends Vue {
   addApi(moduleName: any) {
     this.moduleName = moduleName
     this.apiId = ''
-    this.mode = 'edit'
-    setTimeout(() => this.editorHandler.reload(moduleName), 0)
+    this.mode = 'add'
   }
   async viewApi(id: string, name: string, type: string) {
     this.comparing = false
@@ -95,15 +94,15 @@ export default class ApiIndex extends Vue {
     this.mode = id ? 'view' : ''
   }
   editApi(id: string) {
+    this.apiId = id
+    this.mode = 'edit'
+    this.moduleName = ''
     this.$router.push({
       name: 'api',
       query: {
         id
       }
     })
-    this.apiId = id
-    this.mode = 'edit'
-    setTimeout(() => this.editorHandler.reload(), 0)
   }
   cancelEdit() {
     this.mode = this.apiId ? 'view' : ''

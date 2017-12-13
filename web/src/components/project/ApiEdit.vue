@@ -87,7 +87,7 @@ import Component from 'vue-class-component'
 import http from '../../service/http.ts'
 import {gId} from '../../service/util.ts'
 import EventDelegate from '../../service/EventDelegate'
-import {Prop} from 'vue-property-decorator'
+import {Prop, Watch} from 'vue-property-decorator'
 import ParamEditor from './ParamEditor.vue'
 
 // interface Err extends Object {
@@ -185,6 +185,10 @@ export default class apiEdit extends Vue {
   responseExample: any = ''
   startX:any = 0
   eleMock:any = document.getElementById('pre-mock')
+  @Watch('apiId')
+  apiChanged() {
+    this.refreshApi()
+  }
   noParam(e: any) {
     const forbidSignal = [55, 191]
     if (forbidSignal.indexOf(e.keyCode) > -1) {
@@ -249,11 +253,7 @@ export default class apiEdit extends Vue {
   async created() {
     let resp:any = await http.get('/api/project/' + this.proId + '/api/module')
     this.modules = resp.moduleList || []
-    this.$emit('getHandler', {
-      reload: () => {
-        this.refreshApi()
-      }
-    })
+    this.refreshApi()
   }
   async submit() {
     let _this = this

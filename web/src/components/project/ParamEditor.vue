@@ -444,7 +444,9 @@ export default class ParamEditor extends Vue {
           origin.items = origin.items || []
           if (origin.id === parentId) {
             origin.items.push(node)
-            origin.minItems = origin.items.length
+            if (void 0 === origin.minItems || '' === origin.minItems) {
+              origin.minItems = origin.items.length 
+            }
           } else if (ancestor.indexOf(origin.id) > -1) {
             origin.items.forEach((current: any) => {
               append2parent(ancestor, current, node, required)
