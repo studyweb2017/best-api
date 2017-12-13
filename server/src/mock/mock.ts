@@ -6,6 +6,26 @@ import Probability from './probability'
 import * as Ajv from 'ajv'
 import * as jsf from 'json-schema-faker'
 
+let tuple2single = (sch: any) => {
+  if (sch.type === 'object') {
+    for (let p in sch.properties) {
+      if (sch.properties[p].type === 'object' || sch.properties[p].type === 'array') {
+        tuple2single(sch.properties[p]) 
+      }
+    }
+  } else if (sch.type === 'array') {
+    if (sch.items.length === 1) {
+      sch.items = sch.items[0]
+    } else {
+      sch.items.forEach((it: any) => {
+        if (it.type === 'object' || it.type === 'array') {
+          tuple2single(it)
+        }
+      })
+    }
+  }
+}
+
 export default (ctx: any, next: any) => {
   let { method, path, query, headers, body } = ctx.request
   let _path = path.replace('/', '').split('/')
@@ -72,6 +92,7 @@ export default (ctx: any, next: any) => {
                 //   let p = new Probability(list)
                 //   p.roll()
                 // } 
+                tuple2single(ifc.response.dataSchema)
                 Observable.from(jsf.resolve(ifc.response.dataSchema))
                 .subscribe((data: any) => {
                   ctx.body = data

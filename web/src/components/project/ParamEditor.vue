@@ -292,7 +292,29 @@ export default class ParamEditor extends Vue {
     }
   }
   async getJson(schema: any) {
-    return await jsf.resolve(schema)
+    // tuple array to single list
+    let modifiedSchema = Object.assign({}, schema)
+    let tuple2single = (sch: any) => {
+      if (sch.type === 'object') {
+        for (let p in sch.properties) {
+          if (sch.properties[p].type === 'object' || sch.properties[p].type === 'array') {
+            tuple2single(sch.properties[p]) 
+          }
+        }
+      } else if (sch.type === 'array') {
+        if (sch.items.length === 1) {
+          sch.items = sch.items[0]
+        } else {
+          sch.items.forEach((it: any) => {
+            if (it.type === 'object' || it.type === 'array') {
+              tuple2single(it)
+            }
+          })
+        }
+      }
+    }
+    tuple2single(modifiedSchema)
+    return await jsf.resolve(modifiedSchema)
   }
   addProp(row: any, key: string, value: any) {
     try {
