@@ -10,3 +10,4 @@ declare module 'hotkeys-js'
 declare module 'lodash'
 declare module 'json-schema-faker'
 declare const System:any
+declare module 'clipboard'

@@ -6,11 +6,11 @@ div.param-editor(:id="id")
       el-table.tab-pane.data-list-table(:data='dataList', border)
         el-table-column.d-f(prop='name', label='参数名', header-align='left')
           template(slot-scope='scope')
-            el-tag.row-type(v-if="readonly", v-show="'string'===scope.row.type", :key="scope.row.type", type="gray") {{scope.row.type}}
-            el-tag.row-type(v-if="readonly", v-show="'object'===scope.row.type", :key="scope.row.type", type="primary") {{scope.row.type}}
-            el-tag.row-type(v-if="readonly", v-show="'array'===scope.row.type", :key="scope.row.type", type="success") {{scope.row.type}}
-            el-tag.row-type(v-if="readonly", v-show="'number'===scope.row.type", :key="scope.row.type", type="warning") {{scope.row.type}}
-            el-tag.row-type(v-if="readonly", v-show="'boolean'===scope.row.type", :key="scope.row.type", type="danger") {{scope.row.type}}
+            el-tag.row-type(v-if="readonly", v-show="'string'===scope.row.type", type="gray") {{scope.row.type}}
+            el-tag.row-type(v-if="readonly", v-show="'object'===scope.row.type", type="primary") {{scope.row.type}}
+            el-tag.row-type(v-if="readonly", v-show="'array'===scope.row.type", type="success") {{scope.row.type}}
+            el-tag.row-type(v-if="readonly", v-show="'number'===scope.row.type", type="warning") {{scope.row.type}}
+            el-tag.row-type(v-if="readonly", v-show="'boolean'===scope.row.type", type="danger") {{scope.row.type}}
             span.d-ib.icon-node(v-if='scope.row.ancestor.length>0', :class="scope.row.className")
             el-input.d-ib.f-1.param-name(v-if="!readonly", :disabled="scope.row.noName||scope.row.isRoot", v-model='scope.row.name', 
             :class="scope.row.className", size='small', :maxlength=50)
@@ -89,7 +89,7 @@ div.param-editor(:id="id")
         .cl-b
       .tab-pane.pl.p-r
         ol.p-a.line
-          li(v-for="line in schemaLine", :class="line?'error':''")
+          li(v-for="line in schemaLine", :key="index", :class="line?'error':''")
         pre.schema(:contenteditable="!readonly", @keyup='schemaChanged')
 </template>
 <script lang="ts">
