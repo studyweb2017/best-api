@@ -8,4 +8,5 @@ EXPOSE 2018
 ENV DB_HOST=api-db-dev
 COPY ./Hongkong /etc/localtime
 RUN npm set registry https://registry.npm.taobao.org
-RUN npm i -g nodemon typescript@2.4
+RUN yarn global add nodemon typescript@2.4
+ENTRYPOINT yarn run compose

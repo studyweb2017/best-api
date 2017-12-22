@@ -50,7 +50,9 @@ export default class Router {
       }
       return Observable.of()
     })
-      .do((res: any) => ctx.body = Object.assign({ errCode: 0 }, res))
+      .do((res: any) => {
+        ctx.body = Object.assign({ errCode: 0 }, res)
+      })
       .toPromise()
   }
 

@@ -2,18 +2,20 @@
   div.p-a.l-0.r-0.b-0.t-40.d-f.bg-white
     ApiList(@getHandler="getTreeHandler", ref="apiList", :proId="proId", :clickedId="apiId", @add="addApi", @view="viewApi", @edit="editApi", @delete="deleteApi")
     ApiEdit.f-1.ov-y-a(v-if="mode==='edit'||mode==='add'", :mode="mode" :proId="proId", :apiId="apiId", :moduleName="moduleName", @updated="apiModified",  @cancel="cancelEdit")
-    div.d-f.fd-c.f-1.ov-y-a(v-if="mode==='view'", v-show="apiId")
+    div.d-f.fd-c.f-1.ov-y-a(v-if="mode==='view'")
       div.api-detail-wrap.p-r#detail-wrap.ta-l
         el-button(size='small', icon='edit', type='default', @click='editApi(apiId)') 编辑
         el-button(size='small', icon='document', type='default', @click="copy") 复制
-        el-button(size='small', icon='menu', type='default', :disabled="true") 调试
+        el-button(size='small', icon='menu', type='default', @click="debug") 调试
         el-button(v-if="versionList.length>0", v-show="!comparing", size='small', icon='view', type='default', @click="compare") 版本
         el-select.f-r.mr-10(v-if="comparing", v-model="version", size="small")
           el-option(v-for="version in versionList", :key="version", :label="version", :value="version")
       div.d-f.f-1.p-r
-        ApiView.f-1(:proId="proId", :apiId="apiId", :compareVersion="version")
+        ApiView.f-1(ref="viewComp", :proId="proId", :apiId="apiId", :compareVersion="version")
         ApiView.f-1(v-if="comparing", :proId="proId", :apiId="apiId", :currentVersion="version")
         i.p-a.cu-p.c-red.close-history.el-icon-close(v-if="comparing", @click="comparing=false", title="关闭")
+        ApiDebug.f-1(v-show="debugging", :api="debugApi")
+        i.p-a.cu-p.c-red.close-history.el-icon-close(v-show="debugging", @click="debugging=false", title="关闭")
     el-dialog(title="复制接口", :visible.sync="replication.visible")
       div
         el-select.replication(v-model="replication.proId", placeholder="请选择项目", @change="proChange")
@@ -31,6 +33,7 @@ import Component from 'vue-class-component'
 import ApiList from './ApiList.vue'
 import ApiView from './ApiView.vue'
 import ApiEdit from './ApiEdit.vue'
+import ApiDebug from './ApiDebug.vue'
 import Api from './Api'
 import Project from './Project'
 import _ from 'lodash'
@@ -38,11 +41,13 @@ import _ from 'lodash'
 let apiService:any = {}
 let projectService:any = {}
 let api:any = {}
+
 @Component({
   components: {
     ApiList,
     ApiView,
-    ApiEdit
+    ApiEdit,
+    ApiDebug
   }
 })
 export default class ApiIndex extends Vue {
@@ -50,13 +55,21 @@ export default class ApiIndex extends Vue {
   $route: any
   $message: any
   $confirm: any
-  mode: string = 'view'
+  mode: string = ''
   moduleName: string = ''
   proId: string = ''
   apiId: string = ''
   treeHandler: any
   editorHandler: any
+  debugging: boolean = false
   comparing: boolean = false
+  debugApi: any = {
+    url: '',
+    method: '',
+    headerList: [],
+    paramList: [],
+    dataJson: ''
+  }
   version: string = ''
   versionList: string[] = []
   projectList: any[] = []
@@ -74,7 +87,28 @@ export default class ApiIndex extends Vue {
     apiService = new Api(this.proId)
     projectService = new Project(this.proId)
   }
+  debug() {
+    let a = this.$refs.viewComp.api
+    this.debugApi = {
+      proId: this.proId,
+      id: this.apiId,
+      url: a.url,
+      method: a.method,
+      headerList: a.request.headerList,
+      paramList: a.request.paramList,
+      dataJson: a.request.dataSchema
+    }
+    this.debugging = true
+    this.comparing = false
+  }
   compare() {
+    this.debugApi = {
+      url: '',
+      headerList: [],
+      paramList: [],
+      dataJson: ''
+    }
+    this.debugging = false
     this.comparing = true
   }
   getTreeHandler(treeHandler: any) {
@@ -90,6 +124,13 @@ export default class ApiIndex extends Vue {
     this.mode = 'add'
   }
   async viewApi(id: string, name: string, type: string) {
+    this.debugApi = {
+      url: '',
+      headerList: [],
+      paramList: [],
+      dataJson: ''
+    }
+    this.debugging = false
     this.comparing = false
     if (type === 'url') {
       try {

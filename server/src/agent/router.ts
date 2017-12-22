@@ -5,5 +5,5 @@ let agentRouter = new Router()
 let agentCtrl = new Ctrl()
 
 export default agentRouter.router
-  .post('/agent', (ctx: any) => agentRouter.handleProxy(ctx, agentCtrl.forward(ctx.request.fields.url, ctx.request.fields.method, ctx.request.fields.data, ctx.request.fields.headers)))
+  .post('/debug', (ctx: any) => agentRouter.handle(ctx, agentCtrl.forward(ctx.request.fields.url, ctx.request.fields.method, ctx.request.fields.payload, ctx.request.fields.header, ctx.header)))
 .routes()

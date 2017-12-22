@@ -146,7 +146,7 @@ export default class proAdd extends Vue {
       let resp1: any = await http.get('/api/project/' + this.$route.params.proId)
       this.pro = Object.assign(new Project(), resp1)
     } else {
-      let user:any = JSON.parse(cache.get('user'))
+      let user:any = cache.get('user')
       this.pro.members.push({
         id: user.id,
         name: user.name,

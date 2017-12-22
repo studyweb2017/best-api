@@ -33,7 +33,7 @@ export default class LoginForm extends Vue {
         try {
           let resp:any = await http.post('/api/user/login', _this.userForm)
           if (resp.user && resp.token) {
-            Cache.set('user', JSON.stringify(resp.user))
+            Cache.set('user', resp.user)
             Cache.set('token', resp.token)
             _this.$message({type: 'success', message: '登录成功'})
             _this.$emit('success')

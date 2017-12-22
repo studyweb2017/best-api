@@ -51,7 +51,6 @@
 import Vue from 'vue'
 import Component from 'vue-class-component'
 import Api from './Api'
-import cache from '../../service/cache.ts'
 import {Prop, Watch} from 'vue-property-decorator'
 import ParamEditor from './ParamEditor'
 
@@ -85,10 +84,12 @@ export default class apiView extends Vue {
     method: '',
     remark: '',
     request: {
+      dataSchema: {},
       paramList: [],
       headerList: []
     },
     response: {
+      dataSchema: {},
       headerList: [],
       errList: []
     }
@@ -118,19 +119,24 @@ export default class apiView extends Vue {
         errList: []
       }
     }
-    if (this.proId && this.apiId) {
-      this.api = await apiService.get(this.apiId, {
-        version: this.currentVersion
-      })
-      if (this.compareVersion) {
-        this.compareApi = await apiService.get(this.apiId, {
-          version: this.compareVersion
+    try {
+      if (this.proId && this.apiId) {
+        this.api = await apiService.get(this.apiId, {
+          version: this.currentVersion
         })
-      } else {
-        this.compareApi = {}
+        if (this.compareVersion) {
+          this.compareApi = await apiService.get(this.apiId, {
+            version: this.compareVersion
+          })
+        } else {
+          this.compareApi = {}
+        }
       }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      this.loading = false
     }
-    this.loading = false
   }
   @Watch('apiId')
   async apiChanged() {
@@ -146,9 +152,6 @@ export default class apiView extends Vue {
   }
   get methodType() {
     return this.api.method ? tagType[this.api.method] : ''
-  }
-  copy(data:any) {
-    data ? cache.set('copyData', JSON.stringify(data)) : 1 > 0
   }
   async delApi(data:any, store:any) {
     if (data.label === 'url') {

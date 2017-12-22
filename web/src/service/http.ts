@@ -14,6 +14,7 @@ let request = (method: string, url: string, data: any, config: any = {}) => new 
       resolve(response.data) 
     }
   } catch (e) {
+    console.error(e)
     reject(e.response.data)
     const { data, status, statusText } = e.response
     if (status === 401) {

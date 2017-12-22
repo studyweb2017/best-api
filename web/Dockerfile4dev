@@ -8,5 +8,6 @@ VOLUME ["/app"]
 
 COPY ./Hongkong /etc/localtime
 RUN npm set registry https://registry.npm.taobao.org
-RUN npm i -g typescript
+RUN yarn global add typescript
 ENV SERVER_HOST=api-server-dev
+ENTRYPOINT yarn run compose

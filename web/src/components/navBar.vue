@@ -15,6 +15,8 @@ div.nav-bar-wrap.p-a.t-0.r-0.l-0.h-40
       span.d-ib.user(v-show='user.name', v-popover:popover1="")
         span.c-f.username {{user.name}}
         img.avatar(:src='user.avatar', alt='avatar', :title='user.name')
+  el-dialog(:visible.sync="showLoginDialog", title="用户已注销，请登录")
+    LoginForm(@success="showLoginDialog=false;refresh()")
 </template>
 
 <script lang="ts">
@@ -67,17 +69,17 @@ export default class NavBar extends Vue {
     })
     this.routeChanged()
   }
-  refresh(event:any) {
-    this.$router.go(0)
-  }
-  @Watch('$route')
-  async routeChanged() {
-    this.user = JSON.parse(Cache.get('user'))
+  async refresh() {
+    this.user = Cache.get('user') || {}
     let systemInfo: any = await http.get('/api/setting')
     this.company = systemInfo.companyName
     this.logo = systemInfo.companyLogo
     let messageInfo: any = await http.get('/api/message?unread=1')
     this.messageNum = messageInfo.total
+  }
+  @Watch('$route')
+  routeChanged() {
+    this.refresh()
   }
   hideDialog() {
     this.showLoginDialog = false

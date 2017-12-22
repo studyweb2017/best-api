@@ -35,6 +35,8 @@ services:
     image: mongo:3
     container_name: api-db-dev
     volumes:
-      - ./data:/data
+      - api_db_data:/data
     ports:
       - 27000:27017
+volumes:
+  api_db_data:

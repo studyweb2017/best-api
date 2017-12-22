@@ -89,7 +89,7 @@ div.param-editor(:id="id")
         .cl-b
       .tab-pane.pl.p-r
         ol.p-a.line
-          li(v-for="line in schemaLine", :key="index", :class="line?'error':''")
+          li(v-for="(line,index) in schemaLine", :key="index", :class="line?'error':''")
         pre.schema(:contenteditable="!readonly", @keyup='schemaChanged')
 </template>
 <script lang="ts">
@@ -97,6 +97,7 @@ import Vue from 'vue'
 import Component from 'vue-class-component'
 import {Prop, Watch} from 'vue-property-decorator'
 import jsf from 'json-schema-faker'
+import _ from 'lodash'
 
 let gId = (): string => {
   return 'a' + Math.random().toString().substring(2)
@@ -124,7 +125,7 @@ export default class ParamEditor extends Vue {
   types: string[] = ['string', 'object', 'array', 'number', 'boolean', 'file']
   activeTabName: string = 'table'
   $confirm: any
-  dataSchema: any
+  dataSchema: any = {}
   json: string = ''
   jsonError: string = ''
   dialogVisible: boolean = false
@@ -166,7 +167,7 @@ export default class ParamEditor extends Vue {
     if (preDom) {
       try {
         this.dataSchema = JSON.parse(preDom.innerText)
-        this.schemaLine = new Array(preDom.innerText.split('\n').fill(false).length)
+        this.schemaLine = new Array(preDom.innerText.split('\n').fill(false).length) || []
         this.errMsg = ''
       } catch (e) {
         this.showSchemaError(preDom.innerText, e)
@@ -278,7 +279,7 @@ export default class ParamEditor extends Vue {
       try {
         this.dataSchema = this.list2schema(JSON.parse(JSON.stringify(this.dataList)))
         preDom.innerText = JSON.stringify(this.dataSchema, null, 2)
-        this.schemaLine = new Array(preDom.innerText.split('\n').fill(false).length)
+        this.schemaLine = new Array(preDom.innerText.split('\n').fill(false).length) || []
       } catch (e) {
         this.showSchemaError(preDom.innerText, e)
         console.error('转换schema失败：' + e)
@@ -293,7 +294,7 @@ export default class ParamEditor extends Vue {
   }
   async getJson(schema: any) {
     // tuple array to single list
-    let modifiedSchema = Object.assign({}, schema)
+    let modifiedSchema = _.cloneDeep(schema)
     let tuple2single = (sch: any) => {
       if (sch.type === 'object') {
         for (let p in sch.properties) {
@@ -302,6 +303,7 @@ export default class ParamEditor extends Vue {
           }
         }
       } else if (sch.type === 'array') {
+        sch.items = sch.items || []
         if (sch.items.length === 1) {
           sch.items = sch.items[0]
         } else {
@@ -564,6 +566,7 @@ pre.schema, pre.json
   margin-top -20px
   color: #666
 .tab-pane 
+  border 1px solid #eee
   max-height 500px
   overflow-x hidden
   overflow-y auto

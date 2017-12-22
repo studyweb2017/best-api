@@ -4,6 +4,8 @@ declare module 'crypto'
 declare module 'fs'
 declare module 'path'
 declare module 'events'
+declare module 'https'
+declare module 'http'
 
 /* 3rd modules */
 declare module 'koa'
