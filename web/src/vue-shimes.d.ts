@@ -11,3 +11,4 @@ declare module 'lodash'
 declare module 'json-schema-faker'
 declare const System:any
 declare module 'clipboard'
+declare module 'ajv'

@@ -132,6 +132,7 @@ export default class apiView extends Vue {
           this.compareApi = {}
         }
       }
+      this.$emit('loaded')
     } catch (e) {
       console.error(e)
     } finally {

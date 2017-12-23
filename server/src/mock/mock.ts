@@ -16,6 +16,14 @@ let tuple2single = (sch: any) => {
   } else if (sch.type === 'array') {
     if (sch.items.length === 1) {
       sch.items = sch.items[0]
+      if (sch.items.type === 'object') {  
+        for (let p in sch.items.properties) {
+          tuple2single(sch.items.properties[p]) 
+        }
+      }
+      if (sch.items.type === 'array') {
+        tuple2single(sch.items.items)
+      }
     } else {
       sch.items.forEach((it: any) => {
         if (it.type === 'object' || it.type === 'array') {
@@ -38,6 +46,8 @@ export default (ctx: any, next: any) => {
         let keys: any = []
         let match: any
         let ifc: any = []
+        // 排序，优先匹配实参路径，如 /yy,/:xx 优先匹配/yy
+        ifcList.sort((a: any, b: any) => b.url.localeCompare(a.url))
         for(let i=0; i<ifcList.length; i++) {
           let re = path2reg(ifcList[i].url, keys, { strict: true })
           match = re.exec(path) 

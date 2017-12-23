@@ -24,14 +24,18 @@
             td 
               el-input(v-model.trim='param.mock', size='small')
       el-form-item(label='请求payload', v-if="api.method!=='GET'")
+        .c-red(v-show="payloadError") {{payloadError}}
         el-input(type="textarea", v-model="json", :rows="8")
       el-form-item.ta-r
         el-button.mr-20(@click="login.visible = true;loginResult = {}") 设置登录信息
         el-button(type="primary", @click="send", :loading="sending") {{sending?'发送中':'发送请求'}}
       el-form-item(label='响应body')
-        pre.body.bg-light.login-result(:class="response.status===200?'':'c-red'") {{response.body}}
+          pre.body.bg-light.login-result(:class="response.status===200?'':'c-red'") {{response.body}}
+          div(v-show="!response.valid")
+            .c-red 返回结果校验失败
+            pre.login-result(:class="response.valid?'':'c-red'") {{response.errors}} 
       el-form-item(label='响应header')
-        pre.header.bg-light.login-result {{response.header}}
+        pre.f-1.header.bg-light.login-result {{response.header}}
     el-dialog(title="设置登录信息", :visible.sync="login.visible")
       el-form(label-width="5em")
         el-form-item(label="请求地址")
@@ -50,8 +54,8 @@
         el-form-item.ta-r
           el-button.mr-20(@click="testLogin", :loading="testing") 测试
           el-button(type="primary", @click="saveLogin") 保存到浏览器
-        el-form-item(label="测试结果", v-show="loginResult.data")
-          pre.login-result(:class="loginResult.status===200?'':'c-red'") {{loginResult.data}}
+        el-form-item(label="测试结果", v-show="loginResult")
+          pre.login-result(:class="loginResult.status===200?'':'c-red'") {{loginResult.data ? loginResult.data : loginResult}}
 </template>
 <script lang="ts">
 import Vue from 'vue'
@@ -61,6 +65,7 @@ import jsf from 'json-schema-faker'
 import _ from 'lodash'
 import cache from '../../service/cache'
 import http from '../../service/http'
+import ajv from 'ajv'
 
 interface API {
   proId: string,
@@ -68,7 +73,8 @@ interface API {
   method: string,
   paramList: any[],
   headerList: any[],
-  dataJson: any
+  dataJson: any,
+  responseSchema: any
 }
 interface LOGIN {
   enabled: boolean,
@@ -95,7 +101,9 @@ let initForm = () => ({
 })
 let initResponse = () => ({
   body: '',
-  header: ''
+  header: '',
+  valid: true,
+  errors: {}
 })
 @Component
 export default class ApiDebug extends Vue {
@@ -113,17 +121,20 @@ export default class ApiDebug extends Vue {
   response: any = initResponse()
   loginResult: string = ''
   sending: boolean = false
+  payloadError: string = ''
   get storageKey() {
     return this.api.proId ? this.api.proId : ''
   }
   @Watch('api')
   async getJson() {
+    this.payloadError = ''
     this.login = initLogin()
     this.form = initForm()
     this.response = initResponse()
     this.headerList = _.cloneDeep(this.api.headerList) || []
     this.paramList = _.cloneDeep(this.api.paramList) || []
-    this.json = JSON.stringify(await jsf.resolve(this.api.dataJson || {}), null, 2)
+    let data = await jsf.resolve(this.api.dataJson || {})
+    this.json = JSON.stringify(data, null, 2)
     this.changeUrl()
     this.hostname = cache.get(this.storageKey + '_hostname') || this.hostname
     this.login = cache.get(this.storageKey + '_login') || this.login
@@ -175,6 +186,7 @@ export default class ApiDebug extends Vue {
       }))
       this.loginResult = res
     } catch (e) {
+      console.error(e)
       this.loginResult = e
     } finally {
       this.testing = false
@@ -182,9 +194,14 @@ export default class ApiDebug extends Vue {
   }
   async send() {
     this.sending = true
-    this.response = {
-      body: '',
-      header: ''
+    this.payloadError = ''
+    this.response = initResponse()
+    try {
+      JSON.parse(this.json)
+    } catch (e) {
+      this.payloadError = e.toString()
+      this.sending = false
+      return
     }
     try {
       let headers = {}
@@ -207,6 +224,11 @@ export default class ApiDebug extends Vue {
       this.response.body = result.data
       this.response.header = result.headers
       this.response.status = result.status
+      /* eslint-disable */
+      let _ajv = new ajv()
+      let validate = _ajv.compile(this.api.responseSchema)
+      this.response.valid = validate(this.response.body)
+      this.response.errors = validate.errors
     } catch (e) {
       console.error(e)
       this.response.body = e
@@ -240,7 +262,7 @@ export default class ApiDebug extends Vue {
   .body
     height 300px
   .header
-    height 200px
+    height 100px
   .login-result
     line-height 1
     overflow-y auto

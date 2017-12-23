@@ -45,7 +45,7 @@ export default class Router {
       } else {
         ctx.body = {
           errCode: e.errCode || 110,
-          errMsg: e.errMsg || e.errors || '操作失败'
+          errMsg: e.response.data || e.errMsg || e.errors || '操作失败'
         }
       }
       return Observable.of()

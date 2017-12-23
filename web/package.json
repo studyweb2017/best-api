@@ -16,6 +16,7 @@
     "compose": "yarn run proxy && yarn run init && bash"
   },
   "dependencies": {
+    "ajv": "^5.5.2",
     "axios": "^0.16.2",
     "babel-runtime": "^6.26.0",
     "element-ui": "^1.4.9",

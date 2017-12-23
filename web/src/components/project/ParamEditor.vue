@@ -58,7 +58,7 @@ div.param-editor(:id="id")
                 br
               div(v-if="scope.row.type==='string'")
                 el-button(type="text", @click="addProp(scope.row, 'pattern', '')") pattern
-                span 正则表达式,如 "/abc?/"
+                span 正则表达式,如 "abc?","\\w{12}"
                 br
                 el-button(type="text", @click="addProp(scope.row, 'format', '')") format
                 span 固定格式字符串,支持"ipv4","date-time","email","hostname","uri"
@@ -198,13 +198,14 @@ export default class ParamEditor extends Vue {
     this.jsonError = ''
   }
   validateProperty(event: any) {
+    let value = event.target.value || '{}'
     try {
-      let value = event.target.value || '{}'
+      if (!/^{.*}$/.test(value.trim())) throw Error('不是对象')
       /* eslint-disable */
-      let tmp = JSON.parse(value)
-      if (!/{.*}/.test(value)) throw Error('不是对象')
+      eval('(' + value + ')')
       event.target.style.borderColor = ''
     } catch (e) {
+      console.error(value, e)
       event.target.style.borderColor = 'red'
     }
   }
@@ -306,6 +307,14 @@ export default class ParamEditor extends Vue {
         sch.items = sch.items || []
         if (sch.items.length === 1) {
           sch.items = sch.items[0]
+          if (sch.items.type === 'object') {  
+            for (let p in sch.items.properties) {
+              tuple2single(sch.items.properties[p]) 
+            }
+          }
+          if (sch.items.type === 'array') {
+            tuple2single(sch.items.items)
+          }
         } else {
           sch.items.forEach((it: any) => {
             if (it.type === 'object' || it.type === 'array') {
@@ -482,7 +491,7 @@ export default class ParamEditor extends Vue {
     let result = {}
     list.forEach((row: any) => {
       // 过滤空白项
-      if (row.name.trim() === '' && !row.noName && !row.isRoot) return
+      if (row.name && row.name.trim() === '' && !row.noName && !row.isRoot) return
       let node = {
         name: row.name,
         type: row.type,
