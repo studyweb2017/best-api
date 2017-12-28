@@ -39,8 +39,8 @@ export default class AuthCtrl extends  BaseCtrl{
       .map(() => ({}))
   }
   static authorize(ctx: any, next: any) {
-    const whiteRoute = ['/api/user/login', '/api/user/logout', '/api/setting/upload/img', '/api/agent']
-    if (whiteRoute.includes(ctx.path)||/^\/\w{24}/.test(ctx.path)) {
+    const whiteRoute = ['/api/user/login', '/api/user/logout', '/api/setting/upload/img', '/api/agent', '/api/report']
+    if (whiteRoute.find((val: string) => ctx.path.startsWith(val) || /^\/\w{24}/.test(ctx.path))) {
       ctx.user = {}
       return next()
     } else if (/(\.html|\.png|\.jpg|\.css|\.svg)$/.test(ctx.path)) {

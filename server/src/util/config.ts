@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as crypto from 'crypto'
 
-export const dbAddr = env.DB_HOST || 'api-db'
+export const dbAddr = env.DB_HOST || 'localhost'
 export const dbPort = env.DB_PORT || 27017
 export const dbName = env.DB_DATABASE || 'api'
 export const adminPassword = env.DEFAULT_ADMIN_PASSWORD || new Date().toISOString().substring(0, 10).replace(/-/g, '')

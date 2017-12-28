@@ -88,7 +88,7 @@ export default {
     let htmlTpl = getFile('default.html')
     let bodyTpl = exist('template.body.html') ? getFile('template.body.html') : getFile('default.body.html')
     let css = exist('template.css') ? getFile('template.css') : getFile('default.css')
-    let head = _.template(headTpl)({ css: `${pid}.css`, title })
+    let head = _.template(headTpl)({ css: `${pid}.css`, title , style: css})
     return Observable.fromPromise(InterfaceModel.find({ pid: mongoose.Types.ObjectId(pid) }))
       .switchMap((interfaceList: any) => {
         let obs: any = []
@@ -107,9 +107,10 @@ export default {
         return Observable.of(e)
       })
       .map((body: any) => {
-        let html = _.template(htmlTpl)({ head, body })
-        setFile(`${pid}.css`, css)
-        setFile(`${pid}.html`, html)
+        let content = _.template(htmlTpl)({ head, body })
+        const file = path.join(dist, pid)
+        setFile(file + '.html', content)
+        setFile(file + '.docx', content)
         return path.join('/', prefix, dist, `${pid}.html`)
       })
   },
