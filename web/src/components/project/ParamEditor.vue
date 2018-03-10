@@ -11,11 +11,12 @@ div.param-editor(:id="id")
             el-tag.row-type(v-if="readonly", v-show="'array'===scope.row.type", type="success") {{scope.row.type}}
             el-tag.row-type(v-if="readonly", v-show="'number'===scope.row.type", type="warning") {{scope.row.type}}
             el-tag.row-type(v-if="readonly", v-show="'boolean'===scope.row.type", type="danger") {{scope.row.type}}
+            i.el-icon-document.copy(v-else, title="复制属性", @click="copy(dataList, scope.row)")
             span.d-ib.icon-node(v-if='scope.row.ancestor.length>0', :class="scope.row.className")
             el-input.d-ib.f-1.param-name(v-if="!readonly", :disabled="scope.row.noName||scope.row.isRoot", v-model='scope.row.name', 
             :class="scope.row.className", size='small', :maxlength=50)
             div.ws-n.ov-h.to-e.row-name(v-else, :title="scope.row.name") {{scope.row.isRoot ? ' ' : scope.row.name}}
-            el-select.data-select(v-if="!readonly", :disabled="scope.row.isRoot", v-model='scope.row.type', 
+            el-select.data-select(v-if="!readonly", v-model='scope.row.type', 
             :key='scope.row.id', size='small', @change='changeType(dataList, scope.row, scope.$index)')
               el-option(v-for='(t, index) in types', :value='t', :key='index', :label='t')
             i.el-icon-plus.plus-btn.c-blue.cu-p(v-if="!readonly", v-show='scope.row.type.toLowerCase()==="object" || scope.row.type.toLowerCase() === "array"', @click='addData(dataList, scope.row, scope.$index)')
@@ -122,6 +123,13 @@ export default class ParamEditor extends Vue {
   @Prop()
   readonly: boolean
   id: any = gId()
+  typeTag: any = {
+    string: 'gray',
+    object: 'primary',
+    array: 'success',
+    number: 'warning',
+    boolean: 'danger'
+  }
   types: string[] = ['string', 'object', 'array', 'number', 'boolean', 'file']
   activeTabName: string = 'table'
   $confirm: any
@@ -223,6 +231,33 @@ export default class ParamEditor extends Vue {
       this.jsonError = e.toString()
     }
   }
+  copy(list:any, row:any) {
+    let replica:any = []
+    let index:number = 0
+    let idMap:any = {}
+    list.forEach((item:any, idx:number) => {
+      if (item.id===row.id || item.ancestor.indexOf(row.id)>-1) {
+        // 记录插入点
+        index = item.id===row.id ? idx : index
+        // 更新id
+        idMap[item.id] = idMap[item.id] || gId()
+        let newItem = _.cloneDeep(item)
+        newItem.id = idMap[item.id]
+        // 更新name
+        if (newItem.name && !newItem.noName && item.id===row.id) {
+          newItem.name += '_' + Math.random().toString().substring(2,4)
+        }
+        // 更新祖先id
+        let ancestorStr:string = newItem.ancestor.join(',')
+        for(let key in idMap) {
+          ancestorStr = ancestorStr.replace(key, idMap[key])
+        }
+        newItem.ancestor = ancestorStr.split(',')
+        replica.push(newItem)
+      }
+    })
+    list.splice.apply(list, [index, 0].concat(replica))
+  }
   handleClose(done: any) {
     done()
   }
@@ -260,18 +295,23 @@ export default class ParamEditor extends Vue {
     data.forEach((p:any, idx:any) => {
       if (p.ancestor.indexOf(row.id) > -1) { len++ }
     })
-    data.splice(index + 1, len)
     if (row.type === 'object' || row.type === 'array') {
-      data.splice(index + 1, 0, {
-        id: gId(),
-        ancestor: row.ancestor.concat(row.id),
-        name: '',
-        type: row.type === 'object' ? 'string' : 'object',
-        required: true,
-        noName: row.type === 'array',
-        description: '',
-        className: 'bg-' + (row.ancestor.length + 1)
-      })
+      // 如果没有子元素则添加
+      if (len===0) {
+        data.splice(index + 1, 0, {
+          id: gId(),
+          ancestor: row.ancestor.concat(row.id),
+          name: '',
+          type: row.type === 'object' ? 'string' : 'object',
+          required: true,
+          noName: row.type === 'array',
+          description: '',
+          className: 'bg-' + (row.ancestor.length + 1)
+        })
+      } 
+    } else {
+      // 如果之前有子元素则进行删除
+      data.splice(index + 1, len)
     }
   }
   async tabClick(tabName: string) {
@@ -606,4 +646,11 @@ pre.schema, pre.json
     width 10px
 .c-red
   color #FF4949
+.copy
+  height 14px
+  margin-top 13px
+  visibility hidden
+  cursor pointer
+tr:hover .copy
+  visibility visible
 </style>
