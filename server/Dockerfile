@@ -3,11 +3,12 @@ FROM node:8
 RUN mkdir /app
 RUN chmod 777 /app
 WORKDIR /app
+VOLUME ["/app"]
 EXPOSE 2018
-
 COPY ./Hongkong /etc/localtime
 RUN npm set registry https://registry.npm.taobao.org
-RUN npm i -g pm2
-ENV DB_HOST=api-db
-COPY ./ /app
-ENTRYPOINT pm2 start --name api-server ./dist/app.js && bash
+RUN yarn global add pm2
+COPY ./template /app/template
+COPY ./node_modules /app/node_modules
+COPY ./dist /app
+ENTRYPOINT pm2-docker start ./app.js

@@ -6,5 +6,6 @@ coverage/
 server/static/
 server/upload/
 server/report/
+server/yarn-error.log
 .vscode/
 data/

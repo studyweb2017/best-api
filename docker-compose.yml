@@ -1,38 +1,28 @@
+#  生产环境
 version: "2"
 services:
-  web:
-    build:
-      context: ./web
-      dockerfile: Dockerfile
+  api-web:
+    image: yalishizhude/bestapi-web
     container_name: api-web
-    working_dir: /etc/nginx/
     tty: true
     stdin_open: true
     restart: always
-    ports:
-      - 2017:2017
-    depends_on: 
-      - server
-  server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
+    network_mode: host
+    depends_on:
+      - api-server
+  api-server:
+    image: yalishizhude/bestapi-server
     container_name: api-server
-    working_dir: /app
     tty: true
     stdin_open: true
     restart: always
-    ports:
-      - 2018:2018
+    network_mode: host
     depends_on: 
-      - db
-  db:
+      - api-db
+  api-db:
     image: mongo:3
     container_name: api-db
-    tty: true
-    stdin_open: true
     restart: always
+    network_mode: host
     volumes:
       - ./data:/data
-    ports:
-      - 27001:27017
