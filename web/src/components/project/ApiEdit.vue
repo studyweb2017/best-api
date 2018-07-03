@@ -359,7 +359,6 @@ export default class apiEdit extends Vue {
   height 100%
 .api-add
   padding 20px
-  padding-bottom 80px
   width 100%
 .btn-add-child-param
   top 50%
@@ -373,8 +372,6 @@ export default class apiEdit extends Vue {
 .submit-btns
   z-index 9999
   padding 2px
-  border-top 1px solid #ccc
-  background-color #F9FAFC
 </style>
 
 <style lang="stylus">

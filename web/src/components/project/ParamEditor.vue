@@ -11,7 +11,7 @@ div.param-editor(:id="id")
             el-tag.row-type(v-if="readonly", v-show="'array'===scope.row.type", type="success") {{scope.row.type}}
             el-tag.row-type(v-if="readonly", v-show="'number'===scope.row.type", type="warning") {{scope.row.type}}
             el-tag.row-type(v-if="readonly", v-show="'boolean'===scope.row.type", type="danger") {{scope.row.type}}
-            i.el-icon-document.copy(v-else, title="复制属性", @click="copy(dataList, scope.row)")
+            i.el-icon-document.copy(v-else, v-show="scope.row.id!=='root'", title="复制属性", @click="copy(dataList, scope.row)")
             span.d-ib.icon-node(v-if='scope.row.ancestor.length>0', :class="scope.row.className")
             el-input.d-ib.f-1.param-name(v-if="!readonly", :disabled="scope.row.noName||scope.row.isRoot", v-model='scope.row.name', 
             :class="scope.row.className", size='small', :maxlength=50)
@@ -33,7 +33,7 @@ div.param-editor(:id="id")
           template(slot-scope='scope')
             el-input.property(v-if="!readonly", :title="scope.row.property", type="textarea", :rows="1", :maxlength=1000, v-model='scope.row.property', size='small', @blur="validateProperty")
             span(v-else, :title="scope.row.property") {{scope.row.property}}
-            .schema-hint.p-a.ta-l
+            .schema-hint.p-f.ta-l
               div(v-if="scope.row.type==='array'")
                 el-button(type="text", @click="addProp(scope.row, 'minItems', 1)") minItems 
                 span 数组最小长度
@@ -627,8 +627,9 @@ pre.schema, pre.json
 .schema-hint
   background-color #fff
   display none
-  top 90%
-  padding 0 5px
+  margin-top 35px
+  padding 0 10px
+  width 240px
   z-index 2
   button
     margin-right 2ch

@@ -11,9 +11,8 @@
     "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "test": "yarn run unit",
     "lint": "eslint --ext .js,.vue src test/unit/specs",
-    "proxy": "npm set registry https://registry.npm.taobao.org",
     "init": "yarn install --check-files",
-    "compose": "yarn run proxy && yarn run init && bash"
+    "compose": "yarn run init && bash"
   },
   "dependencies": {
     "ajv": "^5.5.2",
