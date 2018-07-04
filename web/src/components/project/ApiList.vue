@@ -294,9 +294,7 @@ export default class apiList extends Vue {
         cancelButtonText: '取消',
         type: 'warning'
       })
-      await http.delete('/api/module', {
-        name
-      })
+      await http.delete('/api/project/' + this.proId + '/api/module/' + name)
       let idx = 0
       this.apiList.forEach((item: any, index: number) => {
         if (item.name === name) idx = index

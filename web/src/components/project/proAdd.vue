@@ -71,6 +71,13 @@ div.wrap
           el-checkbox.mr-20(v-model='pro.towerInform.updateEnabled') API修改时通知
           el-checkbox.mr-20(v-model='pro.towerInform.deleteEnabled') API删除时通知
           el-checkbox.mr-20(v-model='pro.towerInform.testEnabled') API测试时通知
+      el-form-item.ta-l(label='导入')
+        el-row
+          el-col.mr-20(:span=3)
+            el-select(placeholder="选择或创建模块", filterable, v-model="importModule", allow-create)
+              el-option(v-for="item in modules.moduleList", :key="item", :label="item", :value="item")
+            el-upload.avatar-uploader.ta-l(:headers="imoprtHeaders", action="/api/api/import", :show-file-list="false", :on-success="handleImportSuccess", :before-upload="beforeImport")
+              span.c-blue.cu-p(:span=3) 从postman导入
       div.ta-c
         el-button.mr-50(@click='$router.go(-1)') 返回
         el-button(type='primary', @click='submit()', :loading="submitting") {{submitting?'提交中':'提交'}}
@@ -124,8 +131,16 @@ export default class proAdd extends Vue {
   $router: any
   $confirm: any
   $message: any
+  sure2import: boolean = false
   headers: any = {
     'Authorization': cache.get('token') || ''
+  }
+  get imoprtHeaders() {
+    return {
+      'Authorization': cache.get('token') || '',
+      pid: this.$route.params.proId,
+      module: this.importModule
+    }
   }
   rules: Object = {
     name: rules.name,
@@ -141,6 +156,8 @@ export default class proAdd extends Vue {
   newMember: Member = {id: '', name: ''}
   newMemberRole: string = ''
   editMemberRole: string = ''
+  modules: any = []
+  importModule: string = ''
   async beforeMount() {
     if (this.$route.params.proId) {
       let resp1: any = await http.get('/api/project/' + this.$route.params.proId)
@@ -157,6 +174,7 @@ export default class proAdd extends Vue {
     this.roles = resp2.roleList
     let resp3:any = await http.get('/api/member')
     this.members = resp3.memberList
+    this.modules = await http.get('/api/project/' + this.$route.params.proId + '/api/module')
   }
   get availableMembers() {
     return this.members.filter((m:any) => {
@@ -180,6 +198,20 @@ export default class proAdd extends Vue {
   }
   handleAvatarSuccess(res:any, file:any) {
     this.pro.logo = res.imgUrl
+  }
+  async beforeImport(file:any) {
+    const isJson = file.name.split('.').reverse().shift() === 'json'
+    const isLt200M = file.size / 1024 / 1024 < 200
+    if (!isJson) {
+      this.$message.error('文件只能是JSON格式!')
+    }
+    if (!isLt200M) {
+      this.$message.error('上传文件大小不能超过200MB!')
+    }
+    return isJson && isLt200M
+  }
+  handleImportSuccess(res:any, file:any) {
+    this.$message.info('导入成功')
   }
   addMember() {
     if (this.newMember && this.newMemberRole) {

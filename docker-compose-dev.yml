@@ -10,6 +10,8 @@ services:
     working_dir: /app
     tty: true
     stdin_open: true
+    environment:
+      SERVER_HOST: api-server-dev 
     volumes: 
       - ./web:/app
     ports:
