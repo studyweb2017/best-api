@@ -211,7 +211,7 @@ export default class proAdd extends Vue {
     return isJson && isLt200M
   }
   handleImportSuccess(res:any, file:any) {
-    this.$message.info('导入成功')
+    res.errCode ? this.$message.error(res.message) : this.$message.info('导入成功')
   }
   addMember() {
     if (this.newMember && this.newMemberRole) {

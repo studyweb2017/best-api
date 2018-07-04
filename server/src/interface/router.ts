@@ -9,6 +9,7 @@ export default interfaceRouter.router
   .get('/project/:pid/api/exist', (ctx: any) => interfaceRouter.handle(ctx, interfaceCtrl.isExist(ctx.params.pid, ctx.query.url, ctx.query.method, ctx.user._id, ctx.user.isAdmin)))
   .get('/project/:pid/api/module', (ctx: any) => interfaceRouter.handle(ctx, interfaceCtrl.getModule(ctx.params.pid,ctx.user._id, ctx.user.isAdmin)))
   .del('/project/:pid/api/module/:module', (ctx: any) => interfaceRouter.handle(ctx, interfaceCtrl.deleteModule(ctx.params.pid, ctx.params.module, ctx.user._id, ctx.user.isAdmin, ctx.user.name)))
+  .put('/project/:pid/api/module/:module', (ctx: any) => interfaceRouter.handle(ctx, interfaceCtrl.updateModule(ctx.params.pid, ctx.params.module, ctx.request.fields.name, ctx.user._id, ctx.user.isAdmin, ctx.user.name)))
   .get('/project/:pid/api/:id', (ctx: any) => interfaceRouter.handle(ctx, 
     ctx.query.version ? interfaceCtrl.getHistoryById(ctx.params.pid, ctx.params.id, ctx.query.version, ctx.user._id, ctx.user.isAdmin)
     :interfaceCtrl.getById(ctx.params.pid, ctx.params.id,ctx.user._id, ctx.user.isAdmin)))

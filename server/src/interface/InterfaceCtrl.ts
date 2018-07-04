@@ -367,6 +367,29 @@ export default class InterfaceCtrl extends BaseCtrl {
           })
       })
   }
+  /**
+   * 修改模块名称
+   * @param pid 
+   * @param module 当前模块名称
+   * @param name 新模块名称
+   * @param uid 用户id
+   * @param isAdmin 
+   * @param uname 
+   */
+  updateModule(pid: string, module:string, name: string, uid: string, isAdmin: boolean, uname: string) {
+    return this.verifyAuth(isAdmin, pid, uid, [role.developer, role.master])
+      .switchMap((common: any) => {
+        return Observable.fromPromise(InterfaceModel.updateMany({ pid, module }, { module:name }).exec())
+      })
+  }
+  /**
+   * 删除模块
+   * @param pid 
+   * @param module 
+   * @param uid 
+   * @param isAdmin 
+   * @param uname 
+   */
   deleteModule(pid: string, module: string, uid: string, isAdmin: boolean, uname: string) {
     return this.verifyAuth(isAdmin, pid, uid, [role.developer, role.master])
       .switchMap(() => {
@@ -396,7 +419,8 @@ export default class InterfaceCtrl extends BaseCtrl {
         fs.renameSync(name, name + '.json')
         const file = JSON.parse(fs.readFileSync(name + '.json').toString())
         let list: any[] = []
-        for (let i = 0; i < file.item.length; i++) {
+        const ifcList = file.item.reverse()
+        for (let i = 0; i < ifcList.length; i++) {
           const item = file.item[i]
           const { name } = item
           const description = item.request.description
@@ -414,36 +438,41 @@ export default class InterfaceCtrl extends BaseCtrl {
           const reqHeaderList = item.request.header
           const resHeaderList = item.response.header
           const payload = item.request.body.raw || "{}"
-          const reqDataList = json2list(JSON.parse(payload))
-          const reqDataSchema = list2schema(reqDataList)
           const body = item.response.body || "{}"
-          const resDataList = json2list(JSON.parse(body))
-          const resDataSchema = list2schema(resDataList)
-          let ifc = {
-            pid,
-            url,
-            name,
-            module: module || 'unknown',
-            remark: description,
-            createdTime: new Date(),
-            creator: uname,
-            editor: uname,
-            state: {
-              id: 0,
-              name: '待测试'
-            },
-            method,
-            request: {
-              urlParams,
-              headerList: reqHeaderList,
-              dataSchema: reqDataSchema
-            },
-            response: {
-              headerList: resHeaderList,
-              dataSchema: resDataSchema
+          try {
+            const reqDataList = json2list(JSON.parse(payload))
+            const reqDataSchema = list2schema(reqDataList)
+            const resDataList = json2list(JSON.parse(body))
+            const resDataSchema = list2schema(resDataList)
+            let ifc = {
+              pid,
+              url,
+              name,
+              module: module || 'unknown',
+              remark: description,
+              createdTime: new Date(),
+              creator: uname,
+              editor: uname,
+              state: {
+                id: 0,
+                name: '待测试'
+              },
+              method,
+              request: {
+                urlParams,
+                headerList: reqHeaderList,
+                dataSchema: reqDataSchema
+              },
+              response: {
+                headerList: resHeaderList,
+                dataSchema: resDataSchema
+              }
             }
+            list.push(ifc)
+          } catch(e) {
+            console.error(e)
+            return Observable.of({errCode: 400, message:'解析接口 "'+name+'" 失败!\n' + e})
           }
-          list.push(ifc)
         }
         InterfaceModel.deleteMany(module ? { pid, module } : {pid}).exec()
         return Observable.fromPromise(InterfaceModel.insertMany(list))

@@ -273,9 +273,8 @@ export default class apiList extends Vue {
     let {value} = await this.$prompt('请输入模块名', '修改模块:' + name, {confirmButtonText: '确定', cancelButtonText: '取消'})
     try {
       if (value) {
-        await http.put('/api/module', {
-          name,
-          newName: value
+        await http.put('/api/project/' + this.proId + '/api/module/' + name, {
+          name: value
         })
         this.apiList.forEach((item:any) => {
           if (item.name === name) {
