@@ -11,7 +11,7 @@ div.wrap
         el-button.f-r.btn-edit(:title='loading?"正在生成api文档":"导出api文档"', @click.stop='go("export", pro.id)', :icon='loading?"loading":"upload2"', type='default')
         el-button.f-r.btn-edit(v-if="pro.editable", title='编辑项目', @click.stop='go("edit", pro.id)', icon='edit', type='default')
         el-button.f-r.btn-del(v-if="pro.deletable", title='删除项目', type='defalut', @click.stop.prevent='delPro(pro.id, index)', icon='delete2')
-        img.pro-img.d-b.cl-b.image.cu-p(:src='pro.logo', @click.stop='go("api", pro.id, pro)')
+        img.pro-img.d-b.cl-b.image.cu-p(:src='pro.logo', @click.stop='go("api", pro.id, pro)', onerror="this.src='/static/projectLogo.jpg'")
         h3.pro-name.ov-h.to-e {{pro.name}}
         span.pro-id.d-b.cu-t(title='项目id，用于向mock服务器发送请求，前端开发调试利器', @click.stop.prevent='') {{pro.id}}
 </template>
@@ -19,7 +19,7 @@ div.wrap
 <script lang="ts">
 import Vue from 'vue'
 import Component from 'vue-class-component'
-import http from '../../service/http.ts'
+import http from '../../service/http'
 
 @Component
 export default class proList extends Vue {

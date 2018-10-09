@@ -3,7 +3,7 @@ div.wrap
   el-form.border.v-wrap(ref='pro', :rules='rules', :model='pro', label-position='right', label-width='100px')
       el-form-item(label='项目封面', prop='logo')
         el-upload.avatar-uploader.ta-l(:headers="headers", action="/api/upload/img", :show-file-list="false", :on-success="handleAvatarSuccess", :before-upload="beforeAvatarUpload")
-          img.avatar(v-if="pro.logo", :src="pro.logo")
+          img.avatar(v-if="pro.logo", :src="pro.logo", onerror="this.src='/static/projectLogo.jpg'")
           i.el-icon-plus.avatar-uploader-icon(v-else="")
       el-form-item(label='项目名称', prop='name')
         el-input.w-380(v-model='pro.name', :minlength=2, :maxlength=20, placeholder="2~20个字符", required)
@@ -34,7 +34,7 @@ div.wrap
                   template(slot-scope='scope')
                     span.el-icon-close(v-if='!scope.row.editApi')
                     span.el-icon-check(v-if='scope.row.editApi')
-                el-table-column(prop='editProject', label='编辑项目API', align='center')
+                el-table-column(prop='editProject', label='编辑项目', align='center')
                   template(slot-scope='scope')
                     span.el-icon-close(v-if='!scope.row.editProject')
                     span.el-icon-check(v-if='scope.row.editProject')
@@ -162,6 +162,7 @@ export default class proAdd extends Vue {
     if (this.$route.params.proId) {
       let resp1: any = await http.get('/api/project/' + this.$route.params.proId)
       this.pro = Object.assign(new Project(), resp1)
+      this.modules = await http.get('/api/project/' + this.$route.params.proId + '/api/module')
     } else {
       let user:any = cache.get('user')
       this.pro.members.push({
@@ -174,7 +175,6 @@ export default class proAdd extends Vue {
     this.roles = resp2.roleList
     let resp3:any = await http.get('/api/member')
     this.members = resp3.memberList
-    this.modules = await http.get('/api/project/' + this.$route.params.proId + '/api/module')
   }
   get availableMembers() {
     return this.members.filter((m:any) => {

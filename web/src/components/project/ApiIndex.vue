@@ -1,9 +1,9 @@
 <template lang="pug">
   div.p-a.l-0.r-0.b-0.t-40.d-f.bg-white
-    ApiList(@getHandler="getTreeHandler", ref="apiList", :proId="proId", :clickedId="apiId", @add="addApi", @view="viewApi", @edit="editApi", @delete="deleteApi")
+    ApiList(@getHandler="getTreeHandler", ref="apiList", :proId="proId", :clickedId="apiId", :userRole="userRole", @add="addApi", @view="viewApi", @edit="editApi", @delete="deleteApi")
     ApiEdit.f-1.ov-y-a(v-if="mode==='edit'||mode==='add'", :mode="mode" :proId="proId", :apiId="apiId", :moduleName="moduleName", @updated="apiModified",  @cancel="cancelEdit")
     div.d-f.fd-c.f-1.ov-y-a(v-if="mode==='view'")
-      div.api-detail-wrap.p-r#detail-wrap.ta-l(v-show="btnsVisible")
+      div.api-detail-wrap.p-r#detail-wrap.ta-l(v-show="userRole==='master'||userRole==='developer'")
         el-button(size='small', icon='edit', type='default', @click='editApi(apiId)') 编辑
         el-button(size='small', icon='document', type='default', @click="copy") 复制
         el-button(size='small', icon='menu', type='default', @click="debug") 调试
@@ -11,7 +11,7 @@
         el-select.f-r.mr-10(v-if="comparing", v-model="version", size="small")
           el-option(v-for="version in versionList", :key="version", :label="version", :value="version")
       div.d-f.f-1.p-r
-        ApiView.f-1(ref="viewComp", @loaded="btnsVisible=true", :proId="proId", :apiId="apiId", :compareVersion="version")
+        ApiView.f-1(ref="viewComp", :proId="proId", :apiId="apiId", :compareVersion="version")
         ApiView.f-1(v-if="comparing", :proId="proId", :apiId="apiId", :currentVersion="version")
         i.p-a.cu-p.c-red.close-history.el-icon-close(v-if="comparing", @click="comparing=false", title="关闭")
         ApiDebug.f-1(v-show="debugging", :api="debugApi")
@@ -37,6 +37,7 @@ import ApiDebug from './ApiDebug.vue'
 import Api from './Api'
 import Project from './Project'
 import _ from 'lodash'
+import Cache from '../../service/cache'
 
 let apiService:any = {}
 let projectService:any = {}
@@ -57,11 +58,11 @@ export default class ApiIndex extends Vue {
   $confirm: any
   mode: string = ''
   moduleName: string = ''
+  userRole: any = 'aaa'
   proId: string = ''
   apiId: string = ''
   treeHandler: any
   editorHandler: any
-  btnsVisible: boolean = false
   debugging: boolean = false
   comparing: boolean = false
   debugApi: any = {
@@ -82,11 +83,12 @@ export default class ApiIndex extends Vue {
     name: '',
     visible: false
   }
-  async created() {
+  created() {
     this.proId = this.$route.params.proId
     this.apiId = this.$route.query.id
     apiService = new Api(this.proId)
     projectService = new Project(this.proId)
+    this.getUserProRole()
   }
   debug() {
     let a = this.$refs.viewComp.api
@@ -125,8 +127,14 @@ export default class ApiIndex extends Vue {
     this.apiId = ''
     this.mode = 'add'
   }
+  async getUserProRole() {
+    let proMembers = (await projectService.get(this.proId)).members
+    let userId = Cache.get('user').id
+    let user = proMembers.find((m:any) => m.id === userId)
+    this.userRole = user && user.role || 'null'
+    return this.userRole
+  }
   async viewApi(id: string, name: string, type: string) {
-    this.btnsVisible = false
     this.debugApi = {
       url: '',
       headerList: [],

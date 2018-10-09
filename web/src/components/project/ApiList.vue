@@ -5,7 +5,7 @@
       div.api-operation.ta-r
         i.mr-10.el-icon-caret-right.cu-p.c-gray(title="折叠", @click="fold(true)")
         i.mr-10.el-icon-caret-bottom.cu-p.c-gray(title="展开", @click="fold(false)")
-        i.el-icon-plus.cu-p.c-blue(title="添加模块[alt+m]", @click="addModule")
+        i.el-icon-plus.cu-p.c-blue(title="添加模块[alt+m]", @click="addModule", v-show="role!=='guest'")
       div.api-tree(v-loading="loading")
         el-tree.ta-l.ov-y-a.ov-x-h(v-show='showTree', ref='apiTree', @node-click='selectApi',
         class='filter-tree', :data="apiList", :props='defaultProps', :expand-on-click-node='false',
@@ -18,24 +18,24 @@
 import Vue from 'vue'
 import Component from 'vue-class-component'
 import { Watch, Prop } from 'vue-property-decorator'
-import http from '../../service/http.ts'
-import {formatApiToTree, gId} from '../../service/util.ts'
+import http from '../../service/http'
+import {formatApiToTree, gId} from '../../service/util'
+import Cache from '../../service/cache'
 import hotkeys from 'hotkeys-js'
 import EventDelegate from '../../service/EventDelegate'
 
 @Component
 export default class apiList extends Vue {
-  @Prop()
-  proId: string
-  @Prop()
-  apiId: string
-  @Prop()
-  clickedId: string
+  @Prop() proId: string
+  @Prop() apiId: string
+  @Prop() clickedId: string
+  @Prop() userRole: string
   Mock: any
   $refs: any
   $message: any
   $confirm: any
   $prompt: any
+  role: string = this.userRole
   apiList: any[] = []
   showTree: boolean = true
   visibleWidth: number = 200
@@ -128,14 +128,14 @@ export default class apiList extends Vue {
         class: {
           'node-btns': true
         }
-      }, data.label === 'module' ? [
+      }, __this.role === 'guest' ? [] : (data.label === 'module' ? [
         createBtn('document', '新增API'),
         createBtn('delete', '删除模块'),
         createBtn('edit', '编辑模块')
       ] : [
         createBtn('delete', '删除API'),
         createBtn('edit', '编辑API')
-      ])
+      ]))
     ])
   }
   clickNodeBtn(item: any, icon: string) {
@@ -195,6 +195,10 @@ export default class apiList extends Vue {
     this.loading = false
   }
   created() {
+    // let proMembers = (await projectService.get(this.proId)).members
+    // let username = Cache.get('user').name
+    // this.userRole = proMembers.find((m:any) => m.name === username).role
+    this.userRole = Cache.get('user').role || 'master'
     this.$emit('getHandler', {
       refresh: (clickedId?: string) => this.refreshApiList(clickedId)
     })
