@@ -148,7 +148,7 @@ export default class member extends Vue {
             isAdmin: that.member.isAdmin
           })
         } else if (that.operation === '重置密码') {
-          resp = await http.put('/api/member/' + that.member.id, {
+          resp = await http.put('/api/member/' + that.member.id + '/reset', {
             newPassword: that.member.newPassword
           })
         }
